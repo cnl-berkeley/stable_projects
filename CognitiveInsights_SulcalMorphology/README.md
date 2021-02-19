@@ -7,6 +7,9 @@ Analysis pipeline and associated data for the manuscript Voorhies et al. (2020) 
 - Access the analysis notebook
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/wvoorhies/CognitiveInsights_SulcalMorphology.git/HEAD)
 
+- Access probability maps
+spatial probability maps projected onto the fsaverage space can be found in the probability_maps directory. The code to generate these maps or project them to indivdual surfaces is included in the directory.
+
 ### Dependencies/Requirements ###
 - No downloads are required. Binder will build the enviroment with necessary dependencies to allow the notbook to be run online. 
   - requirements.txt will be used by binder to set up dependencies.
