@@ -8,6 +8,8 @@ Analysis pipeline and associated data for the manuscript Voorhies et al. (2020) 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/wvoorhies/CognitiveInsights_SulcalMorphology.git/HEAD)
 
 - Access probability maps
+
+
 spatial probability maps projected onto the fsaverage space can be found in the probability_maps directory. The code to generate these maps or project them to indivdual surfaces is included in the directory.
 
 ### Dependencies/Requirements ###
