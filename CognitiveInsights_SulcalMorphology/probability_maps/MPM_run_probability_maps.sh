@@ -31,11 +31,6 @@ elif [[ ! -d ${PROB_MAP_DIR} ]]; then
     echo "$PROB_MAP_DIR already exists but is not a directory" 1>&2
 fi
 
-## Activate virtual env with relevant imports
-echo ${SUB_ID}
-cd /home/weiner/bparker/ifrms_HCP;
-source activate /home/weiner/bparker/anaconda3/envs/python3_analysis_plotting;
-unset PYTHONPATH;
 
 for SUB_ID in $SUBJECTS; do
 
@@ -67,13 +62,6 @@ do
       mkdir ${trg_label_dir};
   fi
   
- 
-  # BP: Commented out to remove merge labels; only interested in individual labels
-
-  #mri_mergelabels -i ${src_label_dir}/lh.PROB_MPM_pmfs_p.label -i ${src_label_dir}/lh.PROB_MPM_pmfs_i.label -i ${src_label_dir}/lh.PROB_MPM_pmfs_a.label -o ${src_label_dir}/lh.PROB_MPM_mfs.label
-  #mri_mergelabels -i ${src_label_dir}/rh.PROB_MPM_pmfs_p.label -i ${src_label_dir}/rh.PROB_MPM_pmfs_i.label -i ${src_label_dir}/rh.PROB_MPM_pmfs_a.label -o ${src_label_dir}/rh.PROB_MPM_mfs.label
-  #for label in $labels
-
   
   for LABEL in $LABELS; do
     for filename in "${src_label_dir}/lh.${PROJECT_ID}_PROB_MPM_${LABEL}.label";

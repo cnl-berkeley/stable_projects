@@ -30,9 +30,6 @@ subjects = np.genfromtxt(sys.argv[4], dtype = str)
 project_id = sys.argv[5]
 
 
-
-# determine left out subject based on command line entry and remove from subject list
-left_out_sub_index = np.argwhere(subjects == left_out_sub)
 #subjects = np.delete(subjects, left_out_sub_index)
 
 # Uncomment to review inputs from .sh 
@@ -50,8 +47,6 @@ subjects = np.genfromtxt(sys.argv[7], dtype = str)
 middle_frontal_label_names = np.array(sys.argv[8:])
 
 print('Assembling MPMs for, ', middle_frontal_label_names)
-
-print('held-out subject: {}\n\n\n'.format(left_out_sub))
 print('included subjects: {}\n\n\n'.format(subjects))
 
 
