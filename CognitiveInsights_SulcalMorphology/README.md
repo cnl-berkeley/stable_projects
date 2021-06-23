@@ -23,7 +23,7 @@ Analysis pipeline and associated data for the manuscript Voorhies et al. (2020) 
     - ?_Depth.csv: Sulcal depth and behavioral data in wide format for each sample
     - ? thick.csv : cortical thickness and behavioral data in wide format for each sample
     - Plots: model predictions formatted for visualization are saved as .csv files in this dir for later use/plotting in R etc. 
-    - Data: raw morphological, demographic and behavioral data for download. 
+    - data.zip: raw morphological, demographic and behavioral data for download. 
     
   
 
