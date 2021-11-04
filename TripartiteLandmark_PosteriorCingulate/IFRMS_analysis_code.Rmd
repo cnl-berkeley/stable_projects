@@ -47,8 +47,7 @@ library(psych)
 library(RVAideMemoire)
 library(car)
 library(ggExtra)
-library(lsr)
-library(sjstats)
+library(afex)
 library(emmeans)
 library(rstatix)
 ```
@@ -128,10 +127,10 @@ HCP_count_disc.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(size = 12),
         plot.caption = element_text(size = 12, hjust = 1),
-        axis.title.x = element_text(size=20, face = "bold", vjust = .70),
-        axis.title.y = element_text(size=18, face = "bold"), # size = 20 for production figure
-        axis.text.x = element_text(size = 9, face = "bold", vjust = .70), # size = 20 for production figure
-        axis.text.y = element_text(size = 15, face = "bold"), # size = 20 for production figure
+        axis.title.x = element_text(size=18, face = "bold", vjust = .70), # was 20
+        axis.title.y = element_text(size=18, face = "bold"), # was 20
+        axis.text.x = element_text(size = 10, face = "bold", vjust = .70), # was 20
+        axis.text.y = element_text(size = 10, face = "bold"), # was 20
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         legend.position="bottom", 
@@ -139,11 +138,12 @@ HCP_count_disc.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
         axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) + 
   guides() 
 HCP_count_disc.plot
+
 # ggplot2::ggsave(filename = "sulc_count_disc.png",
 #                 plot = HCP_count_disc.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -167,10 +167,10 @@ HCP_count_rep.plot <- ggplot(HCP_count_rep, aes(x = Sulcus)) +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(size = 12),
         plot.caption = element_text(size = 12, hjust = 1),
-        axis.title.x = element_text(size=20, face = "bold", vjust = .70),
+        axis.title.x = element_text(size=18, face = "bold", vjust = .70),  # was 20
         axis.title.y = element_text(size=18, face = "bold"), # was 20
-        axis.text.x = element_text(size = 9, face = "bold", vjust = .70), # was 20
-        axis.text.y = element_text(size = 15, face = "bold"), # was 20-
+        axis.text.x = element_text(size = 10, face = "bold", vjust = .70), # was 20
+        axis.text.y = element_text(size = 10, face = "bold"), # was 20
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         legend.position="bottom", 
@@ -183,7 +183,7 @@ HCP_count_rep.plot
 #                 plot = HCP_count_rep.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 ```
@@ -208,7 +208,7 @@ HCP_disc_depth_PCC <- subset(HCP_tot_depth, subset = HCP_tot_depth$dataset == "H
 # ANOVA
 discovery_depth2.aov <- aov(sulcal_depth_mm ~ hemi*label, data = HCP_disc_depth_PCC)
 summary(discovery_depth2.aov)
-eta_sq(discovery_depth2.aov)
+rstatix::anova_summary(discovery_depth2.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests 
 disc_depth.m1 <- emmeans::emmeans(discovery_depth2.aov,'label')
@@ -232,7 +232,8 @@ HCP_rep_depth_PCC <- subset(HCP_tot_depth, subset = HCP_tot_depth$dataset == "HC
 # ANOVA
 depth_replication2.aov <- aov(sulcal_depth_mm ~ hemi*label, data = HCP_rep_depth_PCC)
 summary(depth_replication2.aov)
-eta_sq(depth_replication2.aov)
+rstatix::anova_summary(depth_replication2.aov, effect.size = "ges") #Eta-squared
+
 
 # Post hoc tests 
 rep_depth.m1 <- emmeans::emmeans(depth_replication2.aov,'hemi')
@@ -482,7 +483,7 @@ discovery_PCC_analysis <- HCP_tot_analysis %>% subset(dataset=="HCP_discovery")
 # ANOVA
 discovery_ratio_loc.aov <- aov(ratio ~ sulc_type * ant_post * hemi, data = discovery_PCC_analysis)
 summary(discovery_ratio_loc.aov) #p-values
-eta_sq(discovery_ratio_loc.aov) #Eta-squared
+rstatix::anova_summary(discovery_ratio_loc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_ratio.m1 <- emmeans::emmeans(discovery_ratio_loc.aov, ~ sulc_type)
@@ -503,7 +504,7 @@ replication_PCC_analysis <- HCP_tot_analysis %>% subset(dataset=="HCP_replicatio
 # ANOVA
 replication_ratio_loc.aov <- aov(ratio ~ sulc_type * ant_post * hemi, data = replication_PCC_analysis)
 summary(replication_ratio_loc.aov) #p-values
-eta_sq(replication_ratio_loc.aov) #Eta-squared
+rstatix::anova_summary(replication_ratio_loc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_ratio.m1 <- emmeans::emmeans(replication_ratio_loc.aov, ~ sulc_type)
@@ -525,7 +526,7 @@ The effects observed in the discovery sample were confirmed in the replication s
 # ANOVA - cortical thickness
 discovery_ct_alone.aov <- aov(cortical_thickness_mean ~ hemi*label, data = discovery_PCC_analysis)
 summary(discovery_ct_alone.aov) #p-values
-eta_sq(discovery_ct_alone.aov) #Eta-squared
+rstatix::anova_summary(discovery_ct_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
 disc_ct.m1 <- emmeans::emmeans(discovery_ct_alone.aov, ~ label)
@@ -534,7 +535,7 @@ emmeans::contrast(disc_ct.m1, method='pairwise')
 # ANOVA - myelination
 discovery_my_alone.aov <- aov(myelin ~ hemi*label, data = discovery_PCC_analysis)
 summary(discovery_my_alone.aov) #p-values
-eta_sq(discovery_my_alone.aov) #Eta-squared
+rstatix::anova_summary(discovery_my_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_my.m1 <- emmeans::emmeans(discovery_my_alone.aov, ~ label)
@@ -554,7 +555,7 @@ Running separate ANOVAs for cortical thickness and myelination confirmed the C/M
 # ANOVA - cortical thickness
 replication_ct_alone.aov <- aov(cortical_thickness_mean ~ hemi*label, data = replication_PCC_analysis)
 summary(replication_ct_alone.aov) #p-values
-eta_sq(replication_ct_alone.aov) #Eta-squared
+rstatix::anova_summary(replication_ct_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
 rep_ct.m1 <- emmeans::emmeans(replication_ct_alone.aov, ~ label)
@@ -563,16 +564,54 @@ emmeans::contrast(rep_ct.m1, method='pairwise')
 # ANOVA - myelination
 replication_my_alone.aov <- aov(myelin ~ hemi*label, data = replication_PCC_analysis)
 summary(replication_my_alone.aov) #p-values
-eta_sq(replication_my_alone.aov) #Eta-squared
- 
+rstatix::anova_summary(replication_my_alone.aov, effect.size = "ges") #Eta-squared
+
 # Post hoc tests
 rep_my.m1 <- emmeans::emmeans(replication_my_alone.aov, ~ label)
 emmeans::contrast(rep_my.m1, method='pairwise')
 
 rep_my.i1 <- emmeans::emmeans(replication_my_alone.aov, ~ hemi | label)
 emmeans::contrast(rep_my.i1, method='pairwise')
+
 ```
 The findings in the discovery sample are confirmed in the replication sample. 
+
+#### Correlations between the depth of the ifrms and C/M ratio, as well as cortical thickness and myelation
+```{r}
+# Discovery
+cor.d <- merge(discovery_PCC_analysis, HCP_disc_depth_PCC, by = c('sub', 'hemi', 'label', 'dataset'))
+
+test.d.ifrms.lh <- cor.d %>% subset(dataset == "HCP_discovery" & label == "ifrms" & hemi == "lh")
+test.d.ifrms.rh <- cor.d %>% subset(dataset == "HCP_discovery" & label == "ifrms" & hemi == "rh")
+
+## Correlations between ifrms sulcal depth ~ ratio & cortical thickness ~ myelination
+cor.test(x = test.d.ifrms.lh$sulcal_depth_mm, y = test.d.ifrms.lh$ratio) 
+cor.test(x = test.d.ifrms.lh$myelin, y = test.d.ifrms.lh$cortical_thickness_mean) 
+
+## Correlations between ifrms cortical thickness ~ myelination 
+cor.test(x = test.d.ifrms.rh$sulcal_depth_mm, y = test.d.ifrms.rh$ratio) 
+cor.test(x = test.d.ifrms.rh$myelin, y = test.d.ifrms.rh$cortical_thickness_mean) 
+
+# Replication
+cor.r <- merge(replication_PCC_analysis, HCP_rep_depth_PCC, by = c('sub', 'hemi', 'label', 'dataset'))
+
+## Correlations between ifrms sulcal depth ~ ratio 
+test.r.ifrms.lh <- cor.r %>% subset(dataset == "HCP_replication" & label == "ifrms" & hemi == "lh")
+test.r.ifrms.rh <- cor.r %>% subset(dataset == "HCP_replication" & label == "ifrms" & hemi == "rh")
+
+cor.test(x = test.r.ifrms.lh$sulcal_depth_mm, y = test.r.ifrms.lh$ratio) 
+cor.test(x = test.r.ifrms.rh$sulcal_depth_mm, y = test.r.ifrms.rh$ratio) 
+
+## Correlations between ifrms cortical thickness ~ myelination 
+cor.test(x = test.r.ifrms.lh$myelin, y = test.r.ifrms.lh$cortical_thickness_mean) 
+cor.test(x = test.r.ifrms.rh$myelin, y = test.r.ifrms.rh$cortical_thickness_mean)
+
+### FDR correction for multiple comparisons
+p.vales <- c(0.5015, 0.06028, 0.04378, 0.2393, 0.7098, 0.3353, 0.0003473, 0.06233)
+p.adjust(p = p.vales,
+  method = "fdr")
+```
+Only the correlation between depth and ratio in the right hemisphere of the replication sample remained significant. 
 
 #### Figure 3b: C/M ratio of PCC sulci
 ```{r, warning = FALSE}
@@ -744,13 +783,13 @@ ctmy_rh.plot <- ggplot(HCP_tot_analysis_rh, aes(x = label_dataset, fill = label_
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=18, face = "bold", vjust = .9),
-          axis.title.y = element_text(size=18, face = "bold", vjust = .9), # size = 20 for production figure
+          axis.title.y = element_text(size=18, face = "bold", vjust = .9), # was 20
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 11, face = "bold", vjust = .70), # size = 15 for production figure
-          axis.text.y = element_text(size = 11, face = "bold"), # size = 20 for production figure
+          axis.text.x = element_text(size = 11, face = "bold", vjust = .70), # was 15
+          axis.text.y = element_text(size = 11, face = "bold"), # was 20
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
-          strip.text.x = element_text(size = 18, face = "bold"), # size = 20 for production figure
+          strip.text.x = element_text(size = 18, face = "bold"), # was 20
           strip.background = element_blank(),
           strip.placement = "outside",
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) +
@@ -769,7 +808,7 @@ ctmy_rh.plot
 # Functional Analyses
 
 ### Q1: Does the overlap between PCC functional networks differ between the *ifrms* and the *spls*? 
-* 3-way (network x sulcal label x hemi) ANOVA to test for differences in overlap (DICE coefficient; see Methods)
+* 3-way (network x sulcal label x hemi) repeated measures ANOVA to test for differences in overlap (DICE coefficient; see Methods)
 * network: cognitive control (CCN; A,B,C), default mode (DMN; A,B,C)
 * sulcal label: *ifrms*, *spls* 
 * hemi: lh, rh
@@ -778,6 +817,7 @@ ctmy_rh.plot
 ```{r, warning = FALSE}
 # Dataset - all
 networks_dice_ifrms_spls <- read.csv("~/Desktop/RMD_csvs/networks_dice_ifrms_spls.csv")
+networks_dice_ifrms_spls$TRG_sub <- as.factor(networks_dice_ifrms_spls$TRG_sub)
 
 # Discovery dataset
 networks_ifrms_spls_discovery <- networks_dice_ifrms_spls %>% subset(dataset == "HCP_discovery")
@@ -787,15 +827,18 @@ six_networks_ifrms_spls_discovery <- networks_ifrms_spls_discovery %>%
   subset(network_name %in% c('ControlA', 'ControlB','ControlC', 'DefaultA','DefaultB', 'DefaultC')) 
 
 # ANOVA
-network2.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = six_networks_ifrms_spls_discovery)
-summary(network2.aov) #p-values
-eta_sq(network2.aov) #Eta-squared
+network_disc.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name + 
+                           Error(TRG_sub/(hemi*label_name*network_name)), 
+                         data = six_networks_ifrms_spls_discovery)
+
+summary(network_disc.rmaov) #p-values
+rstatix::anova_summary(network_disc.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
-network_aov.i1 <- emmeans::emmeans(network2.aov, ~ label_name | network_name)
+network_aov.i1 <- emmeans::emmeans(network_disc.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov.i1, method='pairwise')
 
-network_aov.i2 <- emmeans::emmeans(network2.aov, ~ hemi | label_name | network_name)
+network_aov.i2 <- emmeans::emmeans(network_disc.rmaov, ~ hemi | label_name | network_name)
 emmeans::contrast(network_aov.i2, method='pairwise')
 ```
 
@@ -813,15 +856,18 @@ six_networks_ifrms_spls_replication <- networks_ifrms_spls_replication %>% subse
                                                               'DefaultA','DefaultB', 'DefaultC'))
 
 # ANOVA
-network2_rep.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = six_networks_ifrms_spls_replication)
-summary(network2_rep.aov) #p-values
-eta_sq(network2_rep.aov) #Eta-squared
+network_rep.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name + 
+                          + Error(TRG_sub/(hemi*label_name*network_name)), 
+                                  data = six_networks_ifrms_spls_replication)
+                        
+summary(network_rep.rmaov) #p-values
+rstatix::anova_summary(network_rep.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
-network_aov_rep.i1 <- emmeans::emmeans(network2_rep.aov, ~ label_name | network_name)
+network_aov_rep.i1 <- emmeans::emmeans(network_rep.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov_rep.i1, method='pairwise')
 
-network_aov_rep.i2 <- emmeans::emmeans(network2_rep.aov, ~ hemi | label_name | network_name)
+network_aov_rep.i2 <- emmeans::emmeans(network_rep.rmaov, ~ hemi | label_name | network_name)
 emmeans::contrast(network_aov_rep.i2, method='pairwise')
 ```
 
@@ -2020,10 +2066,10 @@ In addition to being present every hemisphere in the young adult human sample, t
 # Dataset - used for all comp/dev morphological analyses
 ifrms_compdev_morphology <- read.csv("~/Desktop/RMD_csvs/ifrms_compdev_morphology.csv")
 
-# ANOVA
+# ANOVA 
 comp_norm_depth.aov <- aov(depth_pct_max ~ hemi * group * species, data = ifrms_compdev_morphology)
 summary(comp_norm_depth.aov)
-eta_sq(comp_norm_depth.aov)
+rstatix::anova_summary(comp_norm_depth.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of hemisphere
 ifrms_compdev_morphology %>% group_by(hemi) %>% summarise(mean = mean(depth_pct_max))
@@ -2115,7 +2161,7 @@ comp_depth.plot
 comp_norm_thick.aov<- aov(label_mean_thickness_pct_max ~ hemi * group * species, 
                           data = ifrms_compdev_morphology)
 summary(comp_norm_thick.aov)
-eta_sq(comp_norm_thick.aov)
+rstatix::anova_summary(comp_norm_thick.aov, effect.size = "ges") # Eta-squared
 
 # Main effect of group
 ifrms_compdev_morphology %>% group_by(group) %>% summarise(mean = mean(label_mean_thickness_pct_max))
@@ -2227,7 +2273,7 @@ ifrms_predicts.both <- rbind(pmc_nn_predicts.ifrms, ifrms_cba_predicts.ifrms.avg
 
 # T-test comparing CNN to CBA (mean of lh and rh for each participant)
 t.test(ifrms_predicts.both$dice ~ ifrms_predicts.both$method, paired= T)
-cohens_d(data = ifrms_predicts.both,
+rstatix::cohens_d(data = ifrms_predicts.both,
          formula = dice ~ method, 
          paired= T)
 ```
@@ -2276,8 +2322,8 @@ prediction_comp.plot <- ggplot() +
         plot.caption = element_text(size = 12, hjust = 1),
         axis.title.x = element_text(size=20, face = "bold", vjust = .70),
         axis.title.y = element_text(size=20, face = "bold"),
-        axis.text.x = element_text(size = 16, face = "bold", vjust = .70),
-        axis.text.y = element_text(size = 20, face = "bold"),
+        axis.text.x = element_text(size = 18, face = "bold", vjust = .70),
+        axis.text.y = element_text(size = 18, face = "bold"),
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         strip.text.x = element_text(size = 10),
@@ -2288,8 +2334,8 @@ prediction_comp.plot
 # ggplot2::ggsave(filename = "prediction_comp_plot.png",
 #                 plot = prediction_comp.plot,
 #                 device = "png",
-#                 width = 10,
-#                 height = 5, 
+#                 width = 5,
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -2341,6 +2387,60 @@ prediction_dist.plot
 
 
 # Supplementary Analyses and Figures 
+
+## Confirming the accuracy of algorithmically determined sulcal depth against post-mortem values
+```{r}
+mcgs_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "lh")
+mcgs_comparison.disc.lh <- mcgs_comparison.disc.lh[1:25,]
+mcgs_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "rh")
+mcgs_comparison.disc.rh <- mcgs_comparison.disc.rh[1:25,]
+
+spls_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("spls") & hemi == "lh")
+spls_comparison.disc.lh <- spls_comparison.disc.lh[1:25,]
+spls_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("spls") & hemi == "rh")
+spls_comparison.disc.rh <- spls_comparison.disc.rh[1:25,]
+
+pos_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("pos") & hemi == "lh")
+pos_comparison.disc.lh <- pos_comparison.disc.lh[1:25,]
+pos_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("pos") & hemi == "rh")
+pos_comparison.disc.rh <- pos_comparison.disc.rh[1:25,]
+
+ono_comparison_disc <- rbind(mcgs_comparison.disc.lh, mcgs_comparison.disc.rh, 
+                             spls_comparison.disc.lh, spls_comparison.disc.rh,
+                             pos_comparison.disc.lh, pos_comparison.disc.rh)
+
+mcgs_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "lh")
+mcgs_comparison.rep.lh <- mcgs_comparison.rep.lh[1:25,]
+mcgs_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "rh")
+mcgs_comparison.rep.rh <- mcgs_comparison.rep.rh[1:25,]
+
+spls_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("spls") & hemi == "lh")
+spls_comparison.rep.lh <- spls_comparison.rep.lh[1:25,]
+spls_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("spls") & hemi == "rh")
+spls_comparison.rep.rh <- spls_comparison.rep.rh[1:25,]
+
+pos_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("pos") & hemi == "lh")
+pos_comparison.rep.lh <- pos_comparison.rep.lh[1:25,]
+pos_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("pos") & hemi == "rh")
+pos_comparison.rep.rh <- pos_comparison.rep.rh[1:25,]
+
+ono_comparison_rep <- rbind(mcgs_comparison.rep.lh, mcgs_comparison.rep.rh,
+                            spls_comparison.rep.lh, spls_comparison.rep.rh,
+                            pos_comparison.rep.lh, pos_comparison.rep.rh
+)
+
+ono_comparison_disc %>% subset(label %in% c("pos", "mcgs", "spls")) %>% 
+  group_by(label, hemi) %>% 
+  summarise(
+           range = range(sulcal_depth_mm))
+
+ono_comparison_rep %>% subset(label %in% c("pos", "mcgs", "spls")) %>% 
+  group_by(label, hemi) %>% 
+  summarise(
+           range = range(sulcal_depth_mm)
+           )
+```
+See Supplementary Materials for comparison.
 
 ## Supplementary Figure 2.1: Incidence rates of all 11 sulci
 ```{r, warning = FALSE}
@@ -2433,7 +2533,7 @@ HCP_all_morphology_disc <- HCP_all_morphology %>% subset(dataset == "HCP_discove
 # ANOVA
 all_depth_disc.aov <- aov(sulcal_depth_mm ~ hemi * label, HCP_all_morphology_disc)
 summary(all_depth_disc.aov)
-eta_sq(all_depth_disc.aov)
+rstatix::anova_summary(all_depth_disc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_all_depth.m1 <- emmeans::emmeans(all_depth_disc.aov,'label')
@@ -2454,7 +2554,7 @@ HCP_all_morphology_rep <- HCP_all_morphology %>% subset(dataset == "HCP_replicat
 # ANOVA
 all_depth_rep.aov <- aov(sulcal_depth_mm ~ hemi * label, HCP_all_morphology_rep)
 summary(all_depth_rep.aov)
-eta_sq(all_depth_rep.aov)
+rstatix::anova_summary(all_depth_rep.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_all_depth.m1 <- emmeans::emmeans(all_depth_rep.aov,'label')
@@ -2738,7 +2838,7 @@ all_sulc_depth_repl.plot
 # ANOVA
 all_sa_disc.aov <- aov(total_surface_area_.mm.2. ~ hemi * label, HCP_all_morphology_disc)
 summary(all_sa_disc.aov)
-eta_sq(all_sa_disc.aov)
+rstatix::anova_summary(all_sa_disc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_all_sa.m1 <- emmeans::emmeans(all_depth_disc.aov,'label')
@@ -2755,7 +2855,7 @@ We observed a main effect of sulcus (F(10, 706) = 215.24, p < 0.001,  η2G = 0.7
 # ANOVA
 all_sa_rep.aov <- aov(total_surface_area_.mm.2. ~ hemi * label, HCP_all_morphology_rep)
 summary(all_sa_rep.aov)
-eta_sq(all_sa_rep.aov)
+rstatix::anova_summary(all_sa_rep.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_all_sa.m1 <- emmeans::emmeans(all_sa_rep.aov,'label')
@@ -3324,8 +3424,9 @@ colnames(disc_tert_lh_mat)  <- c("cas", "cgs", "mcgs", "pos",
 rownames(disc_tert_lh_mat) <- c("sspls", "ifrms", "icgs-p")
  
 disc_tert_lh_mat <- as.data.frame(disc_tert_lh_mat)
-disc_tert_lh_mat <- disc_tert_lh_mat %>% select(-c(4:7,10))
+#disc_tert_lh_mat <- disc_tert_lh_mat %>% select(-c(4:7,10))
 disc_tert_lh_mat <- as.matrix(disc_tert_lh_mat)
+disc_tert_lh_mat
 
 # disc rh 
 sspls_rh_disc_2 <-  c(0.22, 0, 0,    0, 0, 0, 0, 0, 0,    0, NA, 0,    0)
@@ -3340,8 +3441,9 @@ colnames(disc_tert_rh_mat)  <- c("cas", "cgs", "mcgs", "pos",
 rownames(disc_tert_rh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 disc_tert_rh_mat <- as.data.frame(disc_tert_rh_mat)
-disc_tert_rh_mat <- disc_tert_rh_mat %>% select(-c(4:7,10))
+#disc_tert_rh_mat <- disc_tert_rh_mat %>% select(-c(4:7,10))
 disc_tert_rh_mat <- as.matrix(disc_tert_rh_mat)
+disc_tert_rh_mat
 
 # rep lh 
 sspls_lh_rep_2 <-  c(0.18, 0, 0,    0, 0, 0, 0, 0,    0.06, 0, NA, 0,    0)
@@ -3356,8 +3458,9 @@ colnames(rep_tert_lh_mat)  <- c("cas", "cgs", "mcgs", "pos", "prculs",
 rownames(rep_tert_lh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 rep_tert_lh_mat <- as.data.frame(rep_tert_lh_mat)
-rep_tert_lh_mat <- rep_tert_lh_mat %>% select(-c(4:7,10))
+#rep_tert_lh_mat <- rep_tert_lh_mat %>% select(-c(4:7,10))
 rep_tert_lh_mat <- as.matrix(rep_tert_lh_mat)
+rep_tert_lh_mat
 
 # rep rh 
 sspls_rh_rep_2 <-  c(0.4, 0,    0,    0, 0, 0, 0, 0, 0.05, 0, NA, 0,    0)
@@ -3371,8 +3474,9 @@ colnames(rep_tert_rh_mat)  <- c("cas", "cgs", "mcgs", "pos", "prculs",
 rownames(rep_tert_rh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 rep_tert_rh_mat <- as.data.frame(rep_tert_rh_mat)
-rep_tert_rh_mat <- rep_tert_rh_mat %>% select(-c(4:7,10))
+#rep_tert_rh_mat <- rep_tert_rh_mat %>% select(-c(4:7,10))
 rep_tert_rh_mat <- as.matrix(rep_tert_rh_mat)
+rep_tert_rh_mat
 
 ## correlations
 ### disc lh ~ rh
@@ -3475,6 +3579,18 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 ```{r, warning = FALSE}
 # Dataset
 HCP_figure3_supplement <- read.csv("~/Desktop/RMD_csvs/HCP_figure3_supplement.csv")
+
+HCP_figure3_supplement.d <- HCP_figure3_supplement %>% subset(dataset == "HCP_discovery")
+cm_ratio_disc.aov <- aov(ratio ~ label * hemi, data = HCP_figure3_supplement.d)
+summary(cm_ratio_disc.aov)
+disc_all_ratio.m1 <- emmeans::emmeans(cm_ratio_disc.aov, ~ label)
+emmeans::contrast(disc_all_ratio.m1, method='pairwise')
+
+HCP_figure3_supplement.r <- HCP_figure3_supplement %>% subset(dataset == "HCP_replication")
+cm_ratio_rep.aov <- aov(ratio ~ label * hemi, data = HCP_figure3_supplement.r)
+summary(cm_ratio_rep.aov)
+rep_all_ratio.m1 <- emmeans::emmeans(cm_ratio_rep.aov, ~ label)
+emmeans::contrast(rep_all_ratio.m1, method='pairwise')
 
 ## LH plot
 HCP_figure3_supplement_lh <- subset(HCP_figure3_supplement, 
@@ -3845,7 +3961,6 @@ col_disc
 
 col_repl=sample(color, 36)
 col_repl
-
 
 ctmy_ind_disc.plot <- HCP_tot_analysis.sup.2 %>% subset(dataset == "HCP_discovery") %>%
 ggplot(aes(x = variable, y = measurement, fill = variable)) + 
@@ -4269,7 +4384,7 @@ all_conn_fp_repl.plot <- ggplot() +
 ```
 
 ## Supplementary Figure 5.4: Three *prcus* connectivity fingerprints
-* 3-way (network x sulcal label x hemi) ANOVA to test for differences in overlap (DICE coefficient; see Methods)
+* 3-way (network x sulcal label x hemi) repeated measures ANOVA to test for differences in overlap (DICE coefficient; see Methods)
 * network: all 17 resting-state functional networks
 * sulcal label: **prcus-p*, *prcus-i*, *prcus-a*
 * hemi: lh, rh
@@ -4280,17 +4395,20 @@ all_conn_fp_repl.plot <- ggplot() +
 ```{r, warning=FALSE}
 # Dataset - all 
 prcus_dice_all <-  read.csv("~/Desktop/RMD_csvs/prcus_dice_all.csv")
+prcus_dice_all$TRG_sub <- as.factor(prcus_dice_all$TRG_sub)
 
 # Discovery dataset
 prcus_dice_disc <- prcus_dice_all %>% subset(dataset == "HCP_discovery")
 
 # ANOVA
-prcus_network.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = prcus_dice_disc)
-summary(prcus_network.aov) #p-values
-eta_sq(prcus_network.aov) #Eta-squared
+prcus_network.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name +
+                           Error(TRG_sub/(hemi*label_name*network_name)), 
+                         data = prcus_dice_disc)
+summary(prcus_network.rmaov) #p-values
+rstatix::anova_summary(prcus_network.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
-network_aov.i1 <- emmeans::emmeans(prcus_network.aov, ~ label_name | network_name)
+network_aov.i1 <- emmeans::emmeans(prcus_network.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov.i1, method='pairwise')
 ```
 
@@ -4542,12 +4660,14 @@ prcusp_conn_fp_disc.plot
 prcus_dice_repl <- prcus_dice_all %>% subset(dataset == "HCP_replication")
 
 # Anova
-prcus_network_rep.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = prcus_dice_repl)
-summary(prcus_network_rep.aov) #p-values
-eta_sq(prcus_network_rep.aov) #Eta-squared
+prcus_network_rep.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name +
+                               Error(TRG_sub/(hemi*label_name*network_name)), 
+                             data = prcus_dice_repl)
+summary(prcus_network_rep.rmaov) #p-values
+rstatix::anova_summary(prcus_network_rep.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
-prcus_network_rep_aov.i1 <- emmeans::emmeans(prcus_network_rep.aov, ~ label_name | network_name)
+prcus_network_rep_aov.i1 <- emmeans::emmeans(prcus_network_rep.rmaov, ~ label_name | network_name)
 emmeans::contrast(prcus_network_rep_aov.i1, method='pairwise')
 ```
 
@@ -4911,13 +5031,13 @@ cor.test(c(as.matrix(adni_tert_lh_mat)), c(as.matrix(adni_tert_rh_mat)))
 cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(nora_tert_lh_mat)))
 
 ## hcpC rh ~ nora rh
-cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(nora_tert_rh_mat)))
+cor.test(c(as.matrix(hcpC_tert_rh_mat)), c(as.matrix(nora_tert_rh_mat)))
 
 ## hcpC lh ~ adni lh
 cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(adni_tert_lh_mat)))
 
 ## hcpC rh ~ adni rh
-cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(adni_tert_rh_mat)))
+cor.test(c(as.matrix(hcpC_tert_rh_mat)), c(as.matrix(adni_tert_rh_mat)))
 
 ## nora lh ~ adni lh
 cor.test(c(as.matrix(nora_tert_lh_mat)), c(as.matrix(adni_tert_lh_mat)))
@@ -5058,7 +5178,7 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 # ANOVA
 comp_raw_depth.aov <- aov(sulcal_depth_mm ~ hemi * group * species, data = ifrms_compdev_morphology)
 summary(comp_raw_depth.aov)
-eta_sq(comp_raw_depth.aov)
+rstatix::anova_summary(comp_raw_depth.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of hemi
 ifrms_compdev_morphology %>% group_by(hemi) %>% summarise(mean = mean(sulcal_depth_mm))
@@ -5149,7 +5269,7 @@ comp_depth_raw.plot
 comp_raw_thick.aov<- aov(cortical_thickness_mean ~ hemi * group * species, 
                           data = ifrms_compdev_morphology)
 summary(comp_raw_thick.aov)
-eta_sq(comp_raw_thick.aov)
+rstatix::anova_summary(comp_raw_thick.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of group
 ifrms_compdev_morphology %>% group_by(group) %>% summarise(mean = mean(cortical_thickness_mean))
@@ -5243,7 +5363,7 @@ development_all_morphology <- read.csv("~/Desktop/RMD_csvs/developmental_all_mor
 # ANOVA
 dev_pmc_depth.aov <- aov(sulcal_depth_mm ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_depth.aov)
-eta_sq(dev_pmc_depth.aov)
+rstatix::anova_summary(dev_pmc_depth.aov, effect.size = "ges") #Eta-squared
 
 dev_pmc_dep.m1 <- emmeans::emmeans(dev_pmc_depth.aov,'label')
 emmeans::contrast(dev_pmc_dep.m1, method='pairwise')
@@ -5375,7 +5495,7 @@ dev_depth.plot
 # ANOVA
 dev_pmc_sa.aov <- aov(total_surface_area_.mm.2. ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_sa.aov)
-eta_sq(dev_pmc_sa.aov)
+rstatix::anova_summary(dev_pmc_sa.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 dev_pmc_sa.m1 <- emmeans::emmeans(dev_pmc_sa.aov,'label')
@@ -5498,7 +5618,7 @@ dev_sa.plot
 # ANOVA
 dev_pmc_ct.aov <- aov(cortical_thickness_mean ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_ct.aov)
-eta_sq(dev_pmc_ct.aov)
+rstatix::anova_summary(dev_pmc_ct.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 dev_pmc_ct.m1 <- emmeans::emmeans(dev_pmc_ct.aov,'label')
@@ -5730,7 +5850,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the *discovery* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the *discovery* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -5813,7 +5933,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the *replication* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the *replication* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6479,7 +6599,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the juvenile sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the juvenile sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6562,7 +6682,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the healhty older adult sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the healhty older adult sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6608,7 +6728,6 @@ tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-1
 
 #gtsave(ADNI_IR_tab, file = "Supp_Table_10_adni_IR.png")
 ```
-
 
 ## Supplementary Table 11: NORA Prcuneal Sulci
 ```{r, warning = FALSE}
@@ -7121,7 +7240,6 @@ tab_source_note(md("*Note.* Surface area values are in squared millimeters. Abbr
 #gtsave(dev_all_morphology_sa_stats.tab, file = "Supp_Table_16_dev_sa_stats.tab.png")
 ```
 
-
 ## Supplementary Table 17: Cortical Thickness of PMC sulci between age groups 
 ```{r, warning = FALSE}
 dev_ct_stats.tab <- dev_ct_stats %>% select(c("label", "group_hemi", "cortical_thickness_mean", "sd")) 
@@ -7194,7 +7312,6 @@ tab_source_note(md("*Note.* Cortical thickness values are in millimeters. Abbrev
 
 #gtsave(dev_ct_stats.tab, file = "Supp_Table_17_dev_ct_stats.tab.png")
 ```
-
 
 ## Supplementary Table 18: ADNI Scanning Parameters 
 ```{r, warning = FALSE}
@@ -7294,3 +7411,4 @@ tab_source_note(html("<i>Note.</i> This table illustrates the different scanning
 
 #gtsave(adni_scanning_tab, file = "Supp_Table_18_ADNI.png")
 ```
+
