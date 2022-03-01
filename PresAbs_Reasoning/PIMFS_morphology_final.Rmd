@@ -1,0 +1,847 @@
+---
+title: Presence or absence of a prefrontal sulcus is linked to reasoning performance
+  during child development
+author: "analyses run by EH Willbrand & WI Voorhies"
+date: '2022'
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+```
+
+```{r, include = FALSE}
+
+# Some useful functions
+
+pvalround <- function(x, digits = 3){
+  if (x < 10^-digits) return(paste('<', 10^-digits))
+  paste('=', myround(x, digits))
+}
+
+```
+#### Libraries
+
+Requirements: packages below must be installed to load. 
+
+```{r packages, include = FALSE}
+library(ggplot2)
+library(tidyverse)
+library(broom)
+library(car)
+library(rstatix)
+library(caret)
+library(cowplot)
+library(readr)
+library(PupillometryR)
+library(MatchIt)
+library(broman)
+
+# set working directory to where csv files are located
+getwd()
+setwd("./RMD_csvs/")
+
+# set themes and options
+options(scipen=999, # 0
+        show.signif.stars = FALSE) 
+
+dodge <- position_dodge(width = .9)
+
+theme_set(theme_classic())
+
+plot_theme <- theme(axis.title.x = element_text(size=16),
+                    axis.title.y = element_text(size=16),
+                    axis.text.x = element_text(size = 14),
+                    axis.text.y = element_text(size = 14),
+                    legend.title = element_text(size=16), 
+                    legend.text = element_text(size=14),
+                    strip.text.x = element_text(size = 14),
+                    strip.placement = "outside",
+                    axis.line = element_line(colour = "black", 
+                                             linetype = "solid", 
+                                             lineend = "round"))
+
+```
+
+#### Data
+
+```{r, include = FALSE}
+
+## incidence rates
+pimfs_IR <- read.csv("./RMD_csvs/pimfs_incidence.csv")
+
+## components analyses
+pimfs_components_test <- read.csv("./RMD_csvs/pimfs_components_analysis.csv")
+
+## surface area
+
+# pimfs SA
+surface_area_analyses <- read.csv("./RMD_csvs/pimfs_surface_area.csv")
+
+# frontal lobe SA
+pfc_sa <- read.csv("./RMD_csvs/frontal_lobe_values.csv")
+
+```
+
+## Morphological comparisons
+
+### Incidence rates of pimfs components 
+1. Does the number of components vary between hemispheres?
+2. Does the number of components vary within hemisphere?
+3. Does component type vary with hemispheres
+
+```{r pimfs incidence rates}
+
+
+# 1.
+lh <- pimfs_IR %>% 
+  filter (hemi =='lh')
+lh_chi <- chisq.test(table(lh$num_components))
+rh <- pimfs_IR %>% 
+  filter (hemi =='rh')
+rh_chi <- chisq.test(table(rh$num_components))
+
+
+# 2.
+
+lh_rh_fe <- fisher.test(pimfs_IR$hemi, pimfs_IR$num_components)
+
+
+# 3.
+lh_component <- pimfs_IR %>% subset(component_type %in% c("d","v") & hemi == "lh")
+rh_component <- pimfs_IR %>% subset(component_type %in% c("d","v") & hemi == "rh")
+
+
+lh_d_v <- chisq.test(table(lh_component$component_type))
+rh_d_v <- chisq.test(table(rh_component$component_type))
+
+```
+
+Sulci were manually identified as component(s) of the pimfs in each hemisphere according to previous work (Fig 1A; Supplementary Fig. 1; (Amiez and Petrides, 2007; Petrides, 2019; Voorhies et al., 2021). We confirmed our prior observation that the pimfs was highly variable (Fig. 1B): in a given hemisphere, there could be zero, (left = 2.78% of participants; right = 8.33%), one  (left: 22.22%; right: 25%), or two components (left: 75%; right: 66.67%; left: $\chi^2$ = `r round(lh_chi$statistic, 2)`, df = 2, *p* `r pvalround(lh_chi$p.value) ` right: $\chi^2$ = `r round(rh_chi$statistic, 2)`, df = 2, *p* `r pvalround(rh_chi$p.value) `); no hemispheric asymmetry: *p* = `r pvalround(lh_rh_fe$p.value)`. Based on published criteria (Petrides, 2013), we further defined pimfs components as either dorsal (pimfs-d) or ventral (pimfs-v) and assessed the prevalence of each component (Fig. 1B). Numerically, a single dorsal component was more frequent than a single ventral one, but statistically these profiles were equally frequent ($\chi^2$ ≥ .89, p > .30 for both hemispheres).
+
+
+```{r pimfs incidence rates plot}
+pimfs_IR$groups_for_plot <- factor(pimfs_IR$groups_for_plot, 
+                                         levels = c("none", "ventral only", "dorsal only", "two"))
+
+# generate incidence rate plot
+pimfs_IR.plot <- pimfs_IR %>%
+  ggplot(aes(x = hemi, fill = groups_for_plot)) + 
+  
+  # set bar and colors
+  geom_bar(color = 'black') + 
+  scale_fill_manual(breaks = c("none", "ventral only", "dorsal only", "two"),
+                    values = c("#cccccc", "#fecc5c", "#fd8d3c", "#f03b20")
+                    ) +
+  
+  # set labels
+  labs(x = "hemisphere",
+       y = "number of participants",
+       fill = "# components") +
+  
+  # set theme customization
+  plot_theme +
+  
+  # set axis scale
+  scale_y_continuous(breaks = c(0, 8, 16, 24, 32, 40, 48, 56, 64, 72), 
+                     limits = c(0,72)) +
+  scale_x_discrete(labels = c('left','right'))
+
+# view 
+pimfs_IR.plot
+
+```
+
+
+## Number of components and Behavior
+
+### model 1: Number of components
+### Does the number of the pimfs components relate to reasoning scores? 
+- 2-way ANCOVA controlling for assessment age
+- DV: relational reasoning score = *MatrixR*
+- IV1: number of pimfs components in left hemisphere (two/<two) = *num_comp_lh*
+- IV2: number of pimfs components in right hemisphere (two/<two) = *num_comp_rh*
+- covariate: Assessment Age = *AssessmentAge*
+
+```{r num comp test, include = FALSE}
+# check assumptions
+
+pimfs_components_test %>% summarise(mean = mean(MatrixR),
+                                    sd = sd(MatrixR))
+
+# covariates for predictors
+t.test(MatrixR ~ Sex, pimfs_components_test) # p = .65
+tbl.lh <- table(pimfs_components_test$Sex, pimfs_components_test$num_comp_lh)
+chisq.test(tbl.lh) # p = .27
+tbl.rh <- table(pimfs_components_test$Sex, pimfs_components_test$num_comp_rh)
+chisq.test(tbl.rh) # p = .8
+
+t.test(AssessmentAge~num_comp_lh, pimfs_components_test) # p = .06
+t.test(AssessmentAge~num_comp_rh, pimfs_components_test) # p = .31
+```
+
+```{r}
+# model
+num_comp.model <- lm(MatrixR ~ num_comp_lh * num_comp_rh + AssessmentAge, 
+                     data = pimfs_components_test)
+num_comp.aov <- Anova(num_comp.model, type = "III")
+num_comp_summary <- rstatix::anova_summary(num_comp.aov)
+num_comp_summary
+```
+
+```{r}
+# post hoc 
+pimfs_components_summary.lh <- pimfs_components_test %>% group_by(num_comp_lh) %>% summarise(mean = mean(MatrixR),
+                                                              sd = sd(MatrixR),
+                                                              )
+
+pimfs_components_summary.rh <- pimfs_components_test %>% group_by(num_comp_rh) %>% summarise(mean = mean(MatrixR),
+                                                              sd = sd(MatrixR),
+                                                             max = max(MatrixR))
+```
+
+An analysis of covariance (ANCOVA; including age as a covariate) found that the number of pimfs components in left ( $F(1,67) =$ `r num_comp_summary$F[1]`, *p*`r pvalround(num_comp_summary$p[1])`, $\eta^2_G$ = `r round(num_comp_summary$ges[1],2)`), but not right ($F(1,67) =$ `r num_comp_summary$F[2]`, *p*`r pvalround(num_comp_summary$p[2])`, $\eta^2_G$ = `r round(num_comp_summary$ges[2],2)`), hemisphere was related to reasoning performance. Specifically, individuals with two pimfs components in their left hemisphere performed better (mean±std = 26.80 ± 5.21) compared to those with 0 or 1 component (mean±std = 22.22 ± 7.04; Fig. 2A, right)
+
+```{r num comp test plot}
+
+## visual model findings
+
+## reshape for visualization
+pimfs_components_test.comp_plt.lh <- pimfs_components_test %>% select(c("sub", "MatrixR", "num_comp_lh"))
+pimfs_components_test.comp_plt.rh <- pimfs_components_test %>% select(c("sub", "MatrixR", "num_comp_rh"))
+
+# subset by hemi 
+pimfs_components_test.comp_plt.lh$hemi <- "lh"
+pimfs_components_test.comp_plt.lh <- pimfs_components_test.comp_plt.lh %>% rename(num_comp = num_comp_lh)
+
+pimfs_components_test.comp_plt.rh$hemi <- "rh"
+pimfs_components_test.comp_plt.rh <- pimfs_components_test.comp_plt.rh %>% rename(num_comp = num_comp_rh)
+
+pimfs_components_test.comp_plt <- rbind(pimfs_components_test.comp_plt.lh, pimfs_components_test.comp_plt.rh)
+
+## plot
+
+# compute mean and sd for Matrix R and hemi
+pimfs_components.test.stats <- pimfs_components_test.comp_plt %>% 
+  group_by(hemi, num_comp) %>% 
+  summarise(
+    mean = mean(MatrixR),
+    sd = sd(MatrixR), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# Generate plot 
+pimfs_components_test.comp.plot <- pimfs_components_test.comp_plt %>% 
+  ggplot(aes(x = num_comp, y = MatrixR, fill = num_comp)) +
+  
+  # view distribution as violin
+  geom_flat_violin(aes(fill = num_comp),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # view individual data points
+  geom_point(aes(x = num_comp, y = MatrixR, fill = num_comp),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # include summary stats
+  geom_pointrange(data = pimfs_components.test.stats, 
+                  aes(num_comp, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      fill = num_comp), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1,
+                  shape = 21, 
+                  size = 1) +
+  
+  # separate by hemisphere
+  facet_wrap(~hemi) +
+  
+  # set scale
+  scale_y_continuous(breaks = c(0,6,12,18,24,30,36), 
+                     limits = c(0,36)) + 
+  scale_x_discrete(labels = c("< two", "two")) + 
+    scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+    plot_theme +
+  # custom axis labels
+  labs(x = "number of pimfs components", 
+       y = "matrix reasoning score")
+
+# View
+pimfs_components_test.comp.plot
+
+```
+
+
+### model 2 (behavioral analysis)
+### Does the presence of the dorsal and/or ventral component of the pimfs components relate to reasoning scores? 
+- 4-way ANCOVA controlling for assessment age
+- DV: relational reasoning score = *MatrixR*
+- IV1: presence of ventral component in left hemisphere (yes/no) = *ventral_lh*
+- IV2: number of ventral component in right hemisphere (yes/no) = *ventral_rh*
+- IV3: presence of dorsal component in left hemisphere (yes/no) = *dorsal_lh*
+- IV4: number of dorsal component in right hemisphere (yes/no) = *dorsal_rh*
+- covariate: Assessment Age = *AssessmentAge*
+
+```{r ventral comp test}
+
+# model
+
+## note: leaving out interactions as not feasible with sample size distributions
+specific_comp.model <- lm(MatrixR ~  ventral_lh + ventral_rh + dorsal_lh + dorsal_rh +
+                            AssessmentAge, 
+                     data = pimfs_components_test)
+
+specific_comp.aov <- Anova(specific_comp.model, type = "III")
+
+which_comp_summary <- rstatix::anova_summary(specific_comp.aov) # main effect of ventral_lh; p = .027, ges = .07
+which_comp_summary
+
+## check model assumptions
+# Look at covariates for predictors
+ventral_lh_ttest <- t.test(AssessmentAge ~ ventral_lh, pimfs_components_test) # p = .23
+ventral_rh_ttest <- t.test(AssessmentAge ~ ventral_rh, pimfs_components_test) # p = .45
+dorsal_lh_ttest <- t.test(AssessmentAge ~ dorsal_lh, pimfs_components_test) # p = .02
+dorsal_rh_ttest <- t.test(AssessmentAge ~ dorsal_rh, pimfs_components_test) # p = .48
+
+# Check covariance
+vif <- vif(specific_comp.model)
+```
+
+```{r}
+# post hoc
+ventral_lh <- pimfs_components_test %>% group_by(ventral_lh) %>% summarise(mean = mean(MatrixR),sd = sd(MatrixR))
+
+ventral_rh <-pimfs_components_test %>% group_by(ventral_rh) %>% summarise(mean = mean(MatrixR),sd = sd(MatrixR))
+```
+
+A second ANCOVA (including age as a covariate) examining the contribution of individual pimfs components to reasoning found the presence the left hemisphere pimfs-v was particularly relevant for reasoning performance across participants. ($F(1,67) =$ `r which_comp_summary$F[1]`, *p*`r pvalround(which_comp_summary$p[1])`, $\eta^2_G$ = `r round(which_comp_summary$ges[1],2)`), such that those with a left pimfs-v scored better (mean±std = 26.48 ± 5.33) than those without (mean±std = 21.5 ± 7.65; Supplementary Fig. 2) There were no other effects (*p*s > .25). 
+
+Although the presence of a left dorsal component significantly related to *Assessment Age* (*p*`r pvalround(dorsal_lh_ttest$p.value)`), this moderate collinearity not affect the model results (vif < 5). *Assessment Age* did not relate to any other predictor (*p*s > .20).
+
+```{r ventral comp plot}
+## Reshape for visualization
+pimfs_components_test.ventral_plt.lh <- pimfs_components_test %>% select(c("sub", "AssessmentAge", "MatrixR", "ventral_lh"))
+pimfs_components_test.ventral_plt.rh <- pimfs_components_test %>% select(c("sub", "AssessmentAge", "MatrixR", "ventral_rh"))
+
+# subset by hemi
+pimfs_components_test.ventral_plt.lh$hemi <- "lh"
+pimfs_components_test.ventral_plt.lh <- pimfs_components_test.ventral_plt.lh %>% rename(ventral_pres = ventral_lh)
+
+pimfs_components_test.ventral_plt.rh$hemi <- "rh"
+pimfs_components_test.ventral_plt.rh <- pimfs_components_test.ventral_plt.rh %>% rename(ventral_pres = ventral_rh)
+
+pimfs_components_test.ventral_plt <- rbind(pimfs_components_test.ventral_plt.lh, pimfs_components_test.ventral_plt.rh)
+
+## Visualize 
+
+# summary stats
+pimfs_components.ventral.stats <- pimfs_components_test.ventral_plt %>% 
+  group_by(hemi, ventral_pres) %>% 
+  summarise(
+    mean = mean(MatrixR),
+    sd = sd(MatrixR), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# plot
+pimfs_components_test.ventral.plot <- pimfs_components_test.ventral_plt %>% 
+  ggplot(aes(x = ventral_pres, y = MatrixR, fill = ventral_pres)) +
+  
+  # Distribution as violin
+  geom_flat_violin(aes(),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # view individual data points
+  geom_point(aes(x = ventral_pres, y = MatrixR),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # include summary stats
+  geom_pointrange(data = pimfs_components.ventral.stats, 
+                  aes(ventral_pres, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      ), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1.25,
+                  shape = 21, 
+                  size = 1) + 
+  
+  # separate by hemi
+  facet_wrap(~hemi) +
+  
+  # set scales 
+  scale_y_continuous(breaks = c(0,6,12,18,24,30,36), 
+                     limits = c(0,36)) + 
+  scale_x_discrete(labels = c("absent", "present")) + 
+  scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+  plot_theme +
+  
+  # custom axis labels
+  labs(x = "presence of pimfs-v", 
+       y = "matrix reasoning score")
+
+
+# View
+pimfs_components_test.ventral.plot
+
+```
+
+
+### Control analyses 
+Consider whether the same effects are present for alternate DV metrics. Specifically working memory and processing speed. 
+
+#### Cross out
+```{r crossout behavior analyses}
+
+# Cross out model
+control_comp.model <- lm(CrossoutRawScore ~ ventral_lh + 
+                            AssessmentAge, 
+                     data = pimfs_components_test)
+
+control_comp.aov <- Anova(control_comp.model, type = "III")
+rstatix::anova_summary(control_comp.aov)
+```
+
+#### Digit forwards
+
+```{r}
+# Digit forwards model
+
+# remove missing data
+pimfs_components_test.control.drop <- pimfs_components_test %>% select(-"CrossoutRawScore") %>% drop_na()
+
+control_comp.model2 <- lm(DigitForwardsRawScore ~  ventral_lh +
+                            AssessmentAge, 
+                     data = pimfs_components_test.control.drop)
+control_comp.aov2 <- Anova(control_comp.model2, type = "III")
+
+rstatix::anova_summary(control_comp.aov2)
+```
+
+#### Digit backwards
+```{r}
+# Digit backwards model
+
+control_comp.model3 <- lm(DigitBackwardsRawScore ~  ventral_lh + 
+                            AssessmentAge, 
+                     data = pimfs_components_test.control.drop)
+control_comp.aov3 <- Anova(control_comp.model3, type = "III")
+
+rstatix::anova_summary(control_comp.aov3)
+```
+
+Follow-up analyses with additional behavioral measures revealed that the presence of the left pimfs-v was not related to processing speed or phonological working memory (digit span forwards and backward; all *p*s > 0.5), suggesting some degree of specificity in this brain-behavior relation. 
+
+
+### Matching on age. 
+
+```{r matching}
+
+age_diff <- pimfs_components_test %>% group_by(ventral_lh) %>% summarise(median = median(AssessmentAge),
+                                                             sd = sd(AssessmentAge))
+age_diff
+
+# match
+pimfs_components_test.m <- pimfs_components_test %>% mutate(match_grp = case_when(ventral_lh == "yes_ventral" ~ 0,
+                                                                                   ventral_lh == "no_ventral" ~ 1))
+m.variable <- matchit(match_grp ~ AssessmentAge, data = pimfs_components_test.m,
+                      method = "nearest",
+                      distance = "glm",
+                      ratio = 3,
+                      max.controls = 5,
+                      min.controls = 1)
+
+```
+
+#### original data
+
+```{r}
+summary<-summary(m.variable)
+
+summary$sum.all
+```
+
+#### Matched data
+
+```{r}
+summary<-summary(m.variable)
+
+summary$sum.matched
+```
+
+#### run weighted regression model on matched data
+
+```{r}
+# run model
+m.data <- match.data(m.variable, data = pimfs_components_test.m)
+
+model <- lm(MatrixR ~ ventral_lh + AssessmentAge, 
+            data = m.data,
+            weights = m.data$weights)
+
+sum_model<- summary(model)
+sum_model
+```
+
+#### A model with just age on matched data
+
+```{r}
+model.age <- lm(MatrixR ~ AssessmentAge, 
+            data = m.data,
+            weights = m.data$weights)
+
+sum_age<- summary(model.age)
+sum_age
+```
+
+#### compare nested models
+
+```{r}
+anova(model.age, model)
+```
+
+#### Visualize matched results
+
+```{r}
+### plot
+
+# subset by hemi
+m.data.lh <- m.data %>% select(c("sub","AssessmentAge", "MatrixR", "ventral_lh"))
+m.data.rh <- m.data %>% select(c("sub","AssessmentAge", "MatrixR", "ventral_rh"))
+
+m.data.lh$hemi <- "lh"
+m.data.lh <- m.data.lh %>% rename(ventral_pres = ventral_lh)
+
+m.data.rh$hemi <- "rh"
+m.data.rh <- m.data.rh %>% rename(ventral_pres = ventral_rh)
+
+m.data.plot <- rbind(m.data.lh, m.data.rh)
+
+# compute summary stats
+pimfs_components.ventral.stats2 <- m.data.plot %>% 
+  group_by(hemi, ventral_pres) %>% 
+  summarise(
+    mean = mean(MatrixR),
+    sd = sd(MatrixR), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# visualize
+
+pimfs_components_test.ventral.plot2 <- m.data.plot %>% 
+  ggplot(aes(x = ventral_pres, y = MatrixR, fill = ventral_pres)) +
+  
+  # distribution of data
+  geom_flat_violin(aes(),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # individual data points
+  geom_point(aes(x = ventral_pres, y = MatrixR),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # summary stats
+  geom_pointrange(data = pimfs_components.ventral.stats2, 
+                  aes(ventral_pres, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      ), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1.25,
+                  shape = 21, 
+                  size = 1) + 
+  
+  # subset hemis
+  facet_wrap(~hemi) +
+  
+  # set scales 
+  scale_y_continuous(breaks = c(0,6,12,18,24,30,36), 
+                     limits = c(0,36)) + 
+  
+  scale_x_discrete(labels = c("absent", "present")) + 
+  scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+  plot_theme +
+  
+  # custom labels
+  labs(x = "presence of pimfs-v", 
+       y = "matrix reasoning score")
+
+# view
+pimfs_components_test.ventral.plot2
+```
+ 
+
+Due to differences in the sample size and age distribution of the two groups (median(sd)present  = `r age_diff$median[2]`(`r round(age_diff$sd[2],2)`) , median(sd)absent = `r round(age_diff$median[1], 2)`(`r round(age_diff$sd[1],2)`))), we sought to further confirm the effect of presence/absence of the left pimfs-v on reasoning performance. To this end, we employed variable ratio matching (Materials and Methods) to create an age-matched sample that consisted of the original 12 participants without a left pimfs-v and the 36 age-matched participants with a left pimfs-v (mean age = 10.66). A weighted regression in the matched sample with left pimfs-v presence and age as predictors of reasoning revealed that the presence of the left pimfs-v remained significant (ß = `r round(model$coefficients[["ventral_lhyes_ventral"]], 2)`, *t* = 2.61, *p* = .012; Fig. 2A, right). Critically, this model explained significantly more variance than a model with age alone in the same sample (pimfs: adjusted $R^2$=`r round(sum_model$adj.r.squared, 2)`, *p* < .001; age: adjusted $R^2$ = `r round(sum_age$adj.r.squared, 2)`, *p*<.001; model comparison: *p*=.012). 
+
+## Surface area and Behavior 
+
+### model 3 (behavioral analysis)
+### Does the surface area of the overall pimfs relate to reasoning scores?
+- multiple linear model controlling for assessment age
+- DV: relational reasoning score = *MatrixR*
+- IV1: surface area of pimfs in left hemisphere = *pimfs_sa_lh*
+  - two components -> combine surface area of each
+- IV2: surface area of pimfs in right hemisphere = *pimfs_sa_rh*
+- control: Assessment Age = *AssessmentAge*
+
+
+```{r}
+
+# model
+
+surface_area.model <- lm(MatrixR ~ pimfs_sa_lh * pimfs_sa_rh + AssessmentAge,
+                         data = surface_area_analyses)
+
+summary(surface_area.model)
+```
+
+
+```{r surface area analyses, include = FALSE}
+
+# contingencies for predictors
+## Sex
+t.test(pimfs_sa_lh ~ Sex, data = surface_area_analyses) # p = .16
+t.test(pimfs_sa_rh ~ Sex, surface_area_analyses) # p = .77
+
+## Age
+cor.test(surface_area_analyses$AssessmentAge, surface_area_analyses$pimfs_sa_lh) # p = .042
+cor.test(surface_area_analyses$AssessmentAge, surface_area_analyses$pimfs_sa_rh) # p = .09
+
+## Hemisphere
+cor.test(surface_area_analyses$pimfs_sa_lh, surface_area_analyses$pimfs_sa_rh) # p = .15
+
+## raw corr
+cor.test(surface_area_analyses$pimfs_sa_lh, surface_area_analyses$MatrixR) # r = .33
+cor.test(surface_area_analyses$AssessmentAge, surface_area_analyses$MatrixR) # r = .68
+
+## Seeing if moderate colinearity between age and left pimfs SA affects the lm
+vif_sa <- vif(surface_area.model)
+```
+
+
+#### Partial $R^2$
+
+```{r, include = TRUE, echo = TRUE}
+# partial r for pimfs_sa_lh
+nested_lm <- lm(MatrixR ~ pimfs_sa_rh + pimfs_sa_lh:pimfs_sa_rh + AssessmentAge,
+                         data = surface_area_analyses)
+# get summary of models
+sum_sa_lm <- anova(surface_area.model)
+sum_nested_lm <- anova(nested_lm)
+
+# compute partial R^2
+R2_partial<- (sum_nested_lm["Residuals", "Sum Sq"] - sum_sa_lm["Residuals", "Sum Sq"])/sum_nested_lm["Residuals", "Sum Sq"]
+
+r_partial <- sqrt(R2_partial) 
+# R^2 partial = .08 --> r = .28
+
+```
+
+$R^2$ partial = `r R2_partial` --> r partial = `r r_partial`
+
+
+#### age alone
+
+```{r}
+## model comparison to age alone
+sa_model.age_alone <- lm(MatrixR ~ AssessmentAge,
+            data = surface_area_analyses)
+summary(sa_model.age_alone)
+```
+
+#### model comparison
+
+```{r}
+anova(sa_model.age_alone, surface_area.model) # p = .071
+```
+
+### Perform the same analysis using cross-validation techniques
+
+Utitlize two cross-validation methodologies.
+
+#### 5-fold
+
+```{r}
+# 5-fold CV repeat 10 X
+Kfold <- trainControl(method = "repeatedcv",
+                              number = 5,
+                              repeats = 10,
+                              savePredictions=TRUE)
+
+# Train the model
+set.seed(1)
+model_kfold <- train(MatrixR ~ pimfs_sa_lh * pimfs_sa_rh + AssessmentAge,
+                data = surface_area_analyses,
+                method = "lm",
+                trControl = Kfold)
+print(model_kfold)
+#RMSE 4.334325
+```
+
+#### age alone
+
+```{r}
+set.seed(1)
+model_kfold.age <- train(MatrixR ~ AssessmentAge,
+                data = surface_area_analyses,
+                method = "lm",
+                trControl = Kfold)
+print(model_kfold.age)
+#RMSE 4.404334
+
+```
+
+#### LOOCV
+
+```{r}
+## cross validation ##
+## 
+## LOOCV
+loocv <- trainControl(method = "LOOCV")
+# Train the model
+model_loocv <- train(MatrixR ~ pimfs_sa_lh * pimfs_sa_rh  + AssessmentAge,
+               data = surface_area_analyses,
+               method = "lm",
+               trControl = loocv)
+# Summarize the results
+print(model_loocv)
+#RMSE 4.452396
+```
+
+#### age alone
+
+```{r}
+model_loocv.age <- train(MatrixR ~ AssessmentAge,
+                data = surface_area_analyses,
+                method = "lm",
+                trControl = loocv)
+print(model_loocv.age)
+#RMSE 4.506687
+```
+
+#### repeate analysis with surface area values normed by total frontal surface area
+The prefrontal cortex has been reported to increase in total surface area with age so we repeat the same analysis with sulcal surface area values normed by total prefrontal lobe SA. 
+
+```{r, include = FALSE}
+
+# subset by hemi
+pfc_sa <- pfc_sa %>% select("sub","hemi","total_surface_area_.mm.2.")
+pfc_sa.lh <- pfc_sa %>% subset(hemi == "lh") %>% rename(lh_pfc_sa = total_surface_area_.mm.2.) %>% select(-c("hemi"))
+pfc_sa.rh <- pfc_sa %>% subset(hemi == "rh") %>% rename(rh_pfc_sa = total_surface_area_.mm.2.) %>% select(-c("hemi"))
+
+
+# combine data into one dataframe
+
+surface_area_analyses_norm <- merge(surface_area_analyses, pfc_sa.lh, by = "sub")
+surface_area_analyses_norm <- merge(surface_area_analyses_norm, pfc_sa.rh, by = "sub")
+
+surface_area_analyses_norm <- surface_area_analyses_norm %>% mutate(
+                                                                pimfs_sa_normed_lh = pimfs_sa_lh/lh_pfc_sa,
+                                                                pimfs_sa_normed_rh = pimfs_sa_rh/rh_pfc_sa)
+
+```
+
+```{r}
+# model
+surface_area_normie.model <- lm(MatrixR ~ pimfs_sa_normed_lh * pimfs_sa_normed_rh + AssessmentAge,
+               data = surface_area_analyses_norm)
+
+summary(surface_area_normie.model) # weakened after controlling for pfc SA (p = .075)
+```
+
+Despite there being a correlation between assessment age and pimfs surface area in the left hemisphere, this moderate collinearity does not affect the model (vif < 5).
+
+The multiple linear regression revealed that the three predictors accounted for 49% of the variance in the matrix reasoning scores, $F(4,67)=$ 17.98, *p* < .0001, adjusted $R^2$ = .49. Importantly, the *MatrixR* score was associated with the *surface area of the left pimfs* ($\beta =$ `r round(surface_area.model$coefficients[2], 3)`, *t* = 2.35, *p* = .022) and *Assessment Age* ($\beta =$ `r round(surface_area.model$coefficients[4], 2)`, *t* = 6.87, *p* < .0001), but not the *surface area of the right pimfs* ($\beta =$ `r round(surface_area.model$coefficients[3], 3)`, *t* = 1.85, *p* = .068).
+
+A repeated K-fold (5 fold, 10 repeats) and leave-one-out cross-validation (looCV) confirmed the predictiveness of the pimfs model (5-fold: $R^2$ = `r round(model_kfold$results[,3], 2)`, $RMSE$ = `r round(model_kfold$results[,2], 2)`; looCV: $R^2$ = `r round(model_loocv$results[,3], 2)`, $RMSE$ = `r round(model_loocv$results[,2], 2)`), which was only slightly better than age alone (5-fold: $R^2$ = `r round(model_kfold.age$results[,3], 2)`, $RMSE$ = `r round(model_kfold.age$results[,2], 2)`; looCV: $R^2$ = `r round(model_loocv.age$results[,3], 2)`, $RMSE$ = `r round(model_loocv.age$results[,2], 2)`). Thus, the presence or absence of pimfs-v may be more directly related to reasoning than overall surface area.
+
+Normalizing by PFC surface area weakened this effect (SA left pimfs: *p* = .75).
+
+
+```{r surface area plot}
+
+## reshape for visualization
+# setup 1: wide --> long
+pimfs_sa.lh <- surface_area_analyses %>% 
+  select("sub", "AssessmentAge", "MatrixR", "pimfs_sa_lh")
+pimfs_sa.rh <- surface_area_analyses %>% 
+  select("sub", "AssessmentAge", "MatrixR", "pimfs_sa_rh")
+
+pimfs_sa.lh <- pimfs_sa.lh %>% rename(
+  pimfs_sa = pimfs_sa_lh
+)
+pimfs_sa.lh$hemi <- "lh"
+
+pimfs_sa.rh <- pimfs_sa.rh %>% rename(
+  pimfs_sa = pimfs_sa_rh
+)
+pimfs_sa.rh$hemi <- "rh"
+
+pimfs_sa.plt <- rbind(pimfs_sa.lh, pimfs_sa.rh)
+
+# setup 2: combine with component df
+pimfs_sa.plt_final <- merge(pimfs_sa.plt, pimfs_components_test.comp_plt, 
+                            by = c("sub", "hemi", "MatrixR"))
+
+
+# # plot
+pimfs_sa.plot <- pimfs_sa.plt_final %>% 
+  subset(hemi == "lh") %>% 
+  ggplot(aes(x = pimfs_sa, y = MatrixR)) +
+  # add data points
+  geom_jitter(aes(fill = AssessmentAge),
+             shape = 21, alpha = .75, size = 2.5) +
+  # add line
+  geom_smooth(method = "lm", linetype = "dashed", color = 'black') +
+  
+  # customize theme
+  plot_theme +
+  
+  # set scales and axis labels
+  scale_y_continuous(breaks = c(0,6,12,18,24,30,36),
+                     limits = c(0,36)) +
+  scale_x_continuous(breaks = c(0,150,300,450,600,750,900),
+                     limits = c(-1,900)) +
+  labs(x = "pimfs surface area (mm^2)",
+       y = "matrix reasoning score",
+       fill = "age") +
+  
+  # separate by hemi
+  facet_wrap(~hemi)
+
+# visualize
+pimfs_sa.plot
+
+```
