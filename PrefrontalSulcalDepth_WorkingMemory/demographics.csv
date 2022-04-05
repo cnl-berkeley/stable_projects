@@ -1,0 +1,61 @@
+sub,highest_parent_degree,annual_household_income,gender,race,ethnicity
+n002t2,NA,NA,Female,Asian,Not Hispanic or Latino
+n004t2,Bachelor's degree,"Over $100,000",Female,More Than One Race,unknown or Not Report
+n009t3,GED,"$100,000 to $124,999",Female,More Than One Race,unknown or Not Report
+n013t2,NA,NA,Male,White,Not Hispanic or Latino
+n016t1,NA,NA,Male,White,Not Hispanic or Latino
+n018t3,GED,"$75,000 to $99,999",Male,White,Not Hispanic or Latino
+n021t2,Bachelor's degree,"$75,000 to $99,999",Female,White,Not Hispanic or Latino
+n022t2,Master's degree,"$100,000 to $124,999",Male,More Than One Race,unknown or Not Report
+n028t3,Master's degree,"Over $200,000",Male,White,Not Hispanic or Latino
+n029t2,NA,NA,Male,White,Hispanic or Latino
+n030t2,NA,NA,Female,White,Not Hispanic or Latino
+n032t2,NA,NA,Male,White,Not Hispanic or Latino
+n033t2,NA,NA,Female,White,Not Hispanic or Latino
+n035t2,Master's degree,NA,Male,More Than One Race,unknown or Not Report
+n036t2,Associate degree,"$50,000 to $74,999",Female,Black or African American,unknown or Not Report
+n039t2,Doctorate,"$175,000 to $199,999",Female,unknown or Not Report,unknown or Not Report
+n041t2,GED,"$75,000 to $99,999",Male,White,Not Hispanic or Latino
+n044t2,Doctorate,"$100,000 to $124,999",Female,White,Unknown
+n050t2,Associate degree,"$25,000 to $34,999",Female,White,Not Hispanic or Latino
+n055t2,Other,"$125,000 to $149,999",,unknown,Unknown
+n069t2,Other: Teaching Credential,"$125,000 to $149,999",Male,White,Unknown
+n070t2,Professional,"Over $200,000",Female,unknown,unknown
+n072t2,Master's degree,"$50,000 to $74,999",Male,White,Not Hispanic or Latino
+n078t2,GED,"$25,000 to $34,999",Male,unknown,Hispanic or Latino
+n083t2,Master's degree,"$75,000 to $99,999",Female,More Than One Race,unknown
+n086t2,Associate degree,"$75,000 to $99,999",Male,White,Unknown
+n088t1,Vocational,"$16,000 to $24,999",Male,unknown,Hispanic or Latino
+n095t1,NA,NA,Female,Black or African American,Unknown
+n097t1,Master's degree,"Over $100,000",Female,Black or African American,unknown
+n098t2,Master's degree,"Over $200,000",Female,White,Not Hispanic or Latino
+n099t1,Bachelor's degree,"Over $100,000",Male,unknown,unknown
+n100t2,Bachelor's degree,Don't know,Male,White,Not Hispanic or Latino
+n101t1,Associate degree,NA,Female,White,Not Hispanic or Latino
+n104t1,Associate degree,"$50,000 to $74,999",Female,White,Not Hispanic or Latino
+n107t1,Bachelor's degree,"Over $100,000",Male,White,Not Hispanic or Latino
+n108t2,Bachelor's degree,"$75,000 to $99,999",Female,White,Not Hispanic or Latino
+n110t2,Master's degree,"Over $200,000",Female,White,unknown
+n114t1,Bachelor's degree,"Over $100,000",Male,Black or African American,unknown
+n115t1,NA,NA,Female,More Than One Race,unknown
+n116t1,Doctorate,"Over $100,000",Female,White,Not Hispanic or Latino
+n120t1,Other,"$100,000 to $124,999",,unknown,unknown
+n123t2,Bachelor's degree (and teaching credentials),"$125,000 to $149,999",Female,White,Not Hispanic or Latino
+n124t2,NA,NA,Female,More Than One Race,Hispanic or Latino
+n126t2,Master's degree,"$175,000 to $199,999",Male,White,Not Hispanic or Latino
+n139t1,GED,"Over $100,000",Male,More Than One Race,unknown
+n151t2,NA,NA,Male,Asian,unknown
+n157t2,Master's degree,"$75,000 to $99,999",Male,More Than One Race,unknown
+n160t2,Bachelor's degree,"$150,000 to $174,999",Male,White,unknown
+n161t2,Bachelor's degree,"$125,000 to $149,999",Male,White,unknown
+n164t2,Master's degree,"$16,000 to $24,999",Male,More Than One Race,Unknown
+n175t1,Bachelor's degree,"$50,000 to $74,999",Female,Asian,unknown
+n178t2,Master's degree and Professional,"Over $200,000",Male,White,unknown
+n183t1,Professional,NA,Female,White,Not Hispanic or Latino
+n185t1,Master's degree,"$100,000 to $124,999",Male,White,Not Hispanic or Latino
+n190t2,NA,NA,Male,White,Unknown
+n192t1,Bachelor's degree,"Over $200,000",Female,More Than One Race,Not Hispanic or Latino
+n193t1,GED,"$100,000 to $124,999",Male,More Than One Race,Unknown
+n196t1,None of the above (less than high school),NA,Male,More Than One Race,Hispanic or Latino
+n198t1,Bachelor's degree,"$100,000 to $124,999",Male,White,Not Hispanic or Latino
+n199t2,Professional,****See Info Sheet****,Male,White,Not Hispanic or Latino
