@@ -605,6 +605,82 @@ pimfs_components_test.ventral.plot2
 
 Due to differences in the sample size and age distribution of the two groups (median(sd)present  = `r age_diff$median[2]`(`r round(age_diff$sd[2],2)`) , median(sd)absent = `r round(age_diff$median[1], 2)`(`r round(age_diff$sd[1],2)`))), we sought to further confirm the effect of presence/absence of the left pimfs-v on reasoning performance. To this end, we employed variable ratio matching (Materials and Methods) to create an age-matched sample that consisted of the original 12 participants without a left pimfs-v and the 36 age-matched participants with a left pimfs-v (mean age = 10.66). A weighted regression in the matched sample with left pimfs-v presence and age as predictors of reasoning revealed that the presence of the left pimfs-v remained significant (ß = `r round(model$coefficients[["ventral_lhyes_ventral"]], 2)`, *t* = 2.61, *p* = .012; Fig. 2A, right). Critically, this model explained significantly more variance than a model with age alone in the same sample (pimfs: adjusted $R^2$=`r round(sum_model$adj.r.squared, 2)`, *p* < .001; age: adjusted $R^2$ = `r round(sum_age$adj.r.squared, 2)`, *p*<.001; model comparison: *p*=.012). 
 
+
+### LOOCV pred vs measured
+
+```{r}
+loocv <- trainControl(method = "LOOCV")
+# Train the model
+model_matched_loocv <- train(MatrixR ~ ventral_lh  + AssessmentAge,
+               weights = weights, 
+               data = m.data,
+               method = "lm",
+               trControl = loocv)
+# Summarize the results
+print(model_matched_loocv)
+
+# Train the model
+model_age_loocv <- train(MatrixR ~ AssessmentAge,
+               weights = weights, 
+               data = m.data,
+               method = "lm",
+               trControl = loocv)
+# Summarize the results
+print(model_age_loocv)
+
+model_matched_loocv.pred <- model_matched_loocv$pred %>% rename(pred_match = pred)
+model_matched_loocv.pred$measured <- m.data$MatrixR
+age_pred <- model_age_loocv$pred[1] 
+model_matched_loocv.pred$age_pred <- age_pred$pred
+
+# 
+density_plot <- ggplot(model_matched_loocv.pred) + 
+    
+    # density plot
+    geom_density(aes(x = model_matched_loocv.pred$measured), fill = "gray") +
+    geom_density(aes(x = model_matched_loocv.pred$pred_match), fill = "red", alpha = .6) +
+    #geom_density(aes(x = model_matched_loocv.pred$age_pred), fill = "blue", alpha = .6) +
+
+    # set axis labels
+    xlab("Matrix Reasoning score") +
+    ylab("Density") + 
+    ylim(limits = c(0, .1)) +
+  
+    # set theme
+    plot_theme
+
+density_plot_age <- ggplot(model_matched_loocv.pred) + 
+    
+    # density plot
+    geom_density(aes(x = model_matched_loocv.pred$measured), fill = "gray") +
+    #geom_density(aes(x = model_matched_loocv.pred$pred_match), fill = "red", alpha = .6) +
+    geom_density(aes(x = model_matched_loocv.pred$age_pred), fill = "blue", alpha = .6) +
+
+    # set axis labels
+    xlab("Matrix Reasoning score") +
+    ylab("Density") + 
+    ylim(limits = c(0, .1)) +
+  
+    # set theme
+    plot_theme
+
+# ggplot2::ggsave(filename = "~/Desktop/density_plot.png",
+#                  plot = density_plot,
+#                  device = "png",
+#                  width = 4,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+# ggplot2::ggsave(filename = "~/Desktop/density_plot_age.png",
+#                  plot = density_plot_age,
+#                  device = "png",
+#                  width = 4,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
 ## Surface area and Behavior 
 
 ### model 3 (behavioral analysis)
@@ -844,4 +920,338 @@ pimfs_sa.plot <- pimfs_sa.plt_final %>%
 # visualize
 pimfs_sa.plot
 
+```
+
+
+# Supplementary Age Plots 
+```{r}
+## Reshape for visualization
+pimfs_components_test.plt.lh <- pimfs_components_test %>% select(c("sub", "AssessmentAge", "MatrixR", "num_comp_lh", "ventral_lh", "dorsal_lh"))
+pimfs_components_test.plt.rh <- pimfs_components_test %>% select(c("sub", "AssessmentAge", "MatrixR", "num_comp_rh", "ventral_rh", "dorsal_rh"))
+
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$num_comp_lh)
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$num_comp_rh)
+
+# subset by hemi
+pimfs_components_test.plt.lh$hemi <- "lh"
+pimfs_components_test.plt.lh <- pimfs_components_test.plt.lh %>% rename(num_comp = num_comp_lh, 
+                                                                        ventral_pres = ventral_lh, 
+                                                                        dorsal_pres = dorsal_lh)
+
+pimfs_components_test.plt.rh$hemi <- "rh"
+pimfs_components_test.plt.rh <- pimfs_components_test.plt.rh %>% rename(num_comp = num_comp_rh, 
+                                                                        ventral_pres = ventral_rh, 
+                                                                        dorsal_pres = dorsal_rh)
+
+pimfs_components_test.plt <- rbind(pimfs_components_test.plt.lh, pimfs_components_test.plt.rh)
+
+
+## Visualize 
+
+# summary stats
+pimfs_comp_age_components.stats <- pimfs_components_test.plt %>%
+  group_by(hemi, num_comp) %>% 
+  summarise(
+    mean = mean(AssessmentAge),
+    sd = sd(AssessmentAge), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# plot
+pimfs_comp_test.age.plot <- pimfs_components_test.plt %>% 
+  #subset(hemi == "lh") %>%
+  ggplot(aes(x = num_comp, y = AssessmentAge, fill = num_comp)) +
+  
+  # Distribution as violin
+  geom_flat_violin(aes(),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # view individual data points
+  geom_point(aes(x = num_comp, y = AssessmentAge),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # include summary stats
+  geom_pointrange(data = pimfs_comp_age_components.stats, 
+                  aes(num_comp, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      ), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1.25,
+                  shape = 21, 
+                  size = 1) + 
+  
+  # separate by hemi
+  facet_wrap(~hemi) +
+  
+  # set scales 
+  scale_y_continuous(breaks = c(0,3,6,9,12,15,18),
+                     limits = c(0,19)) + 
+  scale_x_discrete(labels = c("< two", "two")) + 
+  scale_fill_manual(breaks = c("less_two", "two"),
+                    values = c("#e66101", "#fdb863")) +
+  #scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+  
+  # custom axis labels
+  labs(x = "number of pimfs components", 
+       y = "assessment age") +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=14),
+        strip.text.x = element_text(size = 14),
+        strip.placement = "outside",
+        axis.line = element_line(colour = "black", 
+                                 linetype = "solid", lineend = "round"))
+
+ggplot2::ggsave(filename = "~/Desktop/pimfs_comp_test_age_plot.png",
+                 plot = pimfs_comp_test.age.plot,
+                 device = "png",
+                 width = 6,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
+
+
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$dorsal_lh)
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$dorsal_rh)
+
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$ventral_lh)
+t.test(pimfs_components_test$AssessmentAge ~ pimfs_components_test$ventral_rh)
+
+
+## Visualize 
+
+# summary stats
+pimfs_v_age_components.stats <- pimfs_components_test.plt %>%
+  group_by(hemi, ventral_pres) %>% 
+  summarise(
+    mean = mean(AssessmentAge),
+    sd = sd(AssessmentAge), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# plot
+pimfs_components_test.age.plot <- pimfs_components_test.plt %>% 
+  #subset(hemi == "lh") %>%
+  ggplot(aes(x = ventral_pres, y = AssessmentAge, fill = ventral_pres)) +
+  
+  # Distribution as violin
+  geom_flat_violin(aes(),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # view individual data points
+  geom_point(aes(x = ventral_pres, y = AssessmentAge),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # include summary stats
+  geom_pointrange(data = pimfs_v_age_components.stats, 
+                  aes(ventral_pres, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      ), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1.25,
+                  shape = 21, 
+                  size = 1) + 
+  
+  # separate by hemi
+  facet_wrap(~hemi) +
+  
+  # set scales 
+  scale_y_continuous(breaks = c(0,3,6,9,12,15,18),
+                     limits = c(0,19)) + 
+  scale_x_discrete(labels = c("absent", "present")) + 
+  scale_fill_manual(breaks = c("no_ventral", "yes_ventral"),
+                    values = c("#e66101", "#fdb863")) +
+  #scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+  
+  # custom axis labels
+  labs(x = "presence of pimfs-v", 
+       y = "assessment age") +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=14),
+        strip.text.x = element_text(size = 14),
+        strip.placement = "outside",
+        axis.line = element_line(colour = "black", 
+                                 linetype = "solid", lineend = "round"))
+
+ggplot2::ggsave(filename = "~/Desktop/pimfs_components_test_age_plot.png",
+                 plot = pimfs_components_test.age.plot,
+                 device = "png",
+                 width = 6,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
+
+## Visualize pimfs-d
+
+# summary stats
+pimfs_d_age_components.stats <- pimfs_components_test.plt %>% 
+  group_by(hemi, dorsal_pres) %>% 
+  summarise(
+    mean = mean(AssessmentAge),
+    sd = sd(AssessmentAge), 
+    n = n()) %>% 
+  mutate(se = sd/sqrt(n))
+
+# plot
+pimfs_d_test.age.plot <- pimfs_components_test.plt %>% 
+  ggplot(aes(x = dorsal_pres, y = AssessmentAge, fill = dorsal_pres)) +
+  
+  # Distribution as violin
+  geom_flat_violin(aes(),
+                   position = position_nudge(x = .1, y = 0),
+                   #adjust = 1.0, 
+                   alpha = .5, 
+                   colour = 'black'
+                   ) +
+  
+  # view individual data points
+  geom_point(aes(x = dorsal_pres, y = AssessmentAge),
+                position = position_jitter(width = .05),
+                shape=21,
+                size = 1.5,
+                alpha = .75) +
+  
+  # include summary stats
+  geom_pointrange(data = pimfs_d_age_components.stats, 
+                  aes(dorsal_pres, mean, 
+                      ymin=mean-sd, 
+                      ymax=mean+sd, 
+                      ), 
+                  position = position_nudge(x = .1, y = 0),
+                  lwd= 1.25,
+                  shape = 21, 
+                  size = 1) + 
+  
+  # separate by hemi
+  facet_wrap(~hemi) +
+  
+  # set scales 
+  scale_y_continuous(breaks = c(0,3,6,9,12,15,18),
+                     limits = c(0,19)) + 
+  scale_x_discrete(labels = c("absent", "present")) + 
+  scale_fill_manual(breaks = c("no_dorsal", "yes_dorsal"),
+                    values = c("#d95f02", "#ff7f00")) +
+  #scale_fill_viridis_d(option = "plasma") +
+  guides(fill = 'none') +
+  
+  # custom theme
+  
+  # custom axis labels
+  labs(x = "presence of pimfs-d", 
+       y = "assessment age") +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=14),
+        strip.text.x = element_text(size = 14),
+        strip.placement = "outside",
+        axis.line = element_line(colour = "black", 
+                                 linetype = "solid", lineend = "round"))
+
+ggplot2::ggsave(filename = "~/Desktop/pimfs_d_age_plot.png",
+                 plot = pimfs_d_test.age.plot,
+                 device = "png",
+                 width = 6,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
+
+
+cor.test(surface_area_analyses$pimfs_sa_lh, surface_area_analyses$AssessmentAge)
+cor.test(surface_area_analyses$pimfs_sa_rh, surface_area_analyses$AssessmentAge)
+
+pimfs_sa_age_lh.plot <- pimfs_sa.plt_final %>% subset(hemi == "lh") %>% ggplot(aes(x = pimfs_sa, y = AssessmentAge)) + 
+  geom_jitter(aes(), 
+             shape = 21, alpha = .75, size = 2.5, fill = '#d95f02') + 
+  geom_smooth(method = "lm", linetype = "dashed", color = 'black') +
+  #scale_fill_viridis_d(option = "plasma") +
+  #scale_fill_viridis_c(option = "magma") +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=14),
+        strip.text.x = element_text(size = 14),
+        strip.placement = "outside",
+        axis.line = element_line(colour = "black", 
+                                 linetype = "solid", lineend = "round")) +
+  scale_x_continuous(breaks = c(0,150,300,450,600,750,900), 
+                     limits = c(-1,900)) +
+  scale_y_continuous(breaks = c(0,3,6,9,12,15,18),
+                     limits = c(0,19)) + 
+  labs(x = "pimfs surface area (mm^2)",
+       y = "assessment age") +
+  facet_wrap(~hemi)
+
+ggplot2::ggsave(filename = "~/Desktop/pimfs_sa_age_lh.png",
+                 plot = pimfs_sa_age_lh.plot,
+                 device = "png",
+                 width = 6,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
+
+pimfs_sa_age_rh.plot <- pimfs_sa.plt_final %>% subset(hemi == "rh") %>% ggplot(aes(x = pimfs_sa, y = AssessmentAge)) + 
+  geom_jitter(aes(), 
+             shape = 21, alpha = .75, size = 2.5, fill = '#d95f02') + 
+  geom_smooth(method = "lm", linetype = "dashed", color = 'black') +
+  #scale_fill_viridis_d(option = "plasma") +
+  #scale_fill_viridis_c(option = "magma") +
+  theme(axis.title.x = element_text(size=16),
+        axis.title.y = element_text(size=16),
+        axis.text.x = element_text(size = 14),
+        axis.text.y = element_text(size = 14),
+        legend.title = element_text(size=16), 
+        legend.text = element_text(size=14),
+        strip.text.x = element_text(size = 14),
+        strip.placement = "outside",
+        axis.line = element_line(colour = "black", 
+                                 linetype = "solid", lineend = "round")) +
+  scale_x_continuous(breaks = c(0,150,300,450,600,750,900), 
+                     limits = c(-1,900)) +
+  scale_y_continuous(breaks = c(0,3,6,9,12,15,18),
+                     limits = c(0,19)) + 
+  labs(x = "pimfs surface area (mm^2)",
+       y = "assessment age") +
+  facet_wrap(~hemi)
+
+ggplot2::ggsave(filename = "~/Desktop/pimfs_sa_age_rh.png",
+                 plot = pimfs_sa_age_rh.plot,
+                 device = "png",
+                 width = 6,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
 ```
