@@ -1,7 +1,7 @@
 ## Presence or absence of a prefrontal sulcus is linked to reasoning performance during child development
 
 Associated data for the manuscript Willbrand et al. (2022) *Presence or absence of a prefrontal sulcus is linked to reasoning performance during child development*. 
-The preprint can be accessed [here](*add link once done*).
+The manuscript is now published at *Brain Structure and Function* [here](*https://link.springer.com/article/10.1007/s00429-022-02539-1*).
 
   For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) or Kevin Weiner (kweiner@berkeley.edu)
   
