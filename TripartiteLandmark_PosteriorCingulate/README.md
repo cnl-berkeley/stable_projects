@@ -1,6 +1,6 @@
 ## A New tripartite landmark in posterior cingulate cortex
 Analysis pipeline and associated data for the manuscript Willbrand et al. (2021) *A New tripartite landmark in posterior cingulate cortex*. 
-The preprint can be accessed [here](*add link once done*).
+The preprint can be accessed [here](https://www.biorxiv.org/content/10.1101/2021.10.30.466521v1).
 
   For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) and/or Benjamin Parker (benparker@berkeley.edu)
   
