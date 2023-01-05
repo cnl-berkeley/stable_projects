@@ -1,0 +1,25 @@
+groups_for_plot,hemi,species,percent
+two,lh,humans (pediatric),75
+dorsal only,lh,humans (pediatric),13.9
+ventral only,lh,humans (pediatric),8.33
+none,lh,humans (pediatric),2.77
+two,rh,humans (pediatric),66.7
+dorsal only,rh,humans (pediatric),15.3
+ventral only,rh,humans (pediatric),9.7
+none,rh,humans (pediatric),8.3
+two,lh,humans (young adult),72.2
+dorsal only,lh,humans (young adult),16.7
+ventral only,lh,humans (young adult),8.33
+none,lh,humans (young adult),2.77
+two,rh,humans (young adult),77.8
+dorsal only,rh,humans (young adult),9.71
+ventral only,rh,humans (young adult),11.1
+none,rh,humans (young adult),1.39
+two,lh,chimpanzees,0
+dorsal only,lh,chimpanzees,0
+ventral only,lh,chimpanzees,3.33
+none,lh,chimpanzees,96.67
+two,rh,chimpanzees,0
+dorsal only,rh,chimpanzees,3.33
+ventral only,rh,chimpanzees,0
+none,rh,chimpanzees,96.67
