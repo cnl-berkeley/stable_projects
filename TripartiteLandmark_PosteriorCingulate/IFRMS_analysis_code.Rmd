@@ -616,7 +616,7 @@ p.adjust(p = p.vales,
 ```
 Only the correlation between depth and ratio in the right hemisphere of the replication sample remained significant. 
 
-#### Figure 3b: C/M ratio of PCC sulci
+#### Figure 4b: C/M ratio of PCC sulci
 ```{r, warning = FALSE}
 # Feature for plot
 HCP_tot_analysis <- HCP_tot_analysis %>% mutate(label_dataset = 
@@ -877,7 +877,7 @@ emmeans::contrast(network_aov_rep.i2, method='pairwise')
 ##### Results for functional analyses Q1 (replication)
 The results observed in the discovery sample were confirmed in the replication sample. Once more, there was a sulcus x network interaction (F(5, 792) = 71.13, p < 0.001, η2G = 0.19) and a sulcus x network x hemisphere interaction (F(5, 792) = 7.21, p = 0.003, η2G = 0.019). Post hoc analyses on the former effect completely replicated those in the discovery sample (p-values < 0.001, Tukey’s adjustment). Additional post hoc tests on the latter interaction confirmed the three findings observed in the discovery sample (p-values < 0.001, Tukey’s adjustment). However, in the replication sample, the *ifrms* also overlapped more with CCN-c in the right hemisphere than in the left (p = 0.001, Tukey’s adjustment). There was no hemispheric difference in CCN-c overlap observed in the discovery sample (p > 0.05, Tukey’s adjustment). See Supplementary Figure 6 in the supplementary material or in the plot below. 
 
-#### Figure 4b: Mean *ifrms* and *spls* connectivity fingerprints - discovery
+#### Figure 5b: Mean *ifrms* and *spls* connectivity fingerprints - discovery
 ```{r, warning = FALSE}
 # Necessary function to make radar plot
 coord_radar <- function (theta = "x", start = 0, direction = 1) 
@@ -1465,7 +1465,7 @@ ggplot2::ggsave(filename = "~/Desktop/network_dice_replication_plot.png",
                 dpi = "retina")
 ```
 
-#### Figure 4c: Four individual subjects' radar plots
+#### Figure 5c: Four individual subjects' radar plots
 ```{r, warning = FALSE}
 # Four individual radar plots - from the discovery sample
 six_networks_ifrms_spls_discovery$label_hemi[six_networks_ifrms_spls_discovery$label_name == "ifrms" & six_networks_ifrms_spls_discovery$hemi == "lh"] <- "ifrms.lh"
@@ -1874,7 +1874,7 @@ p.adjust(p = lg_p_values,
 ##### Results for functional analyses Q2
 Altogether, as indicated by the linear regression results presented in Table 4 for CCN-b and Table 5 for CCN-c, the topographical location of the *ifrms* was predictive of the location of both control networks in both samples. The more rightward, anterior, and superior the coordinates of the *ifrms* were, the more rightward, anterior, and superior the nearby CCN-b and CCN-c components were. See Figure 7 in the main text or in the plots below. 
 
-#### Figure 5b: Locational coupling between the *ifrms* and CCN-b network
+#### Figure 6b: Locational coupling between the *ifrms* and CCN-b network
 ```{r, warning = FALSE}
 # Discovery Sample
 
@@ -1954,7 +1954,7 @@ Sup_CB.plot
 #                  dpi = "retina") 
 ```
 
-#### Figure 5c: Locational coupling between the *ifrms* and CCN-c network
+#### Figure 6c: Locational coupling between the *ifrms* and CCN-c network
 ```{r, warning = FALSE}
 # Discovery Sample
 
@@ -2038,7 +2038,7 @@ Sup_CC.plot
 
 ### Q1: Can the *ifrms* be identified across the lifespan in both humans and chimpanzees? 
 
-#### Figure 6b: Presence comparison
+#### Figure 7b: Presence comparison
 ```{r, warning = FALSE}
 # Dataset
 perc2 <- read.csv("~/Desktop/RMD_csvs/percent_present_age.csv")
@@ -2160,7 +2160,7 @@ ifrms_compdev_morphology %>% group_by(species) %>% summarise(mean = mean(depth_p
 #### Results for comparative/developmental analyses Q2
 The 3-way ANOVA with factors of hemisphere (left, right), age group (juvenile, young adult, older), and species (human, chimpanzee) yielded three main findings. First, there was a main effect of hemisphere (F(1, 475) = 15.43, p < 0.001,  η2G = 0.03), wherein the *ifrms* was generally deeper in the left compared to the right hemisphere, replicating trends found in young adults. Second, there was a main effect of age group (F(1, 475) = 10.68,  p < 0.001,  η2G = 0.04), in which the *ifrms* was deeper in the juvenile and older age groups than in the younger adult group—primarily in humans. Third, there was a main effect of species (F(1, 475) = 6.85, p = 0.009,  η2G = 0.01), where the *ifrms* was deeper in humans than in chimpanzees. Therefore, while the *ifrms* is consistently shallow relative to primary and secondary sulci across species and age groups, its depth differs across age groups and between species. See Figure 8c in the main text or in the plot below.
 
-#### Figure 6c: Normalized depth comparison
+#### Figure 7c: Normalized depth comparison
 ```{r, warning = FALSE}
 # Organize factors in order
 ifrms_compdev_morphology$dataset <- factor(ifrms_compdev_morphology$dataset, 
@@ -2252,7 +2252,7 @@ ifrms_compdev_morphology %>% group_by(hemi, species) %>% summarise(mean = mean(l
 #### Results for comparative/developmental analyses Q3
 The 3-way ANOVA with hemisphere (left, right), age group (juvenile, young adult, older), and species (human, chimpanzee) as factors yielded main effects of age group (F(1, 475) = 135.37, p < 0.001,  η2G = 0.33) and species (F(1, 475) = 63.59,  p < 0.001,  η2G = 0.08). Specifically, the *ifrms* showed a decline in cortical thickness from the juvenile to young adult to older age group. At each age group, the thickness of the *ifrms* was less in chimpanzees than in humans. Interestingly, there was also a hemisphere x species interaction (F(1, 475) = 6.98, p = 0.009,  η2G = 0.008), where the *ifrms* in chimpanzees was thicker in the right hemisphere. Thus, the *ifrms* shows a prominent age- and species-related decline in cortical thickness across age groups and species. See Figure 8d in the main text or in the plot below.
 
-#### Figure 6d: Normalized thickness comparison
+#### Figure 7d: Normalized thickness comparison
 ```{r, warning = FALSE}
 # Means for plot
 norm_ct_avg <- ifrms_compdev_morphology %>% 
@@ -2357,7 +2357,7 @@ rstatix::cohens_d(data = ifrms_predicts.both,
 #### Results for morphological analyses Q1b
 We found that spherical CNNs were more accurate (t(71) = -3.69, p < 0.001, d = -0.435) at predicting the *ifrms*’ location than CBA (CNN: M = 0.61, SE = 0.03; CBA: M = 0.5, SE = 0.02). See Figure 5a in the main text or in the plot below.
 
-### Figure 7a-b: Evaluation of predictive labeling methodologies
+### Figure 8a-b: Evaluation of predictive labeling methodologies
 ```{r, warning = FALSE}
 # Figure 7a: Bar plot 
 
@@ -2518,7 +2518,7 @@ ono_comparison_rep %>% subset(label %in% c("pos", "mcgs", "spls")) %>%
 ```
 See Supplementary Materials for comparison.
 
-## Supplementary Figure 2.1: Incidence rates of all 11 sulci
+## Supplementary Figure 2: Incidence rates of all 11 sulci
 ```{r, warning = FALSE}
 # Discovery dataset plot  
 HCP_count_disc_11.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
@@ -2588,7 +2588,7 @@ HCP_count_rep_11.plot
 #               dpi = "retina")
 ```
 
-## Supplementary Figure 2.1: Depth of all 11 sulci 
+## Supplementary Figure 2: Depth of all 11 sulci 
 
 ### Statistics 
 * Focusing on the three *prcus* since this is the first study to consistently identify three in-vivo)
@@ -2898,7 +2898,7 @@ all_sulc_depth_repl.plot
 #                 dpi = "retina")
 ```
 
-## Supplementary Figure 2.1: Surface area of PCC and PrC sulci 
+## Supplementary Figure 2: Surface area of PCC and PrC sulci 
 
 ### Statistics 
 * Focusing on the differences in surface area between the three shallower putative tertiary sulci in PCC (*sspls*, *ifrms*, *icgs-p*) and other PCC/PRC sulci because, in addition to having a shallower depth, tertiary sulci typically have a reduced surface area compared to primary and secondary sulci.
@@ -3487,7 +3487,7 @@ HCP_all_morphology_rep_sa.plot
 #                  dpi = "retina")
 ```
 
-## Supplementary Figure 2.2: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
+## Supplementary Figure 3: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
 ```{r}
 # Make matrices
 sspls_lh_disc_2 <-  c(0.26, 0, 0,    0, 0, 0, 0, 0,    0,    0, NA, 0,    0)
@@ -3653,7 +3653,7 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 #dev.off()
 ```
 
-## Supplementary Figure 4.1: C/M with all 11 sulci
+## Supplementary Figure 6: C/M with all 11 sulci
 ```{r, warning = FALSE}
 # Dataset
 HCP_figure3_supplement <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_figure3_supplement.csv")
@@ -3995,7 +3995,7 @@ ctmy_11_rh.plot
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 4.2: Cortical thickness and myelination of PCC sulci shown separately
+## Supplementary Figure 7: Cortical thickness and myelination of PCC sulci shown separately
 ```{r, warning = FALSE}
 # to display thickness and myelination on one plot
 scale <- mean(HCP_all_morphology$cortical_thickness_mean) / mean(HCP_all_morphology$myelin)
@@ -4193,7 +4193,7 @@ ctmy_ind_ifrms_repl.plot
 #                 dpi = "retina")
 ```
 
-## Supplementary Figure 5.1: Individual subject fingerprints - discovery
+## Supplementary Figure 8: Individual subject fingerprints - discovery
 ```{r, warning=FALSE}
 # Dataset
 networks_ifrms_spls_discovery.2 <- six_networks_ifrms_spls_discovery
@@ -4312,7 +4312,7 @@ all_conn_fp_disc.plot <- ggplot() +
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 5.3: Individual subject fingerprints - replication
+## Supplementary Figure 10: Individual subject fingerprints - replication
 ```{r,warning=FALSE}
 # Dataset
 ## Two marked out participants did not have network data available 
@@ -4465,7 +4465,7 @@ all_conn_fp_repl.plot <- ggplot() +
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 5.4: Three *prcus* connectivity fingerprints
+## Supplementary Figure 11: Three *prcus* connectivity fingerprints
 * 3-way (network x sulcal label x hemi) repeated measures ANOVA to test for differences in overlap (DICE coefficient; see Methods)
 * network: all 17 resting-state functional networks
 * sulcal label: **prcus-p*, *prcus-i*, *prcus-a*
@@ -5466,7 +5466,7 @@ ggplot2::ggsave(filename = "~/Desktop/all_conn_fp_msc_plot.png",
 ```
 
 
-## Supplementary Figure 7.1: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
+## Supplementary Figure 18: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
 ```{r}
 ## Making matrices
 # All HCP together
@@ -5705,7 +5705,7 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 #dev.off()
 ```
 
-## Supplementary Figure 7.2a: Raw sulcal depth (mm)
+## Supplementary Figure 20a: Raw sulcal depth (mm)
 * 3-way (age group x species x hemi) ANOVA to test for differences in raw depth (mm)
 * age group: juvenile, young adult, older adult
 * species: human, chimpanzee
@@ -5795,7 +5795,7 @@ comp_depth_raw.plot
 #                 dpi = "print")
 ```
 
-## Supplemental Figure 7.2b: Raw cortical thickness 
+## Supplemental Figure 20b: Raw cortical thickness 
 * 3-way (age group x species x hemi) ANOVA to test for differences in raw cortical thickness (mm)
 * age group: juvenile, young adult, older adult
 * species: human, chimpanzee
@@ -5887,7 +5887,7 @@ comp_ct_raw.plot
 #                 dpi = "print")
 ```
 
-## Supplemental Figure 9a: Depth of all PMC sulci between age groups (humans)
+## Supplemental Figure 22a: Depth of all PMC sulci between age groups (humans)
 * 3-way (sulcal label x age group x hemi) ANOVA to test for differences in raw depth (mm)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -6022,7 +6022,7 @@ dev_depth.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 9b: Surface area of all PCC and PRC sulci between age groups (humans)
+## Supplemental Figure 22b: Surface area of all PCC and PRC sulci between age groups (humans)
 * 3-way (sulcal label x age group x hemi) ANOVA to test for differences in surface area (mm^2)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -6145,7 +6145,7 @@ dev_sa.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 9c: Cortical thickness of all PMC sulci in juveniles
+## Supplemental Figure 22c: Cortical thickness of all PMC sulci in juveniles
 * 2-way (sulcal label x age group x hemi) ANOVA to test for differences in cortical thickness (mm)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -6271,7 +6271,233 @@ dev_ct.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 10: Evaluation of the spherical CNNs ability to define PMC sulci 
+# Supplementary Figure 23: *ifrms* classification based on morphology
+```{r}
+library(factoextra)
+library(cluster)
+library(plotly)
+# ifrms classification based on morph 
+# ifrms_compdev_morphology <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/ifrms_compdev_morphology.csv")
+
+ifrms_compdev_morphology <- ifrms_compdev_morphology %>% mutate(spec_grp = case_when(dataset %in% 
+                                                                                       c("young_adult_chimp", 
+                                                                                         "older_adult_chimp", "young_chimp") ~ 
+                                                                                       "chimp",
+                                                                                     dataset == "HCP" ~ "young_adult_human",
+                                                                                     dataset == "NORA" ~ "juvenile_human",
+                                                                                     dataset == "ADNI" ~ "older_adult_human"))
+
+classification.plot <- ggplot(data = ifrms_compdev_morphology, aes(x = sulcal_depth_mm, y = total_surface_area_.mm.2.)) +
+  geom_point(aes(fill = spec_grp), alpha = .8, shape = 21, color = 'black',
+              position=position_jitterdodge(jitter.width = .3, dodge.width = .9, jitter.height = 0)) +
+  plot_theme +
+  
+#  scale_color_manual(breaks = 
+#                       c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+#                     values = c("#e41a1c", "#f03b20","#377eb8", "#41b6c4", "#006837", "#2ca25f")) + 
+#  scale_fill_manual(breaks = 
+#                      c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+#                    values = c("#e41a1c", "#f03b20","#377eb8", "#74a9cf", "#006837", "#31a354")) +
+  
+#  guides(alpha = F) + 
+  facet_wrap(~hemi)
+
+classification.plot
+
+
+classification.plot <- ggplot(data = ifrms_compdev_morphology, aes(x = sulcal_depth_mm, y = total_surface_area_.mm.2.)) +
+  geom_jitter(aes(fill = species), alpha = .8, shape = 21, color = 'black',
+              position=position_jitterdodge(jitter.width = .3, dodge.width = .9, jitter.height = 0)) +
+  plot_theme +
+  
+  #  scale_color_manual(breaks = 
+  #                       c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+  #                     values = c("#e41a1c", "#f03b20","#377eb8", "#41b6c4", "#006837", "#2ca25f")) + 
+  #  scale_fill_manual(breaks = 
+  #                      c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+  #                    values = c("#e41a1c", "#f03b20","#377eb8", "#74a9cf", "#006837", "#31a354")) +
+  
+  #  guides(alpha = F) + 
+  facet_wrap(~hemi)
+
+classification.plot
+
+
+# left hemisphere
+ifrms_compdev_morphology_lh <- ifrms_compdev_morphology %>% subset(hemi == "lh") 
+df.lh <- ifrms_compdev_morphology_lh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+ggscatter(df.lh, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                                    size = 2
+                                    )
+
+df.lh.s <- df.lh %>% mutate(scale_depth = scale(sulcal_depth_mm),
+                            scale_sa = scale(total_surface_area_.mm.2.)) %>% select(-c(1:2))
+
+# Determine best # of clusters
+NbClust(df.lh.s, distance = "euclidean", method = "kmeans", index ="all") 
+
+# cluster based on optimal # of clusters = 2
+set.seed(1)
+km.lh <- kmeans(df.lh.s, centers = 2, nstart = 25)
+
+
+clust.lh <- km.lh$cluster %>%
+  as.factor()
+df.lh.s <- df.lh.s %>%
+  mutate(groups = clust.lh)
+
+tbl.clust.lh <- table(df.lh.s$groups)
+
+df.lh.plt <- cbind(df.lh.s, ifrms_compdev_morphology_lh)
+
+# left plot with humans
+classification.plot <- ggscatter(df.lh.plt, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                        size = 2,
+                        shape = 21,
+                        #color = "groups",
+                        fill = "groups",
+                        ellipse = TRUE,
+                        ellipse.type = "convex",
+                        mean.point = T,
+                        mean.point.size = 4,
+                        repel = T) +
+  scale_fill_manual(breaks = c("2", "1"),
+                    values = c("blue", "red")) + 
+  scale_color_manual(breaks = c("2", "1"),
+                     values = c("blue", "red")) 
+ggplotly(classification.plot)
+
+
+
+classification.plot_lh <- classification.plot +
+  new_scale_fill() + 
+  geom_point(aes(fill = group), label = df.lh$group, check_overlap = F, size = 1.5, shape = 21) +
+    scale_fill_manual(breaks = c("juvenile", "young-adult", "older-adult"),
+                      values = c("#e41a1c", "#377eb8", "#006837"))
+
+# left with chimps 
+chimp_lh <- ifrms_compdev_morphology %>% 
+  subset(hemi == "lh" & species == "chimpanzee") %>% 
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+classification_plot_lh.final <- classification.plot_lh + 
+  geom_point(data = chimp_lh, fill = 'black', shape = 21, size = 2) + 
+  geom_point(aes(x=2.709024, y=60.82028), size = 4, shape = 21, fill ="red") +
+  guides(fill = "none", color = "none") +
+  scale_y_continuous(breaks=seq(0, 350, 50), limits = c(0,350)) +
+  scale_x_continuous(breaks=seq(0, 15, 3), limits = c(0,15)) +
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 12, hjust = 1),
+        axis.title.x = element_text(size=14, face = "bold"),
+        axis.title.y = element_text(size=14, face = "bold"),
+        axis.text.x = element_text(size = 12, face = "bold"),
+        axis.text.y = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12),
+        strip.text.x = element_text(size = 14, face = "bold"), # was 12
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
+  
+
+classification_plot_lh.final
+#ggsave(filename = "~/Desktop/classification_plot_lh_final.png",
+#                         plot = classification_plot_lh.final,
+#                         device = "png",
+#                         width = 6,
+#                         height = 6, 
+#                         units = "in",
+#                         dpi = "retina")
+
+# right hemisphere
+ifrms_compdev_morphology_rh <- ifrms_compdev_morphology %>% subset(hemi == "rh")
+
+df.rh <- ifrms_compdev_morphology_rh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+ggscatter(df.rh, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+          size = 2
+)
+
+df.rh.s <- df.rh %>% mutate(scale_depth = scale(sulcal_depth_mm),
+                            scale_sa = scale(total_surface_area_.mm.2.)) %>% 
+                     select(-c(1:2))
+# Determine best # of clusters
+NbClust(df.rh.s, distance = "euclidean", method = "kmeans", index ="all") 
+
+# cluster based on optimal # of clusters = 2
+set.seed(1)
+km.rh <- kmeans(df.rh.s, centers = 2, nstart = 25)
+
+clust.rh <- km.rh$cluster %>%
+  as.factor()
+df.rh.s <- df.rh.s %>%
+  mutate(groups = clust.rh)
+
+tbl.clust.rh <- table(df.rh.s$groups)
+
+
+
+df.rh.plt <- cbind(df.rh.s, ifrms_compdev_morphology_rh)
+
+# right plot with humans
+classification.plot.rh <- ggscatter(df.rh.plt, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                                 size = 2,
+                                 shape = 21,
+                                 #color = "groups",
+                                 fill = "groups",
+                                 ellipse = TRUE,
+                                 ellipse.type = "convex",
+                                 mean.point = T,
+                                 mean.point.size = 4,
+                                 repel = T) +
+  scale_fill_manual(breaks = c("1", "2"),
+                    values = c("blue", "red")) + 
+  scale_color_manual(breaks = c("1", "2"),
+                    values = c("blue", "red"))
+
+classification.plot.rh2 <- classification.plot.rh + new_scale_fill() + 
+geom_point(aes(fill = group), label = df.rh$group, check_overlap = F, size = 1.5, shape = 21) +
+scale_fill_manual(breaks = c("juvenile", "young-adult", "older-adult"),
+                  values = c("#e41a1c", "#377eb8", "#006837"))
+
+# right with chimps
+chimp_rh <- ifrms_compdev_morphology %>% 
+  subset(hemi == "rh" & species == "chimpanzee") %>% 
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+classification_plot_rh.final <- classification.plot.rh2 + 
+  geom_point(data = chimp_rh, fill = 'black', shape = 21, size = 2) + 
+  geom_point(aes(x=1.752122, y=56.87245), size = 4, shape = 21, fill ="red") +
+  guides(fill = "none", color = "none") +
+  scale_y_continuous(breaks=seq(0, 350, 50), limits = c(0,350)) +
+  scale_x_continuous(breaks=seq(0, 15, 3), limits = c(0,15)) +
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 12, hjust = 1),
+        axis.title.x = element_text(size=14, face = "bold"),
+        axis.title.y = element_text(size=14, face = "bold"),
+        axis.text.x = element_text(size = 12, face = "bold"),
+        axis.text.y = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12),
+        strip.text.x = element_text(size = 14, face = "bold"), # was 12
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
+
+classification_plot_rh.final
+#ggsave(filename = "~/Desktop/classification_plot_rh_final.png",
+#       plot = classification_plot_rh.final,
+#       device = "png",
+#       width = 6,
+#       height = 6, 
+#       units = "in",
+#       dpi = "retina")
+```
+
+## Supplemental Figure 24: Evaluation of the spherical CNNs ability to define PMC sulci 
 ```{r, warning = FALSE}
 # Features for plot
 pmc_nn_predicts$sulci <- factor(pmc_nn_predicts$sulci, levels = c("pos", "prculs", "spls", "mcgs", "prcus-p", "prcus-i", "prcus-a", "ifrms"))
@@ -6349,9 +6575,6 @@ cnn_all.plot
 #                 units = "in",
 #                 dpi = "retina")
 ```
-
-
-# Supplementary Tables 
 
 ## Supplementary Table 1: Discovery incidence rates
 ```{r, warning = FALSE}
