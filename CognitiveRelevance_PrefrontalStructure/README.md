@@ -12,7 +12,7 @@ For questions and/or additional data requests please email Kevin S. Weiner (kwei
 
   - All necessary R packages are provided at the beginning of *PIMFS_analysis_final.R*.
   
-  - Access probability maps: spatial probability maps projected onto the fsaverage space can be found in the probability_maps directory. Thresholded and unthresholded maps are included for each label. The code to generate these maps or project them to individual surfaces is also included in the directory.
+  - Access probability maps: spatial probability maps projected onto the fsaverage space can be found in the *probability_maps* directory. Thresholded and unthresholded maps are included for each label. The code to generate these maps or project them to individual surfaces is also included in the directory.
 
   
 ### Associated data ###
