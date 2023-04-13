@@ -1,4 +1,4 @@
-## A New tripartite landmark in posterior cingulate cortex
+## Uncovering a tripartite landmark in posterior cingulate cortex
 Analysis pipeline and associated data for the manuscript Willbrand et al. (2022) *Uncovering a tripartite landmark in posterior cingulate cortex*. 
 The published manuscript can be accessed at *Science Advances* at this [link](https://www.science.org/doi/10.1126/sciadv.abn9516).
 
