@@ -1,0 +1,3410 @@
+---
+title: Development of human lateral prefrontal sulcal morphology and its relation
+  to reasoning performance
+author: "EH Willbrand, E Ferrer, SA Bunge, & KS Weiner"
+date: "4/5/2023"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+```
+
+#### Libraries
+
+Requirements: packages below must be installed to load. 
+```{r libraries}
+# Unmark and run code below if packages are not installed
+# project_packages <- c("tidyverse", "emmeans", "afex", "gt", "broom",
+#                       "magrittr", "ggpubr", "factoextra", "NbClust",
+#                       "ggnewscale", "reshape2", "lavaan", "nlme")
+# install.packages(project_packages)
+
+# Load packages 
+## Data manipulation and plotting
+library(tidyverse)
+library(gt)
+library(ggnewscale)
+library(broom)
+library(ggpubr)
+library(magrittr)
+library(factoextra)
+library(reshape2)
+
+## Statistics
+library(NbClust)
+library(emmeans)
+library(afex)
+library(lavaan)
+library(nlme)
+
+# Conditions for plots
+dodge <- position_dodge(width = .9)
+theme_set(theme_classic())
+options(scipen = 999, show.signif.stars = FALSE) 
+```
+
+
+#### Morphological analysis: K-means clustering & MDS Analysis using four morphological features 
+* K-means clustering of sulci using MDS data (based on depth, surface area, cortical thickness)
+* Optimal number of clusters determined using NbClust (30 metrics)
+
+##### Data
+```{r, include = FALSE}
+# set working directory to 'Development_PrefrontalSulci_Reasoning' folder  
+setwd()
+
+cross_sectional_devpfc_analysis <- read.csv("./data/morphological_analysis/crosssectional_data/cross_sectional_analysis_main.csv")
+```
+
+##### Figure 2A: MDS analyses & plots across groups
+```{r}
+### left hemisphere (lh)
+#### set up data
+cross_sectional_devpfc_analysis_lh <- cross_sectional_devpfc_analysis %>% subset(hemi == "lh") 
+cross_sectional_devpfc_analysis_lh_morph <- cross_sectional_devpfc_analysis_lh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) 
+cross_sectional_devpfc_analysis_lh_info <- cross_sectional_devpfc_analysis_lh %>% select(sub, hemi, label, age_group)
+cross_sectional_devpfc_analysis_lh_scaled <- scale(cross_sectional_devpfc_analysis_lh_morph)
+cross_sectional_devpfc_analysis_lh_scaled_info <- cbind(cross_sectional_devpfc_analysis_lh_info, cross_sectional_devpfc_analysis_lh_scaled)
+
+
+#### mds
+mds.lh.scaled <- cross_sectional_devpfc_analysis_lh_scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.lh.scaled) <- c("Dim.1", "Dim.2")
+
+
+#### determine best # of clusters
+clust.analysis.lh <- NbClust(cross_sectional_devpfc_analysis_lh_scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all", min.nc = 2, max.nc = 9) 
+# 11 proposed 2 as the best number of clusters; 8 proposed 5 
+
+clust.analysis.lh.plt <- factoextra::fviz_nbclust(clust.analysis.lh) + 
+  theme_minimal() + 
+  ggtitle("NbClust's optimal number of clusters")
+
+
+#### cluster based on optimal # of clusters = 3
+set.seed(123)
+clust.lh <- kmeans(mds.lh.scaled, 3)$cluster %>%
+  as.factor()
+mds.lh.scaled <- as.data.frame(mds.lh.scaled) %>%
+  mutate(groups = clust.lh)
+
+
+#### plot
+mds.scaled.plt <- cbind(mds.lh.scaled, cross_sectional_devpfc_analysis_lh)
+
+mds.scaled.plt <- mds.scaled.plt %>% mutate(groups2 = case_when(groups == 1 ~ "two",
+                                                                groups == 2 ~ "one",
+                                                                groups == 3 ~ "three"))
+
+mds.lh.plt2 <- ggscatter(mds.scaled.plt, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups2",
+          fill = "groups2",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("one","two", "three"), # "1","2", "3"
+                     values = c("red",  "blue", "green")) +
+  scale_fill_manual(breaks = c("one","two", "three"), # "1","2", "3"
+                    values = c("red", "blue", "green")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+  theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Desktop/mds_lh_plt2.png",
+#                  plot = mds.lh.plt2,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+### right hemisphere (rh)
+#### set up data
+cross_sectional_devpfc_analysis_rh <- cross_sectional_devpfc_analysis %>% subset(hemi == "rh") 
+cross_sectional_devpfc_analysis_rh_morph <- cross_sectional_devpfc_analysis_rh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean)
+cross_sectional_devpfc_analysis_rh_info <- cross_sectional_devpfc_analysis_rh %>% select(sub, hemi, label, age_group)
+cross_sectional_devpfc_analysis_rh_scaled <- scale(cross_sectional_devpfc_analysis_rh_morph)
+cross_sectional_devpfc_analysis_rh_scaled_info <- cbind(cross_sectional_devpfc_analysis_rh_info, cross_sectional_devpfc_analysis_rh_scaled)
+
+
+#### mds
+mds.rh <- cross_sectional_devpfc_analysis_rh_scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.rh) <- c("Dim.1", "Dim.2")
+
+
+#### determine best # of clusters
+nbclust.rh <- NbClust(mds_analysis_rh.scaled, distance = "euclidean",
+                  method = "kmeans", index ="all", min.nc = 2, max.nc = 9) 
+clust.analysis.rh.plt <- factoextra::fviz_nbclust(nbclust.rh) + theme_minimal() + ggtitle("NbClust's optimal number of clusters")
+
+
+#### cluster based on optimal # of clusters = 3
+set.seed(123)
+clust.rh <- kmeans(mds.rh, 3)$cluster %>%
+  as.factor()
+mds.rh <- as.data.frame(mds.rh) %>%
+  mutate(groups = clust.rh)
+
+
+#### plot
+mds.rh.scaled.plot <- cbind(mds.rh, cross_sectional_devpfc_analysis_rh)
+mds.rh.scaled.plot <- mds.rh.scaled.plot %>% mutate(groups2 = case_when(groups == 1 ~ "one",
+                                                                        groups == 2 ~ "three",
+                                                                        groups == 3 ~ "two"))
+
+mds.rh.plt <- ggscatter(mds.rh.scaled.plot, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups2",
+          fill = "groups2",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("one","two", "three"), # "1","2", "3" "one","two", "three"
+                     values = c("red",  "blue", "green")) +
+  scale_fill_manual(breaks = c("one","two", "three"), # "1","2", "3"
+                    values = c("red", "blue", "green")) +
+  
+  guides(fill = "none", color = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), label = mds.rh.scaled.plot$label, check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows
+  
+  theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none", color = "none") 
+
+# ggplot2::ggsave(filename = "~/Desktop/mds_rh_plt.png",
+#                  plot = mds.rh.plt,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+# plots for group counts
+# mds.lh.group <- mds.scaled.plt %>% group_by(label, groups2) %>% summarise(n = n())
+# mds.lh.group.plt <- ggplot(mds.lh.group, aes(x = label, y = n, fill = groups2)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                                 
+#   scale_fill_manual(breaks = c("one","two", "three"),
+#                     values = c("red", "blue", "green")) + 
+#                      coord_flip()
+
+# mds.rh.group <- mds.rh.scaled.plot %>% group_by(label, groups) %>% summarise(n = n())
+# mds.rh.group.plt <- ggplot(mds.rh.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) + 
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                                 #, "3", "4", "5"),
+#                      values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#   coord_flip()
+
+# mds.both.scaled.plot <- rbind(mds.scaled.plt, mds.rh.scaled.plot)
+# mds.group <- mds.both.scaled.plot %>% group_by(label, groups2) %>% 
+#                                       summarise(n = n())
+# mds.group.plt <- ggplot(mds.group, aes(x = label, y = n, fill = groups2)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) + 
+#   scale_fill_manual(breaks = c("one","two", "three"),
+#                    values = c("red", "blue", "green")) + 
+#   coord_flip()
+```
+
+##### Figure 3: MDS analyses & plots by age group
+```{r}
+## lh children
+cross_sectional_devpfc_analysis_lh_children <- cross_sectional_devpfc_analysis_lh_scaled_info %>% subset(age_group == "children")
+
+
+### mds
+mds_analysis.df.lh.children <- cross_sectional_devpfc_analysis_lh_children %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) 
+mds_analysis.df.lh.children.scaled <- scale(mds_analysis.df.lh.children)
+mds.lh.children.scaled <- mds_analysis.df.lh.children.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.lh.children.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.lh.children <- NbClust(mds_analysis.df.lh.children.scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all", min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_children.lh <- kmeans(mds.lh.children.scaled, 3)$cluster %>%
+  as.factor()
+
+
+### plot
+mds.lh_children.scaled <- as.data.frame(mds.lh.children.scaled) %>%
+  mutate(groups = clust_children.lh)
+mds.scaled_children.plt <- cbind(mds.lh_children.scaled, cross_sectional_devpfc_analysis_lh_children)
+
+
+mds.lh_children.group2 <- mds.scaled_children.plt %>% mutate(groups2 = case_when(groups == 1 ~ "one",
+                                                                               groups == 2 ~ "two",
+                                                                               groups == 3 ~ "three"))
+
+
+mds.lh.plt2.children <- ggscatter(mds.lh_children.group2, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3"), # "1","2", "3" "one","two", "three"
+                     values = c("red",  "blue", "green")) +
+  scale_fill_manual(breaks = c("1","2", "3"), # "1","2", "3" "one","two", "three"
+                    values = c("red", "blue", "green")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_lh_children.png",
+#                  plot = mds.lh.plt2.children,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# group counts lh
+# mds.lh_children.group <- mds.scaled_children.plt %>% group_by(label, groups) %>% summarise(n = n())
+# mds.lh_children.group.plt <- ggplot(mds.lh_children.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+## rh children
+cross_sectional_devpfc_analysis_rh_children <- cross_sectional_devpfc_analysis_rh_scaled_info %>% subset(age_group == "children")
+mds_analysis.df.rh.children <- cross_sectional_devpfc_analysis_rh_children %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) #, localGI)
+mds_analysis.df.rh.children.scaled <- scale(mds_analysis.df.rh.children)
+
+### mds
+mds.rh.children.scaled <- mds_analysis.df.rh.children.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.rh.children.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.rh.children <- NbClust(mds_analysis.df.rh.children.scaled, 
+                                      distance = "euclidean", 
+                                      diss = NULL,
+                                      method = "kmeans", 
+                                      index = "all",
+                                      min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_children.rh <- kmeans(mds.rh.children.scaled, 3)$cluster %>%
+  as.factor()
+mds.rh_children.scaled <- as.data.frame(mds.rh.children.scaled) %>%
+  mutate(groups = clust_children.rh)
+
+
+### plot
+mds.scaled_children.rh.plt <- cbind(mds.rh_children.scaled, cross_sectional_devpfc_analysis_rh_children)
+mds.rh_children.group2 <- mds.scaled_children.rh.plt %>% mutate(groups2 = case_when(groups == 1 ~ "one",
+                                                                               groups == 2 ~ "three",
+                                                                               groups == 3 ~ "two"))
+
+
+mds.rh.plt2.children <- ggscatter(mds.rh_children.group2, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3"), # "1","2", "3" "one","two", "three"
+                     values = c("red",  "green", "blue")) +
+  scale_fill_manual(breaks = c("1","2", "3"), # "1","2", "3"  "one","two", "three"
+                    values = c("red", "green", "blue")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_rh_children.png",
+#                  plot = mds.rh.plt2.children,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# group counts rh
+# mds.scaled_children.rh.plt.group <- mds.scaled_children.rh.plt %>% group_by(label, groups) %>% summarise(n = n())
+# mds.rh_children.group.plt <- ggplot(mds.scaled_children.rh.plt.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+# group counts combined
+# mds.children.group2 <- rbind(mds.lh_children.group2, mds.rh_children.group2)
+# mds.children.group2.combined <- mds.children.group2 %>% group_by(label, groups2) %>% summarise(n = n())
+# 
+# mds.children.group2.combined.plot <- ggplot(mds.children.group2.combined, aes(x = label, y = n, fill = groups2)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("one","two", "three"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                     coord_flip()
+
+
+
+## lh adolescent
+cross_sectional_devpfc_analysis_lh_adolescent <- cross_sectional_devpfc_analysis_lh_scaled_info %>% subset(age_group == "adolescent")
+mds_analysis.df.lh.adolescent <- cross_sectional_devpfc_analysis_lh_adolescent %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) 
+mds_analysis.df.lh.adolescent.scaled <- scale(mds_analysis.df.lh.adolescent)
+
+
+### mds
+mds.lh.adolescent.scaled <- mds_analysis.df.lh.adolescent.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.lh.adolescent.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.lh.adolescent <- NbClust(mds_analysis.df.lh.adolescent.scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all",
+                                      min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_ad.lh <- kmeans(mds.lh.adolescent.scaled, 3)$cluster %>%
+  as.factor()
+mds.lh.adolescent.scaled <- as.data.frame(mds.lh.adolescent.scaled) %>%
+  mutate(groups = clust_ad.lh)
+
+
+### plot
+mds.scaled_ad.plt <- cbind(mds.lh.adolescent.scaled, cross_sectional_devpfc_analysis_lh_adolescent)
+mds.lh_ad.group2 <- mds.scaled_ad.plt %>% mutate(groups2 = case_when(groups == 1 ~ "three",
+                                                                       groups == 2 ~ "one",
+                                                                       groups == 3 ~ "two"))
+
+mds.lh.plt2.ad <- ggscatter(mds.lh_ad.group2, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3"), # "1","2", "3" "one","two", "three"
+                     values = c("green",  "red", "blue")) +
+  scale_fill_manual(breaks = c("1","2", "3"), # "1","2", "3" "one","two", "three"
+                    values = c("green",  "red", "blue")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_lh_ad.png",
+#                  plot = mds.lh.plt2.ad,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# group counts lh
+# mds.lh_ad.group <- mds.scaled_ad.plt %>% group_by(label, groups) %>% summarise(n = n())
+# mds.lh_ad.group.plt <- ggplot(mds.lh_ad.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +   
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+### rh adolescent 
+cross_sectional_devpfc_analysis_rh_adolescent <- cross_sectional_devpfc_analysis_rh_scaled_info %>% subset(age_group == "adolescent")
+mds_analysis.df.rh.adolescent <- cross_sectional_devpfc_analysis_rh_adolescent %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) 
+mds_analysis.df.rh.adolescent.scaled <- scale(mds_analysis.df.rh.adolescent)
+
+
+### mds
+mds.rh.adolescent.scaled <- mds_analysis.df.rh.adolescent.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.rh.adolescent.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.rh.adolescent <- NbClust(mds_analysis.df.rh.adolescent.scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all", min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_ad.rh <- kmeans(mds.rh.adolescent.scaled, 4)$cluster %>%
+  as.factor()
+
+
+### plot
+mds.rh.adolescent.scaled <- as.data.frame(mds.rh.adolescent.scaled) %>%
+  mutate(groups = clust_ad.rh)
+mds.rh.scaled_ad.plt <- cbind(mds.rh.adolescent.scaled, cross_sectional_devpfc_analysis_rh_adolescent)
+mds.rh_ad.group2 <- mds.rh.scaled_ad.plt %>% mutate(groups2 = case_when(groups == 1 ~ "two",
+                                                                       groups == 2 ~ "four",
+                                                                       groups == 3 ~ "three",
+                                                                       groups == 4 ~ "one"))
+
+
+mds.rh.plt2.ad <- ggscatter(mds.rh_ad.group2, x = "Dim.1", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3", "4"), # "1","2", "3" "one","two", "three", "four"
+                     values = c("blue",  "cyan", "green", "red")) +
+  scale_fill_manual(breaks = c("1","2", "3", "4"), # "1","2", "3" "one","two", "three", "four"
+                    values = c("blue",  "cyan", "green", "red")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_rh_ad.png",
+#                  plot = mds.rh.plt2.ad,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# Group counts rh
+# mds.rh_ad.group <- mds.rh.scaled_ad.plt %>% group_by(label, groups) %>% summarise(n = n())
+# 
+# mds.rh_ad.group.plt <- ggplot(mds.rh_ad.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+# group counts both
+# mds.ad.group2 <- rbind(mds.lh_ad.group2, mds.rh_ad.group2)
+# mds.ad.group2.combined <- mds.ad.group2 %>% group_by(label, groups2) %>% summarise(n = n())
+# 
+# mds.rh_ad.group2.combined <- mds.rh_ad.group2 %>% group_by(label, groups) %>% summarise(n = n())
+# 
+# mds.rh_ad.group2.combined.plot <- ggplot(mds.rh_ad.group2.combined, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3", "4"),
+#                     values = c("blue",  "cyan", "green", "red")) + 
+#                      coord_flip()
+
+
+
+## lh young adult
+cross_sectional_devpfc_analysis_lh_young_adult <- cross_sectional_devpfc_analysis_lh_scaled_info %>% subset(age_group == "young adult")
+mds_analysis.df.lh.young_adult <- cross_sectional_devpfc_analysis_lh_young_adult %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean) 
+mds_analysis.df.lh.young_adult.scaled <- scale(mds_analysis.df.lh.young_adult)
+
+
+### mds
+mds.lh.young_adult.scaled <- mds_analysis.df.lh.young_adult.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.lh.young_adult.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.lh.young_adult <- NbClust(mds_analysis.df.lh.young_adult.scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all", min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_ya.lh <- kmeans(mds.lh.young_adult.scaled, 4)$cluster %>%
+  as.factor()
+
+
+### plot
+mds.lh.young_adult.scaled <- as.data.frame(mds.lh.young_adult.scaled) %>%
+  mutate(groups = clust_ya.lh)
+mds.scaled_young_adult.plt <- cbind(mds.lh.young_adult.scaled, cross_sectional_devpfc_analysis_lh_young_adult)
+mds.lh_young_adult.group2 <- mds.scaled_young_adult.plt %>% mutate(groups2 = case_when(groups == 1 ~ "two",
+                                                                                       groups == 2 ~ "one",
+                                                                                       groups == 3 ~ "three"))
+mds.scaled_young_adult.plt$Dim.1.rev <- mds.scaled_young_adult.plt$Dim.1*-1
+
+mds.lh.plt2.ya <- ggscatter(mds.scaled_young_adult.plt, x = "Dim.1.rev", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3", "4"), # "1","2", "3" "one","two", "three", "four"
+                     values = c("blue",  "brown1", "green", "darkred")) +
+  scale_fill_manual(breaks = c("1","2", "3", "4"), # "1","2", "3"
+                    values = c("blue",  "brown1", "green", "darkred")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() + 
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_lh_ya.png",
+#                  plot = mds.lh.plt2.ya,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# group counts lh
+# mds.lh_ya.group <- mds.scaled_young_adult.plt %>% group_by(label, groups) %>% summarise(n = n())
+# mds.lh_ya.group.plt <- ggplot(mds.lh_ya.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+## rh young adults
+cross_sectional_devpfc_analysis_rh_young_adult <- cross_sectional_devpfc_analysis_rh_scaled_info %>% subset(age_group == "young adult")
+mds_analysis.df.rh.young_adult <- cross_sectional_devpfc_analysis_rh_young_adult %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2., cortical_thickness_mean)
+mds_analysis.df.rh.young_adult.scaled <- scale(mds_analysis.df.rh.young_adult)
+
+
+### mds
+mds.rh.young_adult.scaled <- mds_analysis.df.rh.young_adult.scaled %>% 
+  dist() %>%
+  cmdscale() 
+colnames(mds.rh.young_adult.scaled) <- c("Dim.1", "Dim.2")
+
+
+### determine best # of clusters
+clust.analysis.rh.young_adult <- NbClust(mds_analysis.df.rh.young_adult.scaled, distance = "euclidean", diss = NULL,
+                  method = "kmeans", index = "all", min.nc = 2, max.nc = 9) 
+set.seed(123)
+clust_ya.rh <- kmeans(mds.rh.young_adult.scaled, 4)$cluster %>%
+  as.factor()
+
+
+### plot
+mds.rh.young_adult.scaled <- as.data.frame(mds.rh.young_adult.scaled) %>%
+  mutate(groups = clust_ya.rh)
+mds.rh_scaled_young_adult.plt <- cbind(mds.rh.young_adult.scaled, cross_sectional_devpfc_analysis_rh_young_adult)
+mds.rh_young_adult.group2 <- mds.rh_scaled_young_adult.plt %>% mutate(groups2 = case_when(groups == 1 ~ "one",
+                                                                                          groups == 2 ~ "three",
+                                                                                          groups == 3 ~ "two"))
+mds.rh_scaled_young_adult.plt$Dim.1.rev <- mds.rh_scaled_young_adult.plt$Dim.1*-1
+
+mds.rh.plt2.ya <- ggscatter(mds.rh_scaled_young_adult.plt, x = "Dim.1.rev", y = "Dim.2", 
+          size = 1,
+          #shape = 21,
+          color = "groups",
+          fill = "groups",
+          ellipse = TRUE,
+          ellipse.type = "convex",
+          repel = T) + 
+  
+  scale_color_manual(breaks = c("1","2", "3", "4"), # "1","2", "3" "one","two", "three", "four"
+                     values = c("brown1",  "green", "blue", "darkred")) +
+  scale_fill_manual(breaks = c("1","2", "3", "4"), # "1","2", "3"
+                    values = c("brown1",  "green", "blue", "darkred")) +
+  
+  guides(fill = "none") +
+  
+  scale_x_continuous(n.breaks = 6, limits = c(-5, 5.5)) +
+  scale_y_continuous(n.breaks = 6, limits = c(-3.5, 6.5)) +
+  
+  new_scale_fill() +
+  
+  geom_point(aes(fill = label), 
+             check_overlap = F, size = 1.5, shape = 21) +
+  
+  scale_fill_manual(breaks = c("central", 
+                                  "sprs", "iprs", 
+                                  "sfs_p", "sfs_a", 
+                                  "imfs_h", "imfs_v",
+                                  "pmfs_p", "pmfs_i", "pmfs_a", 
+                                  "ifs",
+                                  "half", "aalf", 
+                                  "lfms", "prts", 
+                                  "ts", "ds"),
+                     values = c("#252525", # black
+                                "#636363", "#cccccc", # gray
+                                "#08306b", "#4292c6", # blues
+                                "#66c2a4", "#b2e2e2", # teal
+                                "#004529", "#4daf4a", "#addd8e", #greens
+                                "#ffffff", # white
+                                "#a50f15", "#de2d26", # reds
+                                "darkorange3", "orange", # oranges
+                                "yellow3", "yellow")) + # yellows 
+  
+theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = "none") 
+
+# ggplot2::ggsave(filename = "~/Downloads/mds_rh_ya.png",
+#                  plot = mds.rh.plt2.ya,
+#                  device = "png",
+#                  width = 8,
+#                  height = 8, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# group counts rh
+# mds.rh_ya.group <- mds.rh_scaled_young_adult.plt %>% group_by(label, groups) %>% summarise(n = n())
+# mds.rh_ya.group.plt <- ggplot(mds.rh_ya.group, aes(x = label, y = n, fill = groups)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("1","2", "3"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+
+
+# group counts both
+# mds.ya.group2 <- rbind(mds.lh_young_adult.group2, mds.rh_young_adult.group2)
+# mds.ya.group2.combined <- mds.ya.group2 %>% group_by(label, groups2) %>% summarise(n = n())
+# mds.ya.group2.combined.plot <- ggplot(mds.ya.group2.combined, aes(x = label, y = n, fill = groups2)) + 
+#   geom_col(color = 'black', size=.3, position = dodge) +                                                                            
+#   scale_fill_manual(breaks = c("one","two", "three"),
+#                     values = c("#e41a1c", "#377eb8", "#4daf4a")) + 
+#                      coord_flip()
+```
+
+##### Cluster sulci by group majority for cross-sectional analyses
+```{r}
+group_dev_analysis <- cross_sectional_devpfc_analysis %>% mutate(sulcal_cluster = 
+                                  
+                                    case_when(label %in% c("central", "iprs", "sprs", "ifs", "sfs_p") ~ "border",
+                                              label %in% c("aalf", "ds", "ts") ~ "ventral", 
+                                              label %in%  c("sfs_a", "imfs_v", "imfs_h",
+                                              "pmfs_p", "pmfs_i", "pmfs_a", "prts", "lfms", "half") ~ "dorsal"
+))
+
+## describe features
+group_dev_analysis %>% group_by(sulcal_cluster) %>% summarise(mean_depth = mean(sulcal_depth_mm),
+                                                              mean_sa = mean(total_surface_area_.mm.2.),
+                                                              mean_ct = mean(cortical_thickness_mean))
+
+```
+
+
+#### Morphological analysis: Cross-sectional age-group comparisons
+
+##### Stats 1
+* N-way (sulcal label x hemi x age group x gender) mixed model ANOVA to test for differences in depth, surface area, & cortical thickness (and normalized versions)
+
+* Within-subject effects:
+* sulcal group: DLPFC, VLPFC, and border sulci (only including interactions)
+* hemi: lh, rh
+
+* Between-subject effects:
+* age_group: children, adolescent, young adult
+* gender: male, female
+
+###### Sulcal depth ANOVA
+```{r}
+# raw 
+## anova
+depth_model_raw <- afex::aov_ez(id = "sub", 
+                            dv = "sulcal_depth_mm", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## output
+depth_model_raw_out <- depth_model_raw$anova_table
+depth_model_raw_out$type <- "raw"
+depth_model_raw_out$Effect <- rownames(depth_model_raw_out)
+
+## contrasts
+depth_model_raw.m1 <- emmeans::emmeans(depth_model_raw,'age_group')
+emmeans::contrast(depth_model_raw.m1, method='pairwise')
+group_dev_analysis %>% group_by(age_group) %>% summarise(mean_depth = mean(sulcal_depth_mm))
+
+
+# normalized
+## anova
+depth_model_norm <- afex::aov_ez(id = "sub", 
+                            dv = "depth_pct_max", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## output
+depth_model_norm_out <- depth_model_norm$anova_table
+depth_model_norm_out$type <- "norm"
+depth_model_norm_out$Effect <- rownames(depth_model_norm_out)
+
+## contrasts
+depth_model_norm.m1 <- emmeans::emmeans(depth_model_norm,'age_group')
+emmeans::contrast(depth_model_norm.m1, method='pairwise')
+group_dev_analysis %>% group_by(age_group) %>% summarise(mean_depth_pct_max = mean(depth_pct_max))
+
+
+## combined output
+depth_model_table <- rbind(depth_model_raw_out, depth_model_norm_out)
+depth_model_table$metric <- "depth"
+```
+
+###### Surface area ANOVA
+```{r}
+# raw
+## anova
+surface_area_model_raw <- afex::aov_ez(id = "sub", 
+                            dv = "total_surface_area_.mm.2.", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## output
+surface_area_model_raw_out <- surface_area_model_raw$anova_table
+surface_area_model_raw_out$type <- "raw"
+surface_area_model_raw_out$Effect <- rownames(surface_area_model_raw_out)
+
+
+# normalized
+## anova
+surface_area_model_norm <- afex::aov_ez(id = "sub", 
+                            dv = "sa_normed", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## contrasts
+sa_norm_model.i1 <- emmeans::emmeans(surface_area_model_norm, ~ age_group | sulcal_cluster)
+emmeans::contrast(sa_norm_model.i1, method='pairwise')
+group_dev_analysis %>% group_by(sulcal_cluster, age_group) %>% summarise(mean = mean(sa_normed))
+
+## output
+surface_area_model_norm_out <- surface_area_model_norm$anova_table
+surface_area_model_norm_out$type <- "norm"
+surface_area_model_norm_out$Effect <- rownames(surface_area_model_norm_out)
+
+
+## combined output
+surface_area_model_table <- rbind(surface_area_model_raw_out, surface_area_model_norm_out)
+surface_area_model_table$metric <- "surface area"
+```
+
+###### Cortical thickness ANOVA
+```{r}
+# raw 
+## anova
+cortical_thickness_model_raw <- afex::aov_ez(id = "sub", 
+                            dv = "cortical_thickness_mean", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## output
+cortical_thickness_model_raw_out <- cortical_thickness_model_raw$anova_table
+cortical_thickness_model_raw_out$type <- "raw"
+cortical_thickness_model_raw_out$Effect <- rownames(cortical_thickness_model_raw_out)
+
+## contrast
+cortical_thickness_model_raw.m1 <- emmeans::emmeans(cortical_thickness_model_raw, 'age_group')
+emmeans::contrast(cortical_thickness_model_raw.m1, method='pairwise')
+group_dev_analysis %>% group_by(age_group) %>% summarise(cortical_thickness_mean = mean(cortical_thickness_mean))
+
+
+# normalized
+## anova
+cortical_thickness_model_norm <- afex::aov_ez(id = "sub", 
+                            dv = "cortical_thickness_normed", 
+                            within =c('hemi', 'sulcal_cluster'), 
+                            between = c('age_group', 'gender'),
+                            data = group_dev_analysis
+)
+
+## output
+cortical_thickness_model_norm_out <- cortical_thickness_model_norm$anova_table
+cortical_thickness_model_norm_out$type <- "norm"
+cortical_thickness_model_norm_out$Effect <- rownames(cortical_thickness_model_norm_out)
+
+## contrast
+cortical_thickness_model_norm.m1 <- emmeans::emmeans(cortical_thickness_model_norm, 'age_group')
+emmeans::contrast(cortical_thickness_model_norm.m1, method='pairwise')
+group_dev_analysis %>% group_by(age_group) %>% summarise(mean_cortical_thickness_normed = mean(cortical_thickness_normed))
+
+
+## combined output
+cortical_thickness_model_table <- rbind(cortical_thickness_model_raw_out, cortical_thickness_model_norm_out)
+cortical_thickness_model_table$metric <- "thickness"
+```
+
+###### FDR correction on ANOVAs
+```{r}
+# merge tables together
+all_morph_tables <- rbind(depth_model_table, surface_area_model_table, cortical_thickness_model_table) #localGI_model_raw_table)
+all_morph_tables <- all_morph_tables %>% select(-c("MSE"))
+
+# conduct FDR correction
+p_val_tst_adj <- p.adjust(p = all_morph_tables$`Pr(>F)`, 
+                              method = "fdr")
+
+# round values to be more readable
+p_val_tst_adj <- round(as.data.frame(p_val_tst_adj), 3) # round
+
+# adjustments to table
+
+## merge adjusted with original
+all_morph_tables <- cbind(all_morph_tables, p_val_tst_adj)
+
+## round values to be more readable 
+all_morph_tables$`num Df` <- round(all_morph_tables$`num Df`, 3)
+all_morph_tables$`den Df` <- round(all_morph_tables$`den Df`, 3)
+all_morph_tables$F <- round(all_morph_tables$F, 3)
+all_morph_tables$ges <- round(all_morph_tables$ges, 3) 
+all_morph_tables$p_val_tst_adj <- round(all_morph_tables$p_val_tst_adj, 3) 
+
+## major adjustments 
+all_morph_tables_f <- all_morph_tables %>% select(-c(5)) %>% 
+  rename(p_value_adj = p_val_tst_adj, DF1 = `num Df`, DF2 = `den Df`) %>%
+  mutate(significance = case_when(p_value_adj >= .1 ~ "", 
+                                  p_value_adj < .1 & p_value_adj >= .05 ~ "+",
+                                  p_value_adj < .05 & p_value_adj >= .01 ~ "*",
+                                  p_value_adj < .01 & p_value_adj >= .001 ~ "**",
+                                  p_value_adj < .001 ~ "***" 
+                             )
+  ) %>%
+  mutate(p_value_adj = replace(p_value_adj, p_value_adj == 0.000, "< 0.001"))
+
+col_order <- c("Effect", "DF1", "DF2", 
+               "F", "p_value_adj", "significance", "ges", "type", "metric")
+all_morph_tables_f <- all_morph_tables_f[, col_order]
+```
+
+##### Visualizations for Figure 4A, B, C and Extended Data Figure 4-1A, B, C: Cross-sectional results
+```{r}
+group_dev_analysis$age_group <- factor(group_dev_analysis$age_group, 
+                                         levels = c("children", "adolescent", "young adult"))
+
+# sulcal depth
+## raw
+lpfc_depth_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = sulcal_depth_mm)) + 
+  
+  geom_point(aes(y = sulcal_depth_mm, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = sulcal_depth_mm, fill = age_group),color = 'black',
+               alpha = .6, position = position_dodge(width = 0.75),
+               outlier.size = 0, outlier.alpha = 0,
+               width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "sulcal depth (mm)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+# ggplot2::ggsave(filename = "~/Downloads/lpfc_depth_plot.png",
+#                  plot = lpfc_depth_plot,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+## normalized
+lpfc_depth_norm_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = depth_pct_max)) + 
+  
+  geom_point(aes(y = depth_pct_max, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = depth_pct_max, fill = age_group),color = 'black',
+               alpha = .6, position = position_dodge(width = 0.75),
+               outlier.size = 0, outlier.alpha = 0,
+               width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "sulcal depth (mm)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10, limits = c(0:1)) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+# ggplot2::ggsave(filename = "~/Downloads/lpfc_depth_norm_plot.png",
+#                  plot = lpfc_depth_norm_plot,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# surface area
+## raw
+lpfc_sa_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = total_surface_area_.mm.2./100)) +
+  
+  geom_point(aes(y = total_surface_area_.mm.2./100, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = total_surface_area_.mm.2./100, fill = age_group),color = 'black',
+               outlier.size = 0, outlier.alpha = 0,
+               alpha = .6, position = position_dodge(width = 0.75),
+                width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "surface area (mm2)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+# ggplot2::ggsave(filename = "~/Downloads/lpfc_sa_plot.png",
+#                  plot = lpfc_sa_plot,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+## normalized
+lpfc_sa_normed_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = sa_normed)) + 
+  
+  geom_point(aes(y = sa_normed, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = sa_normed, fill = age_group),color = 'black',
+               outlier.size = 0, outlier.alpha = 0,
+               alpha = .6, position = position_dodge(width = 0.75),
+               width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "surface area (mm2)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+# ggplot2::ggsave(filename = "~/Downloads/lpfc_sa_normed_plot.png",
+#                  plot = lpfc_sa_normed_plot,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# thickness
+## raw
+lpfc_ct_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = cortical_thickness_mean)) + 
+  
+  geom_point(aes(y = cortical_thickness_mean, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = cortical_thickness_mean, fill = age_group),color = 'black',
+               outlier.size = 0, outlier.alpha = 0,
+               alpha = .6, position = position_dodge(width = 0.75),
+               width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "cortical thickness (mm)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+# ggplot2::ggsave(filename = "~/Downloads/lpfc_ct_plot.png",
+#                  plot = lpfc_ct_plot,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+# normalized
+lpfc_ct_norm_plot <- ggplot(group_dev_analysis, aes(x = sulcal_cluster, y = cortical_thickness_normed)) + 
+  
+  geom_point(aes(y = cortical_thickness_normed, fill = age_group), 
+              shape = 21, color = 'black', 
+              alpha = .5, position = position_jitterdodge()
+              ) + 
+  
+  geom_boxplot(aes(y = cortical_thickness_normed, fill = age_group),color = 'black',
+               outlier.size = 0, outlier.alpha = 0,
+               alpha = .6, position = position_dodge(width = 0.75),
+               width = 0.5, size = .75) +
+  
+  scale_fill_manual(breaks = c("children", "adolescent", "young adult"),
+                    values = c("#009E73", "#56B4E9", "#E69F00")
+                    ) +
+  
+  labs(x = "cluster group",
+       y = "cortical thickness (mm)") + 
+  
+  guides(fill = "none", color = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() +
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  facet_wrap( ~ hemi)
+  
+#ggplot2::ggsave(filename = "~/Downloads/lpfc_ct_norm_plot.png",
+                 # plot = lpfc_ct_norm_plot,
+                 # device = "png",
+                 # width = 7,
+                 # height = 7,
+                 # units = "in",
+                 # dpi = "retina")
+```
+
+
+##### Continous analysis on morphology
+* linear mixed models to test whether depth, surface area, and cortical thickness (raw and normed) changed with age (rather than as a categorical variable) for the children and adolescent sample
+
+* Predictors
+* Age
+* hemi: lh, rh
+
+###### linear mixed effects models
+```{r}
+# border sulci
+## set up data
+group_dev_analysis_border.nora <- group_dev_analysis %>% subset(sulcal_cluster == "border" & age_group %in% c("children", "adolescent"))
+group_dev_analysis_border_depth.nora2 <- group_dev_analysis_border.nora %>% group_by(sub, hemi, sulcal_cluster, age) %>% 
+                                                                            summarise(mean_depth = mean(sulcal_depth_mm),
+                                                                                      mean_thickness = mean(cortical_thickness_mean),
+                                                                                      mean_sa = mean(total_surface_area_.mm.2.),
+                                                                                      mean_lgi = mean(localGI),
+                                                                                      mean_depth_norm = mean(depth_pct_max),
+                                                                                      mean_thickness_norm = mean(cortical_thickness_normed),
+                                                                                      mean_sa_norm = mean(sa_normed))
+
+## depth
+### raw
+model_dev_depth <- lme(mean_depth ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_depth_raw <- summary(model_dev_depth)
+border_depth_raw_table <- border_depth_raw$tTable
+border_depth_raw_table <- as.data.frame(border_depth_raw_table)
+border_depth_raw_table$metric <- "depth"
+border_depth_raw_table$type <- "raw"
+
+### normalized
+model_dev_depth_norm <- lme(mean_depth_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_depth_norm <- summary(model_dev_depth_norm)
+border_depth_norm_table <- border_depth_norm$tTable
+border_depth_norm_table <- as.data.frame(border_depth_norm_table)
+border_depth_norm_table$metric <- "depth"
+border_depth_norm_table$type <- "norm"
+
+### combine results
+border_depth <- rbind(border_depth_raw_table, border_depth_norm_table)
+
+
+## thickness
+### raw
+model_dev_thick <- lme(mean_thickness ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_thick_raw <- summary(model_dev_thick)
+border_thick_raw_table <- border_thick_raw$tTable
+border_thick_raw_table <- as.data.frame(border_thick_raw_table)
+border_thick_raw_table$metric <- "thickness"
+border_thick_raw_table$type <- "raw"
+
+### normalized
+model_dev_thick_norm <- lme(mean_thickness_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_thick_norm <- summary(model_dev_thick_norm)
+border_thick_norm_table <- border_thick_norm$tTable
+border_thick_norm_table <- as.data.frame(border_thick_norm_table)
+border_thick_norm_table$metric <- "thickness"
+border_thick_norm_table$type <- "norm"
+
+### combine results
+border_thick <- rbind(border_thick_raw_table, border_thick_norm_table)
+
+
+## surface area
+### raw
+model_dev_sa <- lme(mean_sa ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_sa_raw <- summary(model_dev_sa)
+border_sa_raw_table <- border_sa_raw$tTable
+border_sa_raw_table <- as.data.frame(border_sa_raw_table)
+border_sa_raw_table$metric <- "surf"
+border_sa_raw_table$type <- "raw"
+
+### normalized
+model_dev_sa_norm <- lme(mean_sa_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_border_depth.nora2)
+border_sa_norm <- summary(model_dev_sa_norm)
+border_sa_norm_table <- border_sa_norm$tTable
+border_sa_norm_table <- as.data.frame(border_sa_norm_table)
+border_sa_norm_table$metric <- "surf"
+border_sa_norm_table$type <- "norm"
+
+### combine results
+border_surf <- rbind(border_sa_raw_table, border_sa_norm_table)
+
+### combine all results
+border_lme_results <- rbind(border_depth, border_thick, border_surf)
+border_lme_results$cluster <- "border"
+
+
+# dorsal sulci
+## set up
+group_dev_analysis_dorsal.nora <- group_dev_analysis %>% subset(sulcal_cluster == "dorsal" & age_group %in% c("children", "adolescent"))
+group_dev_analysis_dorsal.nora2 <- group_dev_analysis_dorsal.nora %>% group_by(sub, hemi, sulcal_cluster, age) %>% 
+                                                                            summarise(mean_depth = mean(sulcal_depth_mm),
+                                                                                      mean_thickness = mean(cortical_thickness_mean),
+                                                                                      mean_sa = mean(total_surface_area_.mm.2.),
+                                                                                      mean_lgi = mean(localGI),
+                                                                                      mean_depth_norm = mean(depth_pct_max),
+                                                                                      mean_thickness_norm = mean(cortical_thickness_normed),
+                                                                                      mean_sa_norm = mean(sa_normed))
+
+## depth
+### raw
+model_dev_depth2 <- lme(mean_depth ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_depth_raw <- summary(model_dev_depth2)
+dorsal_depth_raw_table <- dorsal_depth_raw$tTable
+dorsal_depth_raw_table <- as.data.frame(dorsal_depth_raw_table)
+dorsal_depth_raw_table$metric <- "depth"
+dorsal_depth_raw_table$type <- "raw"
+
+### normalized
+model_dev_depth_norm2 <- lme(mean_depth_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_depth_norm <- summary(model_dev_depth_norm2)
+dorsal_depth_norm_table <- dorsal_depth_norm$tTable
+dorsal_depth_norm_table <- as.data.frame(dorsal_depth_norm_table)
+dorsal_depth_norm_table$metric <- "depth"
+dorsal_depth_norm_table$type <- "norm"
+
+### combine results
+dorsal_depth <- rbind(dorsal_depth_raw_table, dorsal_depth_norm_table)
+
+
+## thickness
+### raw
+model_dev_thick2 <- lme(mean_thickness ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_thick_raw <- summary(model_dev_thick2)
+dorsal_thick_raw_table <- dorsal_thick_raw$tTable
+dorsal_thick_raw_table <- as.data.frame(dorsal_thick_raw_table)
+dorsal_thick_raw_table$metric <- "thick"
+dorsal_thick_raw_table$type <- "raw"
+
+### normalized
+model_dev_thick_norm2 <- lme(mean_thickness_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_thick_norm <- summary(model_dev_thick_norm2)
+dorsal_thick_norm_table <- dorsal_thick_norm$tTable
+dorsal_thick_norm_table <- as.data.frame(dorsal_thick_norm_table)
+dorsal_thick_norm_table$metric <- "thick"
+dorsal_thick_norm_table$type <- "norm"
+
+### combine results
+dorsal_thick <- rbind(dorsal_thick_raw_table, dorsal_thick_norm_table)
+
+
+## surface area
+### raw
+model_dev_sa2 <- lme(mean_sa ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_sa_raw <- summary(model_dev_sa2)
+dorsal_sa_raw_table <- dorsal_sa_raw$tTable
+dorsal_sa_raw_table <- as.data.frame(dorsal_sa_raw_table)
+dorsal_sa_raw_table$metric <- "surf"
+dorsal_sa_raw_table$type <- "raw"
+
+### normalized
+model_dev_sa_norm2 <- lme(mean_sa_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_dorsal.nora2)
+dorsal_sa_norm <- summary(model_dev_sa_norm2)
+dorsal_sa_norm_table <- dorsal_sa_norm$tTable
+dorsal_sa_norm_table <- as.data.frame(dorsal_sa_norm_table)
+dorsal_sa_norm_table$metric <- "surf"
+dorsal_sa_norm_table$type <- "norm"
+
+### combine results
+dorsal_surf <- rbind(dorsal_sa_raw_table, dorsal_sa_norm_table)
+
+### combine all results
+dorsal_lme_results <- rbind(dorsal_depth, dorsal_thick, dorsal_surf)
+dorsal_lme_results$cluster <- "dorsal"
+
+
+
+# ventral sulci
+## set up
+group_dev_analysis_ventral.nora <- group_dev_analysis %>% subset(sulcal_cluster == "ventral" & age_group %in% c("children", "adolescent"))
+group_dev_analysis_ventral.nora2 <- group_dev_analysis_ventral.nora %>% group_by(sub, hemi, sulcal_cluster, age) %>% 
+                                                                            summarise(mean_depth = mean(sulcal_depth_mm),
+                                                                                      mean_thickness = mean(cortical_thickness_mean),
+                                                                                      mean_sa = mean(total_surface_area_.mm.2.),
+                                                                                      mean_lgi = mean(localGI),
+                                                                                      mean_depth_norm = mean(depth_pct_max),
+                                                                                      mean_thickness_norm = mean(cortical_thickness_normed),
+                                                                                      mean_sa_norm = mean(sa_normed))
+
+## depth
+### raw
+model_dev_depth3 <- lme(mean_depth ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_depth_raw <- summary(model_dev_depth3)
+ventral_depth_raw_table <- ventral_depth_raw$tTable
+ventral_depth_raw_table <- as.data.frame(ventral_depth_raw_table)
+ventral_depth_raw_table$metric <- "depth"
+ventral_depth_raw_table$type <- "raw"
+
+### normalized
+model_dev_depth_norm3 <- lme(mean_depth_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_depth_norm <- summary(model_dev_depth_norm3)
+ventral_depth_norm_table <- ventral_depth_norm$tTable
+ventral_depth_norm_table <- as.data.frame(ventral_depth_norm_table)
+ventral_depth_norm_table$metric <- "depth"
+ventral_depth_norm_table$type <- "norm"
+
+### combine results
+ventral_depth <- rbind(ventral_depth_raw_table, ventral_depth_norm_table)
+
+
+## thickness
+### raw
+model_dev_thick3 <- lme(mean_thickness ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_thick_raw <- summary(model_dev_thick3)
+ventral_thick_raw_table <- ventral_thick_raw$tTable
+ventral_thick_raw_table <- as.data.frame(ventral_thick_raw_table)
+ventral_thick_raw_table$metric <- "thick"
+ventral_thick_raw_table$type <- "raw"
+
+### normalized
+model_dev_thick_norm3 <- lme(mean_thickness_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_thick_norm <- summary(model_dev_thick_norm3)
+ventral_thick_norm_table <- ventral_thick_norm$tTable
+ventral_thick_norm_table <- as.data.frame(ventral_thick_norm_table)
+ventral_thick_norm_table$metric <- "thick"
+ventral_thick_norm_table$type <- "norm"
+
+### combine results
+ventral_thick <- rbind(ventral_thick_raw_table, ventral_thick_norm_table)
+
+
+## surface area
+### raw
+model_dev_sa3 <- lme(mean_sa ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_sa_raw <- summary(model_dev_sa3)
+ventral_sa_raw_table <- ventral_sa_raw$tTable
+ventral_sa_raw_table <- as.data.frame(ventral_sa_raw_table)
+ventral_sa_raw_table$metric <- "surf"
+ventral_sa_raw_table$type <- "raw"
+
+### normalized
+model_dev_sa_norm3 <- lme(mean_sa_norm ~ age*hemi, random = (~1|sub/hemi), data = group_dev_analysis_ventral.nora2)
+ventral_sa_norm <- summary(model_dev_sa_norm3)
+ventral_sa_norm_table <- ventral_sa_norm$tTable
+ventral_sa_norm_table <- as.data.frame(ventral_sa_norm_table)
+ventral_sa_norm_table$metric <- "surf"
+ventral_sa_norm_table$type <- "norm"
+
+### combine results
+ventral_surf <- rbind(ventral_sa_raw_table, ventral_sa_norm_table)
+
+### combine all results
+ventral_lme_results <- rbind(ventral_depth, ventral_thick, ventral_surf)
+ventral_lme_results$cluster <- "ventral"
+
+
+# combine all results for all sulcal groups
+age_lme_results <- rbind(border_lme_results, dorsal_lme_results, ventral_lme_results) 
+
+## conduct FDR correction
+p_val_tst_adj_lme <- p.adjust(p = age_lme_results$`p-value`, 
+                              method = "fdr")
+
+## round values to be more readable
+p_val_tst_adj <- round(as.data.frame(p_val_tst_adj), 3) # round
+
+## adjustments to table
+### merge adjusted with original
+age_lme_results <- cbind(age_lme_results, p_val_tst_adj_lme)
+
+age_lme_results <- age_lme_results %>% mutate(signif = case_when(p_val_tst_adj_lme >= .1 ~ "", 
+                                  p_val_tst_adj_lme < .1 & p_val_tst_adj_lme >= .05 ~ "+",
+                                  p_val_tst_adj_lme < .05 & p_val_tst_adj_lme >= .01 ~ "*",
+                                  p_val_tst_adj_lme < .01 & p_val_tst_adj_lme >= .001 ~ "**",
+                                  p_val_tst_adj_lme < .001 ~ "***" 
+                             ))
+
+```
+
+#### Figure 4D and 4-1D: Visualizing lme results
+```{r}
+# import table made in previous cell
+cross_sectional_correlations <- read.csv("./data/morphological_analysis/crosssectional_data/cross_sectional_continuous.csv")
+
+# theme
+theme_cs_cor <- theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90, 
+                                                    size=14
+                                                    ),
+                        # rotate x-axis text
+                        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+
+                        # set axis text
+                        axis.text = element_text(color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank()#,
+                        #strip.text = element_text(size = 0)
+                ) 
+
+# raw plots
+cross_sectional_correlations.raw.plot <- cross_sectional_correlations %>% 
+  
+  subset(type == "raw" & metric %in% c("depth", "thickness")) %>%
+  
+  ggplot(aes(x = cluster, y = beta)) + 
+  
+  geom_col(aes(fill = p.value), color = "black") +
+  
+  scale_fill_continuous(limits = c(0.000001, 0.1)) +
+  
+  labs(x = "cluster",
+       y = "age beta-value") + 
+  
+  facet_wrap( ~ metric) +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() + 
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                )
+  
+cross_sectional_correlations.raw.plot
+  
+# ggplot2::ggsave(filename = "~/Desktop/cross_sectional_correlations_raw_plot.png",
+#                  plot = cross_sectional_correlations.raw.plot,
+#                  device = "png",
+#                  width = 6,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+cross_sectional_correlations.sa.plot <- cross_sectional_correlations %>% 
+  
+  subset(type == "raw" & metric %in% c("surface_area")) %>%
+  
+  ggplot(aes(x = cluster, y = beta)) + 
+  
+  geom_col(aes(fill = p.value), color = "black") +
+  
+  scale_fill_continuous(limits = c(0.000001, 0.1)) +
+
+  labs(x = "raw metric",
+       y = "age beta-value") + 
+
+  facet_wrap( ~ metric) +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() + 
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  guides(fill = "none")
+  
+  
+# ggplot2::ggsave(filename = "~/Desktop/cross_sectional_correlations_raw_sa_plot.png",
+#                  plot = cross_sectional_correlations.sa.plot,
+#                  device = "png",
+#                  width = 3,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# normalized plots
+cross_sectional_correlations.norm.plot <- cross_sectional_correlations %>% 
+  
+  subset(type == "norm" & metric %in% c("depth", "thickness")) %>%
+  
+  ggplot(aes(x = cluster, y = beta)) +
+  
+  geom_col(aes(fill = p.value), color = "black") +
+  
+  scale_fill_continuous(limits = c(0.000001, 0.1)) +
+
+  labs(x = "normed metric",
+       y = "age beta-value") + 
+  
+  facet_wrap( ~ metric) +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() + 
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                )
+  
+cross_sectional_correlations.norm.plot
+  
+# ggplot2::ggsave(filename = "~/Desktop/cross_sectional_correlations_norm_plot.png",
+#                  plot = cross_sectional_correlations.norm.plot,
+#                  device = "png",
+#                  width = 6,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+
+cross_sectional_correlations.sa_norm.plot <- cross_sectional_correlations %>% 
+  
+  subset(type == "norm" & metric %in% c("surface_area")) %>%
+  
+  ggplot(aes(x = cluster, y = beta*10^6)) + 
+  
+  geom_col(aes(fill = p.value), color = "black") +
+  
+  scale_fill_continuous(limits = c(0.000001, 0.1)) +
+
+  labs(x = "normed metric",
+       y = "age beta-value ( x 10^6)") + 
+  
+  facet_wrap( ~ metric) +
+  
+  scale_y_continuous(n.breaks = 10) +
+  
+  theme_classic() + 
+  
+  theme( 
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        # remove facet 
+                        strip.background = element_blank(),
+                        strip.text = element_text(size = 0)
+                ) +
+  
+  guides(fill = "none")
+
+cross_sectional_correlations.sa_norm.plot
+  
+# ggplot2::ggsave(filename = "~/Desktop/cross_sectional_correlations_norm_sa_plot.png",
+#                  plot = cross_sectional_correlations.sa_norm.plot,
+#                  device = "png",
+#                  width = 3,
+#                  height = 7,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+#### Morphological analysis: Longitudinal analyses between two timepoints
+
+##### Data
+```{r}
+data <- read.csv("./data/morphological_analysis/longitudinal_data/cluster_morphology_longitudinal.csv")
+
+# center age to minimum age
+data$age1s <- data$age1 - 6.25
+  
+# make dataframe for each sulcal cluster in each hemisphere
+data.border <- data %>% subset(clusters == "border")
+data.border.lh <- data.border %>% subset(hemi == "lh")
+data.border.rh <- data.border %>% subset(hemi == "rh")
+
+data.dorsal <-  data %>% subset(clusters == "dlpfc")
+data.dorsal.lh <- data.dorsal %>% subset(hemi == "lh")
+data.dorsal.rh <- data.dorsal %>% subset(hemi == "rh")
+
+data.ventral <-  data %>% subset(clusters == "vlpfc")
+data.ventral.lh <- data.ventral %>% subset(hemi == "lh")
+data.ventral.rh <- data.ventral %>% subset(hemi == "rh")
+```
+
+##### Stats
+* Linear growth curve model (LGC) to test for longitduinal changes in depth and cortical thickness
+* One LGC for each cluster in each hemisphere 
+* Clusters: Border, Dorsal, & Ventral
+* Hemispheres: left = LH & right = RH
+
+###### Border LH thickness
+```{r}
+myModel.border = '
+	#level and slope
+	ly0 =~ 1*cort1
+	ly0 =~ 1*cort2
+
+	lys =~ 0*cort1
+	lys =~ 1*cort2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	cort1 ~ 0
+	cort2 ~ 0
+	
+	# variances
+	cort1 ~~ ve*cort1
+	cort2 ~~ ve*cort2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+  #ly0 ~ age1s
+  #lys ~ age1s
+'
+
+fit.covariate.border.lh <- sem(myModel.border, data = data.border.lh, fixed.x = F)
+fit.border.lh <- summary(fit.covariate.border.lh, fit.measures = T, standardized = F)
+fit.border.lh
+```
+
+###### Border RH thickness
+```{r}
+fit.covariate.border.rh <- sem(myModel.border, data = data.border.rh, fixed.x = F)
+fit.border.rh <- summary(fit.covariate.border.rh, fit.measures = T, standardized = F)
+fit.border.rh
+```
+
+###### Dorsal LH thickness
+```{r}
+myModel.dorsal = '
+	#level and slope
+	ly0 =~ 1*cort1
+	ly0 =~ 1*cort2
+
+	lys =~ 0*cort1
+	lys =~ 1*cort2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	cort1 ~ 0
+	cort2 ~ 0
+	
+	# variances
+	cort1 ~~ ve*cort1
+	cort2 ~~ ve*cort2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+	#ly0 ~ age1s
+	#lys ~ age1s
+	'
+
+fit.covariate.dorsal.lh <- sem(myModel.dorsal, data = data.dorsal.lh, fixed.x = F)
+fit.dorsal.lh <- summary(fit.covariate.dorsal.lh, fit.measures = T, standardized = F)
+fit.dorsal.lh
+```
+
+###### Dorsal RH thickness
+```{r}
+fit.covariate.dorsal.rh <- sem(myModel.dorsal, data = data.dorsal.rh, fixed.x = F)
+fit.dorsal.rh <- summary(fit.covariate.dorsal.rh, fit.measures = T, standardized = F)
+fit.dorsal.rh
+```
+
+###### Ventral LH thickness
+```{r}
+myModel.ventral = '
+	#level and slope
+	ly0 =~ 1*cort1
+	ly0 =~ 1*cort2
+
+	lys =~ 0*cort1
+	lys =~ 1*cort2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	cort1 ~ 0
+	cort2 ~ 0
+	
+	# variances
+	cort1 ~~ ve*cort1
+	cort2 ~~ ve*cort2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+	#ly0 ~ age1s
+	#lys ~ age1s
+	'
+
+fit.covariate.ventral.lh = sem(myModel.ventral, data = data.ventral.lh, fixed.x = F)
+fit.ventral.lh <- summary(fit.covariate.ventral.lh, fit.measures=T, standardized = F)
+fit.ventral.lh
+```
+
+###### Ventral RH thickness
+```{r}
+fit.covariate.ventral.rh <- sem(myModel.ventral, data = data.ventral.rh, fixed.x = F)
+fit.ventral.rh <- summary(fit.covariate.ventral.rh, fit.measures = T, standardized = F)
+fit.ventral.rh
+```
+
+###### Border LH depth
+```{r}
+myModel.border.depth = '
+	#level and slope
+	ly0 =~ 1*depth1
+	ly0 =~ 1*depth2
+
+	lys =~ 0*depth1
+	lys =~ 1*depth2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	depth1 ~ 0
+	depth2 ~ 0
+	
+	# variances
+	depth1 ~~ ve*depth1
+	depth2 ~~ ve*depth2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+	#ly0 ~ age1s
+	#lys ~ age1s
+	'
+
+fit.covariate.border.depth.lh <- sem(myModel.border.depth, data = data.border.lh, fixed.x = F)
+fit.border.depth.lh <- summary(fit.covariate.border.depth.lh, fit.measures = T, standardized = F)
+fit.border.depth.lh
+```
+
+###### Border RH depth
+```{r}
+fit.covariate.border.depth.rh <- sem(myModel.border.depth, data = data.border.rh, fixed.x = F)
+fit.border.depth.rh <- summary(fit.covariate.border.depth.rh, fit.measures = T, standardized = F)
+fit.border.depth.lh
+```
+
+###### Dorsal LH depth
+```{r}
+myModel.dorsal.depth = '
+	#level and slope
+	ly0 =~ 1*depth1
+	ly0 =~ 1*depth2
+
+	lys =~ 0*depth1
+	lys =~ 1*depth2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	depth1 ~ 0
+	depth2 ~ 0
+	
+	# variances
+	depth1 ~~ ve*depth1
+	depth2 ~~ ve*depth2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+  #ly0 ~ age1s
+	#lys ~ age1s
+	'
+
+fit.covariate.depth.dorsal.lh <- sem(myModel.dorsal.depth, data = data.dorsal.lh, fixed.x = F)
+fit.dorsal.depth.lh <- summary(fit.covariate.depth.dorsal.lh, fit.measures = T, standardized = F)
+fit.dorsal.depth.lh
+```
+
+###### Dorsal RH depth
+```{r}
+fit.covariate.depth.dorsal.rh <- sem(myModel.dorsal.depth, data = data.dorsal.rh, fixed.x = F)
+fit.dorsal.depth.rh <- summary(fit.covariate.depth.dorsal.rh, fit.measures = T, standardized = F)
+fit.dorsal.depth.rh
+```
+
+###### Ventral LH depth
+```{r}
+myModel.ventral.depth = '
+	#level and slope
+	ly0 =~ 1*depth1
+	ly0 =~ 1*depth2
+
+	lys =~ 0*depth1
+	lys =~ 1*depth2
+
+	# means
+	ly0 ~ 1
+	lys ~ 1
+	depth1 ~ 0
+	depth2 ~ 0
+	
+	# variances
+	depth1 ~~ ve*depth1
+	depth2 ~~ ve*depth2
+	ly0 ~~ ly0
+	lys ~~ lys
+  # constraining model setting covariance to 0 --> change ve* to estimate after and remove 0* below
+	ly0 ~~ 0*lys
+	
+	# regressions
+  #ly0 ~ age1s
+	#lys ~ age1s
+	'
+
+fit.covariate.depth.ventral.lh <- sem(myModel.ventral.depth, data = data.vlpfc.lh, fixed.x = F)
+fit.ventral.depth.lh <- summary(fit.covariate.depth.ventral.lh, fit.measures = T, standardized = F)
+fit.ventral.depth.lh
+```
+
+###### Ventral RH depth
+```{r}
+fit.covariate.depth.ventral.rh = sem(myModel.ventral.depth, data = data.ventral.rh, fixed.x = F)
+fit.ventral.depth.rh <- summary(fit.covariate.depth.ventral.rh, fit.measures = T, standardized = F)
+fit.ventral.depth.rh
+```
+
+###### Visualization for longitudinal results 
+```{r}
+data$clusters <- gsub("dlpfc", "dorsal", data$clusters)
+data$clusters <- gsub("vlpfc", "ventral", data$clusters)
+
+data.thick <- data %>% select(c("case", "id", "hemi", "clusters", "cort1", "cort2", "age1", "age2"))
+data.thick.t1 <- data.thick %>% select(c("case", "id", "hemi", "clusters", "cort1", "age1")) %>% rename(thickness = cort1,
+                                                                                                        age = age1)
+data.thick.t2 <- data.thick %>% select(c("case", "id", "hemi", "clusters", "cort2", "age2")) %>% rename(thickness = cort2,
+                                                                                                age = age2)
+data.thick.l <- rbind(data.thick.t1, data.thick.t2)
+
+
+### 
+set.seed(1)
+color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+col_long_subs=sample(color, 44)
+col_long_subs
+
+data.thick.l$id <- as.factor(data.thick.l$id)
+
+thick.lh <- data.thick.l %>% subset(hemi == "lh") %>% 
+  ggplot(aes(x = age, y = thickness)) + 
+  geom_line(aes(group = id)) +
+  geom_point(size = 2, shape = 21, aes(fill = id)) + 
+ # geom_smooth(aes(color=clusters)) + 
+  labs(x = "Age",
+       y = "cortical thickness (mm)") + 
+  guides(fill = "none") +
+  facet_wrap( ~ clusters, 
+              strip.position = "top",
+              scales = "free_x") +
+  scale_fill_manual(breaks = id, 
+                    values = col_long_subs) 
+
+ggplot2::ggsave(filename = "~/Desktop/thick.lh.png",
+                 plot = thick.lh,
+                 device = "png",
+                 width = 6,
+                 height = 6, 
+                 units = "in",
+                 dpi = "retina")
+
+thick.rh <- data.thick.l %>% subset(hemi == "rh") %>% 
+  ggplot(aes(x = age, y = thickness)) + 
+  geom_line(aes(group = id)) +
+  geom_point(size = 2, shape = 21, aes(fill = id)) + 
+ # geom_smooth(aes(color=clusters)) + 
+  labs(x = "Age",
+       y = "cortical thickness (mm)") + 
+  guides(fill = "none") +
+  facet_wrap( ~ clusters, 
+              strip.position = "top",
+              scales = "free_x") +
+  scale_fill_manual(breaks = id, 
+                    values = col_long_subs) 
+
+ggplot2::ggsave(filename = "~/Desktop/thick.rh.png",
+                 plot = thick.rh,
+                 device = "png",
+                 width = 6,
+                 height = 6, 
+                 units = "in",
+                 dpi = "retina")
+
+##
+
+data.depth <- data %>% select(c("case", "id", "hemi", "clusters", "depth1", "depth2", "age1", "age2"))
+data.depth.t1 <- data.depth %>% select(c("case", "id", "hemi", "clusters", "depth1", "age1")) %>% rename(depth = depth1,
+                                                                                                        age = age1)
+data.depth.t2 <- data.depth %>% select(c("case", "id", "hemi", "clusters", "depth2", "age2")) %>% rename(depth = depth2,
+                                                                                                age = age2)
+data.depth.l <- rbind(data.depth.t1, data.depth.t2)
+
+
+### 
+set.seed(1)
+color = grDevices::colors()[grep('gr(a|e)y', grDevices::colors(), invert = T)]
+col_long_subs=sample(color, 44)
+col_long_subs
+
+data.depth.l$id <- as.factor(data.depth.l$id)
+
+depth.lh <- data.depth.l %>% subset(hemi == "lh") %>% 
+  ggplot(aes(x = age, y = depth)) + 
+  geom_line(aes(group = id)) +
+  geom_point(size = 2, shape = 21, aes(fill = id)) + 
+ # geom_smooth(aes(color=clusters)) + 
+  labs(x = "Age",
+       y = "depth  (mm)") + 
+  guides(fill = "none") +
+  facet_wrap( ~ clusters, 
+              strip.position = "top",
+              scales = "free_x") +
+  scale_fill_manual(breaks = id, 
+                    values = col_long_subs) 
+
+ggplot2::ggsave(filename = "~/Desktop/depth.lh.png",
+                 plot = depth.lh,
+                 device = "png",
+                 width = 6,
+                 height = 6, 
+                 units = "in",
+                 dpi = "retina")
+
+depth.rh <- data.depth.l %>% subset(hemi == "rh") %>% 
+  ggplot(aes(x = age, y = depth)) + 
+  geom_line(aes(group = id)) +
+  geom_point(size = 2, shape = 21, aes(fill = id)) + 
+ # geom_smooth(aes(color=clusters)) + 
+  labs(x = "Age",
+       y = "depth (mm)") + 
+  guides(fill = "none") +
+  facet_wrap( ~ clusters, 
+              strip.position = "top",
+              scales = "free_x") +
+  scale_fill_manual(breaks = id, 
+                    values = col_long_subs) 
+
+ggplot2::ggsave(filename = "~/Desktop/depth.rh.png",
+                 plot = depth.rh,
+                 device = "png",
+                 width = 6,
+                 height = 6, 
+                 units = "in",
+                 dpi = "retina")
+
+```
+
+
+#### Behavioral analysis: Visualizations for LASSO and LooCV analyses
+* See Jupyter Notebook for the actual LASSO and LooCV analyses
+
+##### Data
+```{r}
+lasso_coefs <- read.csv('./data/morphological_analysis/behavioral_data/lasso_coefs.csv')
+lasso_mse <- read.csv("./data/morphological_analysis/behavioral_data/lasso_MSE.csv")
+mod1a <- read.csv("./data/morphological_analysis/behavioral_data/mod1a_pred.csv")
+```
+
+##### Figure 5: LASSO analysis results
+```{r}
+# LASSO beta plot
+## set up
+lasso_coefs$Sulci <- factor(lasso_coefs$Sulci, 
+                                         levels = c("central", "iprs", "sprs", 
+                                                    "sfs_p", "sfs_a", "imfs_h", "imfs_v",
+                                                    "pmfs_p", "pmfs_i", "pmfs_a",
+                                                    "ifs", 
+                                                    "ds", "ts", "aalf",
+                                                    "half", "prts", "lfms"))
+lasso_coefs$Sulci <- gsub("central", "cs", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("sfs_p", "sfs-p", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("sfs_a", "sfs-a", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("imfs_h", "imfs-h", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("imfs_v", "imfs-v", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("pmfs_p", "pmfs-p", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("pmfs_i", "pmfs-i", lasso_coefs$Sulci)
+lasso_coefs$Sulci <- gsub("pmfs_a", "pmfs-a", lasso_coefs$Sulci)
+
+
+## make tile plot for lasso coefs
+lasso_coef_plt <- ggplot(data = lasso_coefs, aes(x=as.factor(alpha_level), y=as.factor(Sulci))) +
+                
+                geom_tile(aes(fill = beta), size=0.3) +
+                
+                coord_equal() +
+  
+                scale_y_discrete(limits = rev(levels(lasso_coefs$Sulci))) +
+
+                scale_fill_gradient2(low = scales::muted("#f4a582"), mid = "white", high = scales::muted("#92c5de"),
+                                    midpoint = 0, space = "Lab", na.value = "grey50",
+                                    guide = "colourbar", aesthetics = "fill") +
+
+                
+                geom_text(aes(label=round(beta, digits = 2), 
+                              size = 2), size = 4) +
+                
+                xlab("alpha level") +
+                ylab('lateral PFC sulci') +
+                labs(fill = "abs. beta") +
+                
+                theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12),
+                        axis.line = element_blank(),
+                        axis.ticks = element_blank(),
+                        # set aspect ratio
+                        aspect.ratio = 1/1
+                )
+
+# ggplot2::ggsave(filename = "~/Desktop/lasso_coef_plt.png",
+#                  plot = lasso_coef_plt,
+#                  device = "png",
+#                  width = 7,
+#                  height = 7, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# make line plot of MSE ###
+
+spline_int <- as.data.frame(spline(log(lasso_mse$alpha), lasso_mse$MSE))
+MSE <- ggplot(spline_int, aes(x = x, y = y)) +
+  
+        geom_line(color = "gray", size = 1) +
+
+        geom_vline(xintercept = log(0.07), 
+                   linetype="dotted", 
+                   size = 2) +
+  
+        xlab ('alpha-level')+
+        ylab(' Cross Validated MSE') +
+        
+        theme_classic() +
+
+        theme(
+            # set axis title
+            axis.title.x = element_text(color="#333333",
+                                          size=14), 
+            axis.title.y = element_text(color="#333333",
+                                        angle=90,size=14),
+            # set axis text
+            axis.text = element_text( color='#333333', 
+                                     size = 12 ,hjust =0),
+            # set lengend
+            legend.text = element_text( color = '#333333',
+                                       size = 12), 
+            # set pannel
+            panel.grid.minor=element_blank(),
+            legend.title = element_text(color="#333333",
+                                        size = 12),
+            panel.border = element_rect(colour = "black", 
+                                        fill=NA, size = 1),
+            axis.line = element_blank()
+            # set aspect ratio
+            #aspect.ratio = 10/20
+            ) +
+  
+  scale_x_continuous(limits = c(log(.012), log(1)))
+
+# ggplot2::ggsave(filename = "~/Desktop/MSE.png",
+#                  plot = MSE,
+#                  device = "png",
+#                  width = 7,
+#                  height = 3, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# MSE bar plot
+MSE_cv <- data.frame(
+  "model" <- c("Age", "All_Age", "Selected_Age"),
+  "MSE" <- c(23.03, 41.69, 19.94))
+
+xticks_labels <- c("Baseline \nAge", "All Sulci + \nBaseline Age", "Selected Sulci + \nBaseline Age")
+
+MSE_CV_plt <- ggplot(MSE_cv, aes(x = model)) +
+  
+  geom_col(aes(y = MSE, fill = model), color = 'black') +
+  
+  scale_fill_manual(breaks = c("Age", "All_Age", "Selected_Age"),
+                    values = c("#404040", "#bababa", "#ffffff")) +
+  
+  xlab ('Model') +
+  ylab('Mean Squared Error') +
+  
+  scale_x_discrete(breaks = c("Age", "All_Age", "Selected_Age"),
+                   labels = xticks_labels) +
+  
+  theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+                        # set aspect ratio
+                ) + 
+  
+  guides(fill = 'none')
+
+# ggplot2::ggsave(filename = "~/Desktop/MSE_CV_plt.png",
+#                  plot = MSE_CV_plt,
+#                  device = "png",
+#                  width = 6,
+#                  height = 3, 
+#                  units = "in",
+#                  dpi = "retina")
+
+
+# scatter plot to visualize cor test
+## whole sample
+cor.test(mod1a$Measured, mod1a$predicted, method = "spearman") # r = 0.46, p = .002
+  
+## plot
+scatter_pred_plot <- mod1a.c %>% ggplot(aes(x = Measured, y = predicted)) +
+  
+    geom_point(shape = 21, 
+                size = 2,
+                fill = "gray") +
+  
+    geom_smooth(aes(y = predicted),
+                # linear reg line
+                method = "lm",
+                # incl. standard error
+                se = TRUE,
+                fill = "gray",
+                #line asthetics
+                color = "black", 
+                alpha = 0.5
+               # , linetype="dashed
+               ) + 
+  
+  scale_x_continuous(n.breaks = 6) +
+  scale_y_continuous(n.breaks = 6) +
+  
+  theme_classic() +
+  theme(
+                        # set axis title
+                        axis.title.x = element_text(color="#333333",
+                                                    size=12), 
+                        axis.title.y = element_text(color="#333333", 
+                                                    angle=90,size=14),
+                        # set axis text
+                        axis.text = element_text( color='#333333',
+                                                 size = 12),
+                        # set pannel
+                        
+                        #panel.border = element_rect(colour = "black", 
+                        #                fill=NA, size=1),
+                        # set legend
+                        legend.title = element_text(color="#333333",size = 12),
+                        legend.text = element_text( color = '#333333',size = 12)
+    )
+
+# ggplot2::ggsave(filename = "~/Desktop/scatter_pred_plot.png",
+#                  plot = scatter_pred_plot,
+#                  device = "png",
+#                  width = 6,
+#                  height = 4, 
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+#### Tables 
+
+##### Table 1: Cross-sectional demographics 
+```{r}
+dev_demographics <- data.frame("Age group" <- c("Children", "Adolescents", "Young Adults"),
+                               #"n" <- c(36, 36, 36),
+                               "n (%F)" <- c("36 (47.2)", "36 (36.1)", "36 (47.2)"),
+                               "Age (years) " <- c("8.9 ± 1.59", "15.21 ± 2.15", "28.97 ± 3.78"),
+                               "Age range (years)" <- c("6.41-11.53", "11.66-18.86", "22-36") 
+                               )
+names(dev_demographics)[1] <- "Age group"
+names(dev_demographics)[2] <- "n (%F)"
+names(dev_demographics)[3] <- "Age (years)"
+names(dev_demographics)[4] <- "Age range (years)"
+dev_demographics
+
+dev_demographics.tab <- dev_demographics %>% 
+  gt() %>%
+  # tab_header(
+  #   title = md("**Table 2**"),
+  #   subtitle = md("*Gender and age demographics of the three age groups*")) %>%
+  #tab_source_note(md("*Note.* The *age* column depicts average age ± sd.")) %>%
+  # tab_options(table.font.size = 20,
+  #             heading.title.font.size = 20,
+  #             heading.subtitle.font.size = 20,
+  #             heading.align = "left",
+  #             heading.border.bottom.color = 'black',
+  #             table.border.top.color = "white",
+  #             column_labels.border.top.color = "black",
+  #             column_labels.border.bottom.color = "black",
+  #             column_labels.vlines.color = "black",
+  #             row_group.border.bottom.color = "black",
+  #             row_group.border.top.color = "black",
+  #             row_group.border.right.color = "black",
+  #             stub.border.color = "black",
+  #             table_body.border.bottom.color = "black",
+  #             table_body.hlines.color = "black",
+  #             table_body.vlines.color = "black",
+  #             table.border.bottom.color = "white",
+  #             table.width = pct(100),
+  #             table.background.color = "white") %>%
+  cols_align(align="left", columns = 1) %>%
+  cols_align(align="center", columns = 2:4) %>%
+  
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      #cell_text(
+      #  align="center"
+      #),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+# gtsave(dev_demographics.tab, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Table_1.rtf"
+# )
+```
+
+##### Extended Data Tables 1-1 and 1-2: Additional cross-sectional demographics 
+```{r}
+ca_demographics <- data.frame(
+  "16,000-24,999" <- c(2),
+  "25,000-34,999" <- c(3),
+  "50,000-74,999" <- c(6), 
+  "75,000-99,999" <- c(8), 
+  "100,000-199,999" <- c(27),
+  "Over 200,000" <- c(5),
+  "Unknown/Not Reported" <- c(21), 
+  
+  "High School/GED" <- c(8),
+  "Vocational" <- c(1),
+  "Associate degree" <- c(6),
+  "Bachelor's degree" <- c(18), 
+  "Master's degree" <- c(15),
+  "Doctorate" <- c(4),
+  "Professional" <- c(3),
+  "Other" <- c(3),
+  "None of the above (less than high school)" <- c(1),
+  "Unknown/Not Reported" <- c(13),
+  
+  "Hispanic or Latino" <- c(11),
+  "Not Hispanic or Latino" <- c(59),
+  "Unknown/Not Reported" <- c(2),
+  
+  "American Indian/Alaskan Native" <- c(0),
+  "Asian/Native Hawaiian/Other Pacific Islander" <- c(5),
+  "Black or African American" <- c(4),
+  "White" <- c(47),
+  "More Than One Race" <- c(14),
+  "Unknown/Not Reported" <- c(2)
+)
+
+names(ca_demographics)[1] <- "$16,000-$24,999"
+names(ca_demographics)[2] <- "$25,000-$34,999"
+names(ca_demographics)[3] <- "$50,000-$74,999"
+names(ca_demographics)[4] <- "$75,000-$99,999"
+names(ca_demographics)[5] <- "$100,000-$199,999"
+names(ca_demographics)[6] <- "Over $200,000"
+names(ca_demographics)[7] <- "Unknown or Not Reported"
+
+names(ca_demographics)[8] <- "High School/GED"
+names(ca_demographics)[9] <- "Vocational"
+names(ca_demographics)[10] <- "Associate degree"
+names(ca_demographics)[11] <- "Bachelor's degree"
+names(ca_demographics)[12] <- "Master's degree"
+names(ca_demographics)[13] <- "Doctorate"
+names(ca_demographics)[14] <- "Professional"
+names(ca_demographics)[15] <- "Other"
+names(ca_demographics)[16] <- "None of the above (less than high school)"
+names(ca_demographics)[17] <- "Unknown or Not Reported"
+
+
+names(ca_demographics)[18] <- "Hispanic or Latino"
+names(ca_demographics)[19] <- "Not Hispanic or Latino"
+names(ca_demographics)[20] <- "Unknown or Not Reported"
+
+names(ca_demographics)[21] <- "American Indian/Alaskan Native"
+names(ca_demographics)[22] <- "Asian/Native Hawaiian/Other Pacific Islander"
+names(ca_demographics)[23] <- "Black or African American"
+names(ca_demographics)[24] <- "White"
+names(ca_demographics)[25] <- "More Than One Race"
+names(ca_demographics)[26] <- "Unknown or Not Reported"
+
+
+ca_demographics <- melt(ca_demographics,
+                        value.name = "metric")
+ca_demographics <- ca_demographics %>% rename(Variable = variable,
+                                              Count = metric
+)
+ca_demographics$Count[17] <- 13  
+ca_demographics$Count[20] <- 2
+ca_demographics$Count[26] <- 2
+  
+ca_demographics
+
+
+ca_demographics.tab <- ca_demographics %>% 
+  gt() %>%
+  # tab_header(
+  #   title = md("**Supplementary Table 1**"),
+  #   subtitle = md("*Demographic and socioeconomic information of the child/adolescent sample*")) %>%
+  # tab_source_note(md("*Note.* N = 72. All information is parent/guardian reported.")) %>%
+  cols_label(
+    Variable = "",
+    Count = "Count") %>%
+  tab_row_group(
+    group = "Total household income",
+    rows = 1:7) %>%
+  tab_row_group(
+    group = "Highest degree earned by parent/guardian",
+    rows = 8:17) %>%
+  tab_row_group(
+    group = "Ethnic categories",
+    rows = 18:20) %>%
+  tab_row_group(
+    group = "Racial categories",
+    rows = 21:26) %>%
+  # tab_options(table.font.size = 20,
+  #             heading.title.font.size = 20,
+  #             heading.subtitle.font.size = 20,
+  #             heading.align = "left",
+  #             heading.border.bottom.color = 'black',
+  #             table.border.top.color = "white",
+  #             column_labels.border.top.color = "black",
+  #             column_labels.border.bottom.color = "black",
+  #             column_labels.vlines.color = "black",
+  #             row_group.border.bottom.color = "black",
+  #             row_group.border.top.color = "black",
+  #             row_group.border.right.color = "black",
+  #             stub.border.color = "black",
+  #             table_body.border.bottom.color = "black",
+  #             table_body.hlines.color = "black",
+  #             table_body.vlines.color = "black",
+  #             table.border.bottom.color = "white",
+  #             table.width = pct(100),
+  #             table.background.color = "white") %>%
+  cols_align(align="left", columns = 1) %>%
+  cols_align(align="center", columns = 2) %>%
+  
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      #cell_text(
+      #  align="center"
+      #),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+# gtsave(ca_demographics.tab, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Table_1-1.rtf"
+# )
+
+ya_demographics <- data.frame(
+                              "<$10,000" <- c(6),
+                              "10,000-19,999" <- c(5),
+                              "20,000-29,999" <- c(4),
+                              "30,000-39,999" <- c(4), 
+                              "40,000-49,999" <- c(2), 
+                              "50,000-74,999" <- c(4),
+                              "75,000-99,999" <- c(6), 
+                              "Over 100,000" <- c(5),
+                              
+                              "<11" <- c(1),
+                              "12" <- c(9),
+                              "13" <- c(2), 
+                              "14" <- c(2),
+                              "15" <- c(2),
+                              "16" <- c(13),
+                              "17+" <- c(7),
+                              
+                              "Hispanic or Latino" <- 2,
+                              "Not Hispanic or Latino" <- 33,
+                              "Unknown/Not Reported" <- 1,
+                              
+                              "American Indian/Alaskan Native" <- 1,
+                              "Asian/Native Hawaiian/Other Pacific Islander" <- 1,
+                              "Black or African American" <- 7,
+                              "White" <- 26,
+                              "Unknown/Not Reported" <- 1
+)
+
+names(ya_demographics)[1] <- "<$10,000"
+names(ya_demographics)[2] <- "$10,000-$19,999"
+names(ya_demographics)[3] <- "$20,000-$29,999"
+names(ya_demographics)[4] <- "$30,000-$39,999"
+names(ya_demographics)[5] <- "$40,000-$49,999"
+names(ya_demographics)[6] <- "$50,000-$74,999"
+names(ya_demographics)[7] <- "$75,000-$99,999"
+names(ya_demographics)[8] <- "Over $100,000"
+
+names(ya_demographics)[9] <- "<11"
+names(ya_demographics)[10] <- "12"
+names(ya_demographics)[11] <- "13"
+names(ya_demographics)[12] <- "14"
+names(ya_demographics)[13] <- "15"
+names(ya_demographics)[14] <- "16"
+names(ya_demographics)[15] <- "<17"
+
+names(ya_demographics)[16] <- "Hispanic or Latino"
+names(ya_demographics)[17] <- "Not Hispanic or Latino"
+names(ya_demographics)[18] <- "Unknown or Not Reported"
+
+names(ya_demographics)[19] <- "American Indian/Alaskan Native"
+names(ya_demographics)[20] <- "Asian/Native Hawaiian/Other Pacific Islander"
+names(ya_demographics)[21] <- "Black or African American"
+names(ya_demographics)[22] <- "White"
+names(ya_demographics)[23] <- "Unknown or Not Reported"
+
+ya_demographics <- melt(ya_demographics,
+                  value.name = "metric")
+ya_demographics <- ya_demographics %>% rename(Variable = variable,
+                                              Count = metric
+)
+
+ya_demographics
+
+ya_demographics.tab <- ya_demographics %>% 
+  gt() %>%
+  # tab_header(
+  #   title = md("**Supplementary Table 2**"),
+  #   subtitle = md("*Demographic and socioeconomic information of the young adult sample*")) %>%
+  cols_label(
+    Variable = "",
+    Count = "Count") %>%
+  # tab_source_note(md("*Note.* N = 36.")) %>%
+    tab_row_group(
+    group = "Total household income",
+    rows = 1:8) %>%
+    tab_row_group(
+    group = "Years of education completed",
+    rows = 9:15) %>%
+    tab_row_group(
+    group = "Ethnic categories",
+    rows = 16:18) %>%
+    tab_row_group(
+    group = "Racial categories",
+    rows = 19:23) %>%
+  # tab_options(table.font.size = 20,
+  #             heading.title.font.size = 20,
+  #             heading.subtitle.font.size = 20,
+  #             heading.align = "left",
+  #             heading.border.bottom.color = 'black',
+  #             table.border.top.color = "white",
+  #             column_labels.border.top.color = "black",
+  #             column_labels.border.bottom.color = "black",
+  #             column_labels.vlines.color = "black",
+  #             row_group.border.bottom.color = "black",
+  #             row_group.border.top.color = "black",
+  #             row_group.border.right.color = "black",
+  #             stub.border.color = "black",
+  #             table_body.border.bottom.color = "black",
+  #             table_body.hlines.color = "black",
+  #             table_body.vlines.color = "black",
+  #             table.border.bottom.color = "white",
+  #             table.width = pct(100),
+  #             table.background.color = "white") %>%
+  cols_align(align="left", columns = 1) %>%
+  cols_align(align="center", columns = 2) %>%
+  
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      #cell_text(
+      #  align="center"
+      #),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+# gtsave(ya_demographics.tab, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Table_1-2.rtf"
+# )
+
+
+```
+
+##### Table 2 LPFC sulci names
+```{r}
+sulc_table <- data.frame("No." <- c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+                                    "11", "12", "13", "14", "15", "16", "17", "18"),
+                               "Abbreviation" <- c("cs", "sprs", 'iprs', "ifs",
+                                                   "sfs-p", "sfs-a", "imfs-h",
+                                                   "imfs-v", "pmfs-p", "pmfs-i", "pmfs-a",
+                                                   "pimfs+", "ds", "aalf", "ts", "half",
+                                                   "prts", "lfms"),
+                               "Name" <- c("central sulcus",
+                                                  'superior precentral sulcus',
+                                                  "inferior precentral sulcus",
+                                                  "inferior frontal sulcus",
+                                                  "superior frontal sulcus — posterior",
+                                                  "superior frontal sulcus — anterior",
+                                                  "intermediate frontal sulcus — horizontal",
+                                                  "intermediate frontal sulcus — vertical",
+                                                  "posterior middle frontal sulcus — posterior",
+                                                  "posterior middle frontal sulcus — intermediate",
+                                                  "posterior middle frontal sulcus — anterior",
+                                                  "paraintermediate frontal sulcus",
+                                                  "diagonal sulcus",
+                                                  "ascending ramus of the lateral fissure",
+                                                  "triangular sulcus",
+                                                  "horizontal ramus of the lateral fissure",
+                                                  "pretriangular sulcus",
+                                                  "lateral frontomarginal sulcus"
+                                                  )
+                         )
+                            
+
+names(sulc_table)[1] <- "No."
+names(sulc_table)[2] <- "Abbreviation"
+names(sulc_table)[3] <- "Name"
+
+
+sulc_table
+
+sulc_table.tab <- sulc_table %>% 
+  gt() %>%
+  # tab_header(
+  #   title = md("**Table 1**"),
+  #   subtitle = md("*Sulcal definitions in lateral prefrontal cortex (LPFC)*")) %>%
+  # tab_source_note(md("*Note.* Table of the 18 sulci LPFC defined in our prior work (Miller et al., 2021a,b; Voorhies et al., 2021; Yao et al., 2022). Numbers correspond to sulci in Figure 1. Sulcal abbreviations and the full name are included. +The *pimfs* can have 0, 1, or 2 components (dorsal and ventral). The *pimfs* is not included in our analyses due to its variability.")) %>%
+  # tab_options(table.font.size = 20,
+  #             heading.title.font.size = 20,
+  #             heading.subtitle.font.size = 20,
+  #             heading.align = "left",
+  #             heading.border.bottom.color = 'black',
+  #             table.border.top.color = "white",
+  #             column_labels.border.top.color = "black",
+  #             column_labels.border.bottom.color = "black",
+  #             column_labels.vlines.color = "black",
+  #             row_group.border.bottom.color = "black",
+  #             row_group.border.top.color = "black",
+  #             row_group.border.right.color = "black",
+  #             stub.border.color = "black",
+  #             table_body.border.bottom.color = "black",
+  #             table_body.hlines.color = "black",
+  #             table_body.vlines.color = "black",
+  #             table.border.bottom.color = "white",
+  #             table.width = pct(100),
+  #             table.background.color = "white") %>%
+  cols_align(align="left", columns = 1:3) %>%
+  tab_style(
+    style = cell_text(style = "italic"),
+    locations = cells_body(
+      columns = c(2),
+      rows = 1:18
+    )) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      #cell_text(
+      #  align="center"
+      #),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+# gtsave(sulc_table.tab, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Figure_1-1.rtf"
+# )
+```
+
+##### Table 3: Depth table
+```{r}
+all_morph_tables_sd <- all_morph_tables_f %>% subset(metric == "depth")
+all_morph_tables_sd <- all_morph_tables_sd %>% select(-c("type", "metric"))
+all_morph_tables_sd <- all_morph_tables_sd[-c(8, 23), ]  
+
+#names(all_morph_tables_sd)[1] <- "Effect"
+#names(all_morph_tables_sd)[2] <- "DF1"
+#names(all_morph_tables_sd)[3] <- "DF2"
+names(all_morph_tables_sd)[4] <- "F-value"
+names(all_morph_tables_sd)[5] <- "p-value"
+names(all_morph_tables_sd)[6] <- "Significance"
+names(all_morph_tables_sd)[7] <- "η2G"
+
+all_morph_tables_sd_forpaper <- all_morph_tables_sd %>% gt() %>%
+  # tab_header(
+  #   title = md("**Table X**"),
+  #   subtitle = md("*mixed model ANOVA results for sulcal depth*")) %>%
+  tab_row_group(
+    group = "Normalized (% max depth)",
+    rows = 15:28) %>%
+  tab_row_group(
+    group = "Raw (mm)",
+    rows = 1:14) %>%
+ tab_style(
+  style = cell_text(style = "italic"),
+  locations = cells_body(
+ columns = c(2,4,6),
+ rows = 1:6
+   )) %>%
+ tab_source_note(md("*Note.* N = 44. The abbreviations used are as follows: thickness at timepoint one (level); individual change from timepoint one to two (slope); standard error (Std. Err.).")) %>%
+ tab_options(table.font.size = 20,
+             heading.title.font.size = 20,
+             heading.subtitle.font.size = 20,
+             heading.align = "left",
+             heading.border.bottom.color = 'black',
+             table.border.top.color = "white",
+             column_labels.border.top.color = "black",
+             column_labels.border.bottom.color = "black",
+             column_labels.vlines.color = "black",
+             row_group.border.bottom.color = "black",
+             row_group.border.top.color = "black",
+             row_group.border.right.color = "black",
+             stub.border.color = "black",
+             table_body.border.bottom.color = "black",
+             table_body.hlines.color = "black",
+             table_body.vlines.color = "black",
+             table.border.bottom.color = "white",
+             table.width = pct(100),
+             table.background.color = "white"
+ ) %>%
+  cols_align(align="center", 
+             columns = 1:7) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+#gtsave(all_morph_tables_sd_forpaper, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Figure_3-2.rtf")
+```
+
+##### Table 4: Surface area table
+```{r}
+all_morph_tables_sa <- all_morph_tables_f %>% subset(metric == "surface area")
+all_morph_tables_sa <- all_morph_tables_sa %>% select(-c("type", "metric"))
+all_morph_tables_sa <- all_morph_tables_sa[-c(8, 23), ]  
+
+#names(all_morph_tables_sa)[1] <- "Effect"
+#names(all_morph_tables_sa)[2] <- "DF1"
+#names(all_morph_tables_sa)[3] <- "DF2"
+names(all_morph_tables_sa)[4] <- "F-value"
+names(all_morph_tables_sa)[5] <- "p-value"
+names(all_morph_tables_sa)[6] <- "Significance"
+names(all_morph_tables_sa)[7] <- "η2G"
+
+all_morph_tables_sa_forpaper <- all_morph_tables_sa %>% gt() %>%
+  # tab_header(
+  #   title = md("**Table X**"),
+  #   subtitle = md("*mixed model ANOVA results for surface area*")) %>%
+  tab_row_group(
+    group = "Normalized (% cortical surface area)",
+    rows = 15:28) %>%
+  tab_row_group(
+    group = "Raw (cm2)",
+    rows = 1:14) %>%
+ tab_style(
+  style = cell_text(style = "italic"),
+  locations = cells_body(
+ columns = c(2,4,6),
+ rows = 1:6
+   )) %>%
+ # tab_source_note(md("*Note.* N = 44. The abbreviations used are as follows: thickness at timepoint one (level); individual change from timepoint one to two (slope); standard error (Std. Err.).")) %>%
+ tab_options(table.font.size = 20,
+             heading.title.font.size = 20,
+             heading.subtitle.font.size = 20,
+             heading.align = "left",
+             heading.border.bottom.color = 'black',
+             table.border.top.color = "white",
+             column_labels.border.top.color = "black",
+             column_labels.border.bottom.color = "black",
+             column_labels.vlines.color = "black",
+             row_group.border.bottom.color = "black",
+             row_group.border.top.color = "black",
+             row_group.border.right.color = "black",
+             stub.border.color = "black",
+             table_body.border.bottom.color = "black",
+             table_body.hlines.color = "black",
+             table_body.vlines.color = "black",
+             table.border.bottom.color = "white",
+             table.width = pct(100),
+             table.background.color = "white"
+ ) %>%
+  cols_align(align="center", 
+             columns = 1:7) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+#gtsave(all_morph_tables_sa_forpaper, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Figure_3-3.png")
+```
+
+##### Table 5: Thickness table
+```{r}
+all_morph_tables_ct <- all_morph_tables_f %>% subset(metric == "thickness")
+all_morph_tables_ct <- all_morph_tables_ct %>% select(-c("type", "metric"))
+all_morph_tables_ct <- all_morph_tables_ct[-c(8, 23), ]  
+
+#names(all_morph_tables_ct)[1] <- "Effect"
+#names(all_morph_tables_ct)[2] <- "DF1"
+#names(all_morph_tables_ct)[3] <- "DF2"
+names(all_morph_tables_ct)[4] <- "F-value"
+names(all_morph_tables_ct)[5] <- "p-value"
+names(all_morph_tables_ct)[6] <- "Significance"
+names(all_morph_tables_ct)[7] <- "η2G"
+
+all_morph_tables_ct_forpaper <- all_morph_tables_ct %>% gt() %>%
+  # tab_header(
+  #   title = md("**Table X**"),
+  #   subtitle = md("*mixed model ANOVA results for cortical thickness*")) %>%
+  tab_row_group(
+    group = "Normalized (% max thickness)",
+    rows = 15:28) %>%
+  tab_row_group(
+    group = "Raw (mm)",
+    rows = 1:14) %>%
+ # tab_style(
+  #  style = cell_text(style = "italic"),
+  #  locations = cells_body(
+      #columns = c(2,4,6),
+      #rows = 1:6
+ #   )) %>%
+ # tab_source_note(md("*Note.* N = 44. The abbreviations used are as follows: thickness at timepoint one (level); individual change from timepoint one to two (slope); standard error (Std. Err.).")) %>%
+  # tab_options(table.font.size = 20,
+  #             heading.title.font.size = 20,
+  #             heading.subtitle.font.size = 20,
+  #             heading.align = "left",
+  #             heading.border.bottom.color = 'black',
+  #             table.border.top.color = "white",
+  #             column_labels.border.top.color = "black",
+  #             column_labels.border.bottom.color = "black",
+  #             column_labels.vlines.color = "black",
+  #             row_group.border.bottom.color = "black",
+  #             row_group.border.top.color = "black",
+  #             row_group.border.right.color = "black",
+  #             stub.border.color = "black",
+  #             table_body.border.bottom.color = "black",
+  #             table_body.hlines.color = "black",
+  #             table_body.vlines.color = "black",
+  #             table.border.bottom.color = "white",
+  #             table.width = pct(100),
+  #             table.background.color = "white"
+  # ) %>%
+  cols_align(align="center", 
+             columns = 1:7) %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_table_font(font = google_font(name = "Times"))
+
+#gtsave(all_morph_tables_ct_forpaper, file = "~/Desktop/DropBox/DEVPFC_morphology/ms/Fig_tiff/Figure_3-4.rtf")
+```
