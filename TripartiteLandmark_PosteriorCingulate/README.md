@@ -1,8 +1,8 @@
 ## Uncovering a tripartite landmark in posterior cingulate cortex
 Analysis pipeline and associated data for the manuscript Willbrand et al. (2022) *Uncovering a tripartite landmark in posterior cingulate cortex*. 
-The published manuscript can be accessed at *Science Advances* at this [link](https://www.science.org/doi/10.1126/sciadv.abn9516).
+The published manuscript is available at [*Science Advances*](https://www.science.org/doi/10.1126/sciadv.abn9516).
 
-  For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) and/or Benjamin Parker (benparker@berkeley.edu)
+For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) and/or Benjamin Parker (benparker@berkeley.edu)
   
 ### Instructions for use ### 
   - To run statistical analyses and generate relevant figures open and run the included Rmd file (see *IFRMS_analysis_code.Rmd*).
