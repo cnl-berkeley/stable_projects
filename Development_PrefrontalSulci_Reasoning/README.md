@@ -1,6 +1,6 @@
 ## Development of human lateral prefrontal sulcal morphology and its relation to reasoning performance
 Associated data for the manuscript Willbrand et al. (2023) *Development of human lateral prefrontal sulcal morphology and its relation to reasoning performance*. 
-The published manuscript can be accessed at [*Journal of Neuroscience*](https://www.jneurosci.org/content/43/14/2552).
+The published manuscript can be accessed at the [*Journal of Neuroscience*](https://www.jneurosci.org/content/43/14/2552).
 
 For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) and/or Kevin Weiner (kweiner@berkeley.edu).
   
