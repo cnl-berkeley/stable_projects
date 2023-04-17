@@ -8,4 +8,4 @@ This pipeline predicts the location of sulci in a given subject based on its coo
 - Expects all sulcal labels to be [projected onto fsaverage](https://github.com/cnl-berkeley/lab_scripts/blob/master/freesurfer/label2label.py), and saved in a project directory with the format `${project_dir}/projected_labels/${label_name}/${sub}.?h.${label_name}.label`
 
 ## Citations
-- Bulk of code written by [Jacob Miller](https://osf.io/7fwqk/), with edits from [Ben Parker](https://cnl.berkeley.edu/members.html).
+- Bulk of code written by [Jacob Miller](https://osf.io/7fwqk/), with edits from Benjamin Parker and Ethan Willbrand.
