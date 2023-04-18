@@ -1,0 +1,17 @@
+sulcus,hemi,count,pct,species
+single,lh,7,9.72,human
+trident,lh,28,38.89,human
+Y,lh,6,8.33,human
+single_cih,lh,31,43.06,human
+single,rh,5,6.94,human
+trident,rh,30,41.68,human
+Y,rh,5,6.94,human
+single_cih,rh,32,44.44,human
+single,lh,2,3.33,chimpanzee
+trident,lh,17,28.33,chimpanzee
+Y,lh,41,68.34,chimpanzee
+single_cih,lh,0,0,chimpanzee
+single,rh,2,3.33,chimpanzee
+trident,rh,26,43.33,chimpanzee
+Y,rh,32,53.34,chimpanzee
+single_cih,rh,0,0,chimpanzee
