@@ -15,3 +15,7 @@ For questions and/or additional data requests please email Ethan Willbrand (ewil
 
 ### Associated data ###
   - All associated data needed to implement statistical analyses and generate figures is included in the folder *morph_csv*.
+
+
+### Additional notes ###
+  - *Supplementary_Figure_3_Full.pdf*: extended version of Supplementary Figure 3 with additional brain images.
