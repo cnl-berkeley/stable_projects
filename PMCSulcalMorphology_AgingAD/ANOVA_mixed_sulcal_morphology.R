@@ -1,10 +1,22 @@
+## ---------------------------
+## Title: LME analyses
+##
+## Code for LME analyses comparing sulcal morphology across groups (Fig. 2, Table 3)
+## for the following manuscript: Maboudian et al., JNeurosci 2024: 
+## Defining overlooked structures reveals new associations between cortex and 
+## cognition in aging and Alzheimer’s disease (accepted).
+##
+## Author: Samira Maboudian
+##
+## Date Modified: 02-01-2024
+## ---------------------------
 
-
-library('dplyr')
-library(nlme)
-library(effectsize)
-library(emmeans)
-library(tidyverse)
+## Relevant Libraries ##
+library('dplyr') #v1.1.0
+library(nlme) #v3.1.160
+library(effectsize) #v0.8.3
+library(emmeans) #v1.8.4.1
+library(tidyverse) #v2.0.0
 
 
 ## load data ##
