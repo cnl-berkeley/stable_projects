@@ -19,3 +19,4 @@ For questions and/or additional data requests please email Ethan Willbrand (ewil
 
 ### Additional notes ###
   - *Supplementary_Figure_3_Full.pdf*: extended version of Supplementary Figure 3 with additional brain images.
+  - *PMC_Retzius_chimps.key*: all chimpanzee brains from Retzius (1906) with PMC sulci identified.
