@@ -1,8 +1,8 @@
 ## Variable presence of an evolutionarily new brain structure is related to trait impulsivity
 
-Associated data for the manuscript: *Biological Psychiatry: Cognitive Neuroscience and Neuroimaging*. The manuscript is available at [here](https://www.biorxiv.org/content/10.1101/2023.02.10.528061v1).
+Associated data for the manuscript: *Variable presence of an evolutionarily new brain structure is related to trait impulsivity*. The preprint is available at [here](https://www.biorxiv.org/content/10.1101/2024.10.23.619912v1).
 
-For questions and/or additional data requests please email Ethan Willbrand (willbrand@wisc.edu) or Kevin Weiner (kweiner@berkeley.edu)
+For questions and/or additional data requests please email Ethan Willbrand (ewillbrand@berkeley.edu) or Kevin Weiner (kweiner@berkeley.edu).
   
 ### Instructions for use and associated data ### 
   - To run statistical analyses and generate relevant figures open and run the R file included in this repository: *pcgs_code.R*. 
