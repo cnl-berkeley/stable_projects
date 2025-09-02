@@ -700,7 +700,7 @@ FFA_morphology2_pfus.rh <- FFA_morphology2_pfus %>% subset(hemi == "right")
 # both
 FFA_morphology2_mfus.na <- FFA_morphology2_mfus %>% select(ID, total_surface_area_.mm.2., mean_face_activation, 
                                                            cortical_thickness_mean, total_gray_matter_volume_.mm.3., CFMT) %>% drop_na()
-cor.test(FFA_morphology2_mfus.na$total_surface_area_.mm.2., FFA_morphology2_mfus.na$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
+cor.test(FFA_morphology2_mfus.na$total_surface_area_.mm.2., FFA_morphology2_mfus.na$CFMT, method = "spearman", exact = FALSE) #
 
 
 FFA_morphology2_pfus.na <- FFA_morphology2_pfus %>% select(total_surface_area_.mm.2., mean_face_activation, 
@@ -711,7 +711,7 @@ cor.test(FFA_morphology2_pfus.na$total_surface_area_.mm.2., FFA_morphology2_pfus
 FFA_morphology2_mfus.lh.na <- FFA_morphology2_mfus.lh %>% select(total_surface_area_.mm.2., mean_face_activation, 
                                                            cortical_thickness_mean, total_gray_matter_volume_.mm.3., CFMT) %>% drop_na()
 
-cor.test(FFA_morphology2_mfus.lh.na$total_surface_area_.mm.2., FFA_morphology2_mfus.lh.na$CFMT, method = "spearman", exact = FALSE) # r = 0.2914345, p-value = 0.05794
+cor.test(FFA_morphology2_mfus.lh.na$total_surface_area_.mm.2., FFA_morphology2_mfus.lh.na$CFMT, method = "spearman", exact = FALSE) #
 
 FFA_morphology2_pfus.lh.na <- FFA_morphology2_pfus.lh %>% select(total_surface_area_.mm.2., mean_face_activation, 
                                                            cortical_thickness_mean, total_gray_matter_volume_.mm.3., CFMT) %>% drop_na()
@@ -722,7 +722,7 @@ cor.test(FFA_morphology2_pfus.lh.na$total_surface_area_.mm.2., FFA_morphology2_p
 FFA_morphology2_mfus.rh.na <- FFA_morphology2_mfus.rh %>% select(total_surface_area_.mm.2., mean_face_activation, 
                                                                  cortical_thickness_mean, total_gray_matter_volume_.mm.3., CFMT) %>% drop_na()
 
-cor.test(FFA_morphology2_mfus.rh.na$total_surface_area_.mm.2., FFA_morphology2_mfus.rh.na$CFMT, method = "spearman", exact = FALSE) # r = 0.2857867, p-value = 0.05703
+cor.test(FFA_morphology2_mfus.rh.na$total_surface_area_.mm.2., FFA_morphology2_mfus.rh.na$CFMT, method = "spearman", exact = FALSE) # 
 
 FFA_morphology2_pfus.rh.na <- FFA_morphology2_pfus.rh %>% select(total_surface_area_.mm.2., mean_face_activation, 
                                                                  cortical_thickness_mean, total_gray_matter_volume_.mm.3., CFMT) %>% drop_na()
@@ -942,19 +942,19 @@ FFA_sulc_morphology2$group <- gsub("Controls", "NTs", FFA_sulc_morphology2$group
 FFA_sulc_morphology2_mFus <- FFA_sulc_morphology2 %>% subset(label == "mFus")
 FFA_sulc_morphology2_pFus <- FFA_sulc_morphology2 %>% subset(label == "pFus")
 
-cor.test(FFA_sulc_morphology2_mFus$gyral_crown, FFA_sulc_morphology2_mFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_mFus$gyral_crown, FFA_sulc_morphology2_mFus$CFMT, method = "spearman", exact = F) #
 
 FFA_sulc_morphology2_mFus.lh <- FFA_sulc_morphology2_mFus %>% subset(hemi == "left")
-cor.test(FFA_sulc_morphology2_mFus.lh$gyral_crown, FFA_sulc_morphology2_mFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_mFus.lh$gyral_crown, FFA_sulc_morphology2_mFus.lh$CFMT, method = "spearman", exact = F) #
 FFA_sulc_morphology2_mFus.rh <- FFA_sulc_morphology2_mFus %>% subset(hemi == "right")
-cor.test(FFA_sulc_morphology2_mFus.rh$gyral_crown, FFA_sulc_morphology2_mFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_mFus.rh$gyral_crown, FFA_sulc_morphology2_mFus.rh$CFMT, method = "spearman", exact = F) #
 
-cor.test(FFA_sulc_morphology2_pFus$gyral_crown, FFA_sulc_morphology2_pFus$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
+cor.test(FFA_sulc_morphology2_pFus$gyral_crown, FFA_sulc_morphology2_pFus$CFMT, method = "spearman", exact = F) #
 
 FFA_sulc_morphology2_pFus.lh <- FFA_sulc_morphology2_pFus %>% subset(hemi == "left")
-cor.test(FFA_sulc_morphology2_pFus.lh$gyral_crown, FFA_sulc_morphology2_pFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_pFus.lh$gyral_crown, FFA_sulc_morphology2_pFus.lh$CFMT, method = "spearman", exact = F) #
 FFA_sulc_morphology2_pFus.rh <- FFA_sulc_morphology2_pFus %>% subset(hemi == "right")
-cor.test(FFA_sulc_morphology2_pFus.rh$gyral_crown, FFA_sulc_morphology2_pFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_pFus.rh$gyral_crown, FFA_sulc_morphology2_pFus.rh$CFMT, method = "spearman", exact = F) #
 
 FFA_sulc_morphology2_pFus <- FFA_sulc_morphology2 %>% subset(label == "pFus")
 
@@ -1059,8 +1059,8 @@ ggplot2::ggsave(filename = "~/Downloads/FFA_morphology2_GC_pFus_CFMT.plot.png",
                 units = "in",
                 dpi = "retina")
 
-cor.test(FFA_sulc_morphology2_mFus$cortical_thickness_mean, FFA_sulc_morphology2_mFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_sulc_morphology2_pFus$cortical_thickness_mean, FFA_sulc_morphology2_pFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_sulc_morphology2_mFus$cortical_thickness_mean, FFA_sulc_morphology2_mFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_sulc_morphology2_pFus$cortical_thickness_mean, FFA_sulc_morphology2_pFus$CFMT, method = "spearman", exact = F) #
 
 FFA_morphology2_CT_mFus_CFMT.plot <- FFA_sulc_morphology2 %>% 
   
@@ -1176,12 +1176,12 @@ FFA_all_morph_mFus.rh <- FFA_all_morph_mFus %>% subset(hemi == "right")
 FFA_all_morph_mFus.lh.dp <- FFA_all_morph_mFus %>% subset(hemi == "left" & group == "DPs")
 FFA_all_morph_mFus.lh.nt <- FFA_all_morph_mFus %>% subset(hemi == "left" & group == "NTs")
 
-cor.test(FFA_all_morph_mFus$gyral_crown, FFA_all_morph_mFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph_mFus$gyral_crown, FFA_all_morph_mFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph_mFus$cortical_thickness_mean, FFA_all_morph_mFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph_mFus$cortical_thickness_mean, FFA_all_morph_mFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph_mFus.lh$gyral_crown, FFA_all_morph_mFus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
-cor.test(FFA_all_morph_mFus.rh$gyral_crown, FFA_all_morph_mFus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph_mFus.lh$gyral_crown, FFA_all_morph_mFus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
+cor.test(FFA_all_morph_mFus.rh$gyral_crown, FFA_all_morph_mFus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
 FFA_all_morph_mFus2 <- FFA_all_morph_mFus %>% subset(!is.na(CFMT))
 
@@ -1207,20 +1207,20 @@ summary(mod.Y)
 
 # pfus
 # across groups + hemis
-cor.test(FFA_all_morph_pFus$cortical_thickness_mean, FFA_all_morph_pFus$gyral_crown) # p = 0.83
+cor.test(FFA_all_morph_pFus$cortical_thickness_mean, FFA_all_morph_pFus$gyral_crown) # 
 
-cor.test(FFA_all_morph_pFus$cortical_thickness_mean, FFA_all_morph_pFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # p = 0.50
+cor.test(FFA_all_morph_pFus$cortical_thickness_mean, FFA_all_morph_pFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph_pFus$gyral_crown, FFA_all_morph_pFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.29, p = 0.01
+cor.test(FFA_all_morph_pFus$gyral_crown, FFA_all_morph_pFus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
 FFA_all_morph_pFus.lh <- FFA_all_morph_pFus %>% subset(hemi == "left")
 FFA_all_morph_pFus.rh <- FFA_all_morph_pFus %>% subset(hemi == "right")
 
-cor.test(FFA_all_morph_pFus.lh$gyral_crown, FFA_all_morph_pFus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.29, p = 0.01
-cor.test(FFA_all_morph_pFus.rh$gyral_crown, FFA_all_morph_pFus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.29, p = 0.01
+cor.test(FFA_all_morph_pFus.lh$gyral_crown, FFA_all_morph_pFus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # 
+cor.test(FFA_all_morph_pFus.rh$gyral_crown, FFA_all_morph_pFus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # 
 
-cor.test(FFA_all_morph_pFus.lh$cortical_thickness_mean, FFA_all_morph_pFus.lh$total_surface_area_.mm.2.) # r = -0.29, p = 0.01
-cor.test(FFA_all_morph_pFus.rh$cortical_thickness_mean, FFA_all_morph_pFus.rh$total_surface_area_.mm.2.) # r = -0.29, p = 0.01
+cor.test(FFA_all_morph_pFus.lh$cortical_thickness_mean, FFA_all_morph_pFus.lh$total_surface_area_.mm.2.) # 
+cor.test(FFA_all_morph_pFus.rh$cortical_thickness_mean, FFA_all_morph_pFus.rh$total_surface_area_.mm.2.) # 
 
 
 FFA_all_morph_mFus_gc_sa.plot <- FFA_all_morph %>% 
@@ -2212,12 +2212,12 @@ FFA_all_morph.rev_pfus <- FFA_sulc_morphology.rev.na %>% subset(label == "pFus")
 FFA_all_morph.rev_mfus.lh <- FFA_all_morph.rev_mfus %>% subset(hemi == "left")
 FFA_all_morph.rev_mfus.rh <- FFA_all_morph.rev_mfus %>% subset(hemi == "right")
 
-cor.test(FFA_all_morph.rev_mfus$gyral_crown, FFA_all_morph.rev_mfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_mfus$gyral_crown, FFA_all_morph.rev_mfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph.rev_mfus$cortical_thickness_mean, FFA_all_morph.rev_mfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_mfus$cortical_thickness_mean, FFA_all_morph.rev_mfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph.rev_mfus.lh$gyral_crown, FFA_all_morph.rev_mfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
-cor.test(FFA_all_morph.rev_mfus.rh$gyral_crown, FFA_all_morph.rev_mfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_mfus.lh$gyral_crown, FFA_all_morph.rev_mfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
+cor.test(FFA_all_morph.rev_mfus.rh$gyral_crown, FFA_all_morph.rev_mfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
 cor.test(FFA_all_morph.rev_mfus.lh$cortical_thickness_mean, FFA_all_morph.rev_mfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) 
 cor.test(FFA_all_morph.rev_mfus.rh$cortical_thickness_mean, FFA_all_morph.rev_mfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) 
@@ -2226,12 +2226,12 @@ cor.test(FFA_all_morph.rev_mfus.rh$cortical_thickness_mean, FFA_all_morph.rev_mf
 FFA_all_morph.rev_pfus.lh <- FFA_all_morph.rev_pfus %>% subset(hemi == "left")
 FFA_all_morph.rev_pfus.rh <- FFA_all_morph.rev_pfus %>% subset(hemi == "right")
 
-cor.test(FFA_all_morph.rev_pfus$gyral_crown, FFA_all_morph.rev_pfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_pfus$gyral_crown, FFA_all_morph.rev_pfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph.rev_pfus$cortical_thickness_mean, FFA_all_morph.rev_pfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_pfus$cortical_thickness_mean, FFA_all_morph.rev_pfus$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
-cor.test(FFA_all_morph.rev_pfus.lh$gyral_crown, FFA_all_morph.rev_pfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
-cor.test(FFA_all_morph.rev_pfus.rh$gyral_crown, FFA_all_morph.rev_pfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) # r = -0.22, p-value = 0.03
+cor.test(FFA_all_morph.rev_pfus.lh$gyral_crown, FFA_all_morph.rev_pfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
+cor.test(FFA_all_morph.rev_pfus.rh$gyral_crown, FFA_all_morph.rev_pfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) #
 
 cor.test(FFA_all_morph.rev_pfus.lh$cortical_thickness_mean, FFA_all_morph.rev_pfus.lh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) 
 cor.test(FFA_all_morph.rev_pfus.rh$cortical_thickness_mean, FFA_all_morph.rev_pfus.rh$total_surface_area_.mm.2., method = "spearman", exact = FALSE) 
@@ -2250,31 +2250,31 @@ FFA_all_morph.rev_cfmt_mFus.rh <- FFA_all_morph.rev_cfmt_mFus %>% subset(hemi ==
 FFA_all_morph.rev_cfmt_pFus.lh <- FFA_all_morph.rev_cfmt_pFus %>% subset(hemi == "left")
 FFA_all_morph.rev_cfmt_pFus.rh <- FFA_all_morph.rev_cfmt_pFus %>% subset(hemi == "right")
 
-cor.test(FFA_all_morph.rev_cfmt_mFus$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.lh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.rh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_all_morph.rev_cfmt_mFus$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.lh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.rh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) #
 
-cor.test(FFA_all_morph.rev_cfmt_pFus$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_all_morph.rev_cfmt_pFus.lh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_pFus.rh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-
-
-cor.test(FFA_all_morph.rev_cfmt_mFus$gyral_crown, FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.lh$gyral_crown, FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.rh$gyral_crown, FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-
-cor.test(FFA_all_morph.rev_cfmt_pFus$gyral_crown, FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_all_morph.rev_cfmt_pFus.lh$gyral_crown, FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_pFus.rh$gyral_crown, FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_all_morph.rev_cfmt_pFus$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.lh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.rh$total_surface_area_.mm.2., FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) #
 
 
-cor.test(FFA_all_morph.rev_cfmt_mFus$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.lh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_mFus.rh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_all_morph.rev_cfmt_mFus$gyral_crown, FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.lh$gyral_crown, FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.rh$gyral_crown, FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) #
 
-cor.test(FFA_all_morph.rev_cfmt_pFus$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_all_morph.rev_cfmt_pFus.lh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
-cor.test(FFA_all_morph.rev_cfmt_pFus.rh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) # r = -0.2887929, p = .006
+cor.test(FFA_all_morph.rev_cfmt_pFus$gyral_crown, FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.lh$gyral_crown, FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.rh$gyral_crown, FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) #
+
+
+cor.test(FFA_all_morph.rev_cfmt_mFus$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.lh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_mFus.rh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_mFus.rh$CFMT, method = "spearman", exact = F) #
+
+cor.test(FFA_all_morph.rev_cfmt_pFus$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.lh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_all_morph.rev_cfmt_pFus.rh$cortical_thickness_mean, FFA_all_morph.rev_cfmt_pFus.rh$CFMT, method = "spearman", exact = F) #
 
 
 ##### lat fus size analyses #####
@@ -2402,17 +2402,17 @@ FFA_revision_metrics.fg2 <- merge(FFA_revision_metrics.fg, DP_sample2, by = c("s
 FFA_revision_metrics.fg2.lh <- FFA_revision_metrics.fg2 %>% subset(hemi == "left")
 FFA_revision_metrics.fg2.rh <- FFA_revision_metrics.fg2 %>% subset(hemi == "right")
 
-cor.test(FFA_revision_metrics.fg2$total_surface_area_.mm.2., FFA_revision_metrics.fg2$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
-cor.test(FFA_revision_metrics.fg2.lh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.lh$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
-cor.test(FFA_revision_metrics.fg2.rh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.rh$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
+cor.test(FFA_revision_metrics.fg2$total_surface_area_.mm.2., FFA_revision_metrics.fg2$CFMT, method = "spearman", exact = FALSE) #
+cor.test(FFA_revision_metrics.fg2.lh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.lh$CFMT, method = "spearman", exact = FALSE) #
+cor.test(FFA_revision_metrics.fg2.rh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.rh$CFMT, method = "spearman", exact = FALSE) #
 
 FFA_revision_metrics.fg2 <- merge(FFA_revision_metrics.fg.rev, DP_sample2, by = c("sub"))
 FFA_revision_metrics.fg2.lh <- FFA_revision_metrics.fg2 %>% subset(hemi == "left")
 FFA_revision_metrics.fg2.rh <- FFA_revision_metrics.fg2 %>% subset(hemi == "right")
 
-cor.test(FFA_revision_metrics.fg2$total_surface_area_.mm.2., FFA_revision_metrics.fg2$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
-cor.test(FFA_revision_metrics.fg2.lh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.lh$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
-cor.test(FFA_revision_metrics.fg2.rh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.rh$CFMT, method = "spearman", exact = FALSE) # r = 0.2771414, p-value = 0.00894
+cor.test(FFA_revision_metrics.fg2$total_surface_area_.mm.2., FFA_revision_metrics.fg2$CFMT, method = "spearman", exact = FALSE) #
+cor.test(FFA_revision_metrics.fg2.lh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.lh$CFMT, method = "spearman", exact = FALSE) #
+cor.test(FFA_revision_metrics.fg2.rh$total_surface_area_.mm.2., FFA_revision_metrics.fg2.rh$CFMT, method = "spearman", exact = FALSE) #
 
 FFA_revision_metrics.fg2.cfmt.plot <- FFA_revision_metrics.fg2 %>% 
 
@@ -2638,9 +2638,9 @@ FFA_revision_metrics.PPA.cfmt <- merge(FFA_revision_metrics.PPA, DP_sample2, by 
 FFA_revision_metrics.PPA.cfmt.lh <- FFA_revision_metrics.PPA.cfmt %>% subset(hemi == "left")
 FFA_revision_metrics.PPA.cfmt.rh <- FFA_revision_metrics.PPA.cfmt %>% subset(hemi == "right")
 
-cor.test(FFA_revision_metrics.PPA.cfmt$gyral_crown, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.lh$gyral_crown, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.rh$gyral_crown, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
+cor.test(FFA_revision_metrics.PPA.cfmt$gyral_crown, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.lh$gyral_crown, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.rh$gyral_crown, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) #
 
 FFA_revision_metrics.PPA.cfmt.gc.plot <- FFA_revision_metrics.PPA.cfmt %>% 
   
@@ -2692,9 +2692,9 @@ ggplot2::ggsave(filename = "~/Downloads/FFA_revision_metrics.PPA.cfmt.gc.plot.pn
                 dpi = "retina")
 
 
-cor.test(FFA_revision_metrics.PPA.cfmt$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.lh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.rh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
+cor.test(FFA_revision_metrics.PPA.cfmt$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.lh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.rh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) #
 ppa2 <- c(0.3724, 0.7968, 0.3699)
 p.adjust(ppa2, method = "fdr")
 
@@ -2789,10 +2789,10 @@ FFA_revision_metrics.PPA.cfmt <- merge(FFA_revision_metrics.PPA.rev, DP_sample2,
 FFA_revision_metrics.PPA.cfmt.lh <- FFA_revision_metrics.PPA.cfmt %>% subset(hemi == "left")
 FFA_revision_metrics.PPA.cfmt.rh <- FFA_revision_metrics.PPA.cfmt %>% subset(hemi == "right")
 
-cor.test(FFA_revision_metrics.PPA.cfmt$gyral_crown, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.lh$gyral_crown, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.rh$gyral_crown, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
+cor.test(FFA_revision_metrics.PPA.cfmt$gyral_crown, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.lh$gyral_crown, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.rh$gyral_crown, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) #
 
-cor.test(FFA_revision_metrics.PPA.cfmt$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.lh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
-cor.test(FFA_revision_metrics.PPA.cfmt.rh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) # r = -0.4258927, p = .0001
+cor.test(FFA_revision_metrics.PPA.cfmt$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.lh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.lh$CFMT, method = "spearman", exact = F) #
+cor.test(FFA_revision_metrics.PPA.cfmt.rh$cortical_thickness_mean, FFA_revision_metrics.PPA.cfmt.rh$CFMT, method = "spearman", exact = F) #
