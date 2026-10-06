@@ -6,8 +6,8 @@ For questions and/or additional data requests please email Joe Kelly (josephkell
 
 ## Instructions for use
 - All information, scripts, and data needed to run all finalized analyses are included under the *analysis_final* repository.
-- Old analytic data are included under the *data* and *lasso_output* repositories. 
-- High resolution figures are included in this directory (*FigureS#.tif*). 
+- Old analytic scripts and data are included under the *old_analysis* directory (*PMC_face_DP_vF.ipynb*, *PMC_DP_analysis_vF.R*, *old_analysis/data*, and *old_analysis/lasso_output/CSVs/fully_nested*).
+- High resolution supplementary figures are included under the *supplementary_figures* directory (*FigureS#.tif*).
 
 ## Dependencies, Requirements, and Associated data
 - Python, R, and Rstudio are required to run analytic scripts.
