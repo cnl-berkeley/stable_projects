@@ -1,0 +1,1468 @@
+---
+title: "Sulcal morphology of posteromedial cortex substantially differs between humans and chimpanzees"
+author: "EH Willbrand et al."
+date: "4/17/2023"
+output: pdf_document
+---
+
+# Libraries
+## Requirements: packages below must be installed to load.
+```{r setup, include=FALSE}
+# Set working directory to "morph_csv" folder
+getwd()
+#setwd('~/PosteromedialSulci_Chimpanzees/morph_csv')
+#knitr::opts_knit$set(root.dir = '~/PosteromedialSulci_Chimpanzees/morph_csv')
+
+# Uncomment and run code below if packages are not installed
+# project_packages <- c("tidyverse", "ggpattern", "rstatix", "effectsize", 
+#                       "nlme", "RColorBrewer", "RVAideMemoire", "car")
+# install.packages(project_packages)
+
+# Load packages
+library(tidyverse)
+library(ggpattern)
+library(rstatix)
+library(effectsize)
+library(nlme)
+library(RColorBrewer)
+library(RVAideMemoire)
+library(car)
+
+# Set themes and options
+options(scipen=999, # 0
+        show.signif.stars = FALSE) 
+
+theme_set(theme_classic())
+
+plot_theme <- theme(axis.title.x = element_text(size=0),
+                    axis.title.y = element_text(size=16),
+                    axis.text.x = element_text(size = 14),
+                    axis.text.y = element_text(size = 14),
+                    legend.title = element_text(size=16), 
+                    legend.text = element_text(size=14),
+                    strip.text.x = element_text(size = 14),
+                    strip.placement = "outside",
+                    axis.line = element_line(colour = "black", 
+                                             linetype = "solid", 
+                                             lineend = "round")
+                    )
+
+plot_theme2 <- theme(axis.title.x = element_blank(),
+                    axis.title.y = element_text(size=16),
+                    axis.text.x = element_text(size = 14),
+                    axis.text.y = element_text(size = 14),
+                    legend.title = element_text(size=16), 
+                    legend.text = element_text(size=14),
+                    strip.text.x = element_blank(),
+                    strip.placement = "outside",
+                    strip.background = element_blank(),
+                    axis.line = element_line(colour = "black", 
+                                             linetype = "solid", 
+                                             lineend = "round")
+                    )
+
+plot_theme3 <- theme(axis.title.x = element_text(size=16),
+                    axis.title.y = element_text(size=16),
+                    axis.text.x = element_text(size = 14),
+                    axis.text.y = element_text(size = 14),
+                    legend.title = element_text(size=16), 
+                    legend.text = element_text(size=14),
+                    strip.text.x = element_text(size = 14),
+                    strip.placement = "outside",
+                    strip.background = element_blank(),
+                    axis.line = element_line(colour = "black", 
+                                             linetype = "solid", 
+                                             lineend = "round")
+                    )
+```
+
+
+# Main dataframes
+```{r}
+# PMC morphology
+## Incidence
+human_sulc_pmc <- read.csv("PMC_ROI_sulc_pct_human_72_subs.csv")
+chimp_sulc_pmc <- read.csv("PMC_ROI_sulc_pct_chimp_60_subs.csv")
+human_sulc_pmc$species <- "human"
+chimp_sulc_pmc$species <- "chimpanzee"
+
+sulc_pmc <- rbind(human_sulc_pmc, chimp_sulc_pmc)
+
+### Morphology
+human_morphology <- read.csv("human_pmc_morphology_final.csv")
+chimp_morphology <- read.csv("chimp_pmc_morphology_final.csv")
+human_morphology$species <- "human"
+chimp_morphology$species <- "chimpanzee"
+
+pmc_species_morphology <- rbind(human_morphology, chimp_morphology)
+
+
+## Mcgs-specifc dataframes
+### Incidence
+mcgs_patterns <- read.csv("mcgs_patterns_final.csv")
+
+### Morphology
+human_mcgs_morphlogy <- read.csv("human_mcgs_morphology_final.csv")
+chimp_mcgs_morphlogy <- read.csv("chimp_mcgs_morphlogy_final.csv")
+human_mcgs_morphlogy$species <- "human"
+chimp_mcgs_morphlogy$species <- "chimpanzee"
+
+mcgs_species_morphology <- rbind(human_mcgs_morphlogy, chimp_mcgs_morphlogy)
+
+
+## Data for normalizing 
+lobe_morphology <- read.csv("lobe_morphology.csv")
+insula_depth <- read.csv("insula_depth.csv")
+```
+
+
+# Analysis 1: Comparing percent of PMC in sulci in chimpanzees versus humans
+1. We ran a linear mixed effects model (LME) with predictors of hemisphere and species, as well as their interaction, for percent overlap.
+* Percent overlap was quantified as the DICE coefficient — overlap between the PMC as defined by the Destrieux parcellation and the FreeSurfer .sulc file (thresholded at > 0 for sulci).
+* Hemisphere and species were considered fixed effects. 
+* Hemisphere was nested within subjects. 
+* We also controlled for differences in brain size in the model (quantified as the total cortical surface area of the given hemisphere). 
+
+## Statistics
+```{r}
+# Merge dataframes
+sulc_pmc.1 <- merge(sulc_pmc, lobe_morphology, by = c("sub", "hemi", "species"))
+
+
+# Analysis 1
+
+## Run analysis
+model_pct_sulc_species <- lme(dice_coeff ~ hemi*species + cortex_sa, 
+                              random = (~1|sub/hemi), 
+                              data = sulc_pmc.1)
+
+## View summary
+model_pct_sulc_species.aov <- anova(model_pct_sulc_species)
+model_pct_sulc_species.aov
+
+## Effect size
+effectsize::eta_squared(model_pct_sulc_species.aov)
+
+## Digest main effect
+sulc_pmc %>% group_by(species) %>% summarise(mean = mean(dice_coeff),
+                                                   sd = sd(dice_coeff))
+```
+
+## Plot (Figure 1b)
+```{r}
+# Figure 1b
+
+# Specific subject data
+sulc_pmc.sub.c20.rh <- sulc_pmc %>% subset(sub %in% c("c20") & 
+                                             hemi == "rh")
+sulc_pmc.sub.151829.rh <- sulc_pmc %>% subset(sub %in% c("151829") & 
+                                                hemi == "rh")
+
+# Make plot 
+sulc_pmc.plot <- sulc_pmc %>% 
+  ggplot(aes(x = species, y = dice_coeff*100)) + 
+  
+  geom_violin(aes(fill = species), alpha = .5) +
+
+  geom_boxplot(aes(fill = species), alpha = .5,
+               outlier.size = 0, 
+               outlier.alpha = 0, 
+               width = .13) +
+  
+  geom_point(data = sulc_pmc.sub.151829.rh, 
+             shape = 21, fill = "#d95f02", size = 2) +
+
+  geom_point(data = sulc_pmc.sub.nc26.rh, 
+             shape = 21, fill = "#e7298a", size = 2) +
+  
+  scale_y_continuous(name = "% sulci", 
+                     limits = c(50, 90), n.breaks = 5) +
+  
+  facet_wrap(~ hemi, ncol = 2) + 
+  
+  scale_fill_manual(breaks = c("human", "chimpanzee"),
+                    values = c("#252525", "#cccccc")
+                    ) +
+  
+  guides(fill = "none") +
+
+  plot_theme2
+
+# View plot
+sulc_pmc.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_1b_sulc_pmc_plot.png",
+#                  plot = sulc_pmc.plot,
+#                  device = "png",
+#                  width = 8,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Analysis 2: Comparing incidence of PMC sulci in chimpanzees versus humans
+1. We first tested for broad differences in sulcal incidence in PrC and PCC separately using LMEs with predictors of hemisphere and species, as well as their interaction, for sulcal count. 
+* Hemisphere and species were considered fixed effects. 
+* Hemisphere was nested within subjects. 
+
+2. Next, for any sulcus that was not present in all hemispheres for either species, we tested the influence of species and hemisphere on the probability of a sulcus to be present with binomial logistic regression GLMs.
+* For each statistical model, species (human, chimpanzee) and hemisphere (left, right), as well as their interaction, were included as factors for presence [0 (absent), 1 (present)] of a sulcus.
+
+3. Finally, we conducted a follow-up GLM with PCC region [dorsal PCC (sspls-d, ifrms, icgs-p), ventral PCC (isms, sspls-v)], species (human, chimpanzee), and hemisphere (left, right), as well as their interaction, as factors for the presence of a sulcus.
+
+## Statistics
+```{r}
+# Set up data for analyses
+pmc_species_morphology.chisq <- pmc_species_morphology %>% mutate(pres_abs2 = case_when(pres_abs == "absent" ~ 0,
+                                                                                   pres_abs == "present" ~ 1))
+
+pmc_species_morphology.chisq$species <- as.factor(pmc_species_morphology.chisq$species)
+pmc_species_morphology.chisq$hemi <- as.factor(pmc_species_morphology.chisq$hemi)
+
+pmc_species_morphology.chisq.subject.prc <- pmc_species_morphology.chisq %>% 
+  drop_na() %>%
+  subset(label %in% c( "prculs_d", "prculs_v", "prcus_a", "prcus_i", "prcus_p")) %>% 
+  group_by(sub, species, hemi) %>% 
+  summarise(n = n())
+
+pmc_species_morphology.chisq.subject.pcc <- pmc_species_morphology.chisq %>% 
+  drop_na() %>%
+  subset(label %in% c("icgs_p", "ifrms", "isms",  "sspls_d", "sspls_v")) %>% 
+  group_by(sub, species, hemi) %>% 
+  summarise(n = n())
+
+column1 <- c("c14", "c15", "c18", "c23", "c26", 
+             "c30", "c30", 
+             "nc04", "nc05", "nc07", 
+             "nc08", "nc12", "nc19", "nc32")
+column2 <- c("chimpanzee", "chimpanzee", "chimpanzee", "chimpanzee", "chimpanzee", 
+             "chimpanzee", "chimpanzee", "chimpanzee", "chimpanzee", "chimpanzee", 
+             "chimpanzee", "chimpanzee", "chimpanzee", "chimpanzee")
+column3 <- c("lh", "lh", "lh", "rh", "rh", 
+             "lh", "rh",
+             "rh", "lh", "rh", 
+             "rh", "lh", "lh", "rh")
+column4 <- c(0, 0, 0, 0, 0, 
+             0, 0, 0, 0, 0, 
+             0, 0, 0, 0)
+
+chimps_no_pcc_sulci.df <- data.frame(column1, column2, column3, column4)
+chimps_no_pcc_sulci.df <- chimps_no_pcc_sulci.df %>% 
+  rename(sub = column1, species = column2, hemi = column3, n = column4)
+pmc_species_morphology.chisq.subject.pcc <- rbind(pmc_species_morphology.chisq.subject.pcc, chimps_no_pcc_sulci.df)
+
+
+# Analysis 2.1
+
+## PrC sulci count
+
+### Run analysis
+model_num_sulc_prc <- lme(n ~ species * hemi, random = (~1|sub/hemi), 
+                          data = pmc_species_morphology.chisq.subject.prc)
+
+### View summary
+model_num_sulc_prc.aov <- anova(model_num_sulc_prc)
+model_num_sulc_prc.aov
+
+### Effect size
+effectsize::eta_squared(model_num_sulc_prc.aov)
+
+
+## PCC sulci count
+
+### Run analysis
+model_num_sulc_pcc <- lme(n ~ species * hemi, random = (~1|sub/hemi), 
+                          data = pmc_species_morphology.chisq.subject.pcc)
+
+### View summary
+model_num_sulc_pcc.aov <- anova(model_num_sulc_pcc)
+model_num_sulc_pcc.aov
+
+### Effect size
+effectsize::eta_squared(model_num_sulc_pcc.aov)
+
+
+# Analysis 2.2
+
+## prculs-d
+### Run analysis
+pmc_species_morphology.chisq.prculs_d <- pmc_species_morphology.chisq %>% subset(label == "prculs_d")
+pmc_species_morphology.chisq.prculs_d.glm <- glm(pres_abs2 ~ species*hemi, data=pmc_species_morphology.chisq.prculs_d,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.prculs_d.glm.aov <- Anova(pmc_species_morphology.chisq.prculs_d.glm, test="LR", type="III")
+pmc_species_morphology.chisq.prculs_d.glm.aov
+
+
+## prcus-p
+### Run analysis
+pmc_species_morphology.chisq.prcus_p <- pmc_species_morphology.chisq %>% subset(label == "prcus_p")
+pmc_species_morphology.chisq.prcus_p.glm <- glm(pres_abs2 ~ species*hemi, data=pmc_species_morphology.chisq.prcus_p,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.prcus_p.glm.aov <- Anova(pmc_species_morphology.chisq.prcus_p.glm, test="LR", type="III")
+pmc_species_morphology.chisq.prcus_p.glm.aov
+
+
+## prcus-i
+### Run analysis
+pmc_species_morphology.chisq.prcus_i <- pmc_species_morphology.chisq %>% subset(label == "prcus_i")
+pmc_species_morphology.chisq.prcus_i.glm <- glm(pres_abs2 ~ species*hemi, data=pmc_species_morphology.chisq.prcus_i,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.prcus_i.glm.aov <- Anova(pmc_species_morphology.chisq.prcus_i.glm, test="LR", type="III")
+pmc_species_morphology.chisq.prcus_i.glm.aov
+
+
+## prcus-a
+### Run analysis
+pmc_species_morphology.chisq.prcus_a <- pmc_species_morphology.chisq %>% subset(label == "prcus_a")
+pmc_species_morphology.chisq.prcus_a.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.prcus_a,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.prcus_a.glm.aov <- Anova(pmc_species_morphology.chisq.prcus_a.glm, test="LR", type="III")
+pmc_species_morphology.chisq.prcus_a.glm.aov
+
+
+## isms
+### Run analysis
+pmc_species_morphology.chisq.isms <- pmc_species_morphology.chisq %>% subset(label == "isms")
+pmc_species_morphology.chisq.isms.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.isms,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.isms.glm.aov <- Anova(pmc_species_morphology.chisq.isms.glm, test="LR", type="III")
+pmc_species_morphology.chisq.isms.glm.aov
+
+
+## prculs-v
+### Run analysis
+pmc_species_morphology.chisq.prculs_v <- pmc_species_morphology.chisq %>% subset(label == "prculs_v")
+pmc_species_morphology.chisq.prculs_v.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.prculs_v,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.prculs_v.glm.aov <- Anova(pmc_species_morphology.chisq.prculs_v.glm, test="LR", type="III")
+pmc_species_morphology.chisq.prculs_v.glm.aov
+
+## sspls-v
+### Run analysis
+pmc_species_morphology.chisq.sspls_v <- pmc_species_morphology.chisq %>% subset(label == "sspls_v")
+pmc_species_morphology.chisq.sspls_v.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.sspls_v,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.sspls_v.glm.aov <- Anova(pmc_species_morphology.chisq.sspls_v.glm, test="LR", type="III")
+pmc_species_morphology.chisq.sspls_v.glm.aov
+
+### Digest interaction
+pmc_species_morphology.chisq.sspls_v.glm.i1 <- emmeans::emmeans(pmc_species_morphology.chisq.sspls_v.glm,'species','hemi')
+emmeans::contrast(pmc_species_morphology.chisq.sspls_v.glm.i1, method='pairwise')
+
+
+## sspls-d
+### Run analysis
+pmc_species_morphology.chisq.sspls_d <- pmc_species_morphology.chisq %>% subset(label == "sspls_d")
+pmc_species_morphology.chisq.sspls_d.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.sspls_d,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.sspls_d.glm.aov <- Anova(pmc_species_morphology.chisq.sspls_d.glm, test="LR", type="III")
+pmc_species_morphology.chisq.sspls_d.glm.aov
+
+
+## ifrms
+### Run analysis
+pmc_species_morphology.chisq.ifrms <- pmc_species_morphology.chisq %>% subset(label == "ifrms")
+pmc_species_morphology.chisq.ifrms.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.ifrms,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.ifrms.glm.aov <- Anova(pmc_species_morphology.chisq.ifrms.glm, test="LR", type="III")
+pmc_species_morphology.chisq.ifrms.glm.aov
+
+
+## icgs-p
+### Run analysis
+pmc_species_morphology.chisq.icgs_p <- pmc_species_morphology.chisq %>% subset(label == "icgs_p")
+pmc_species_morphology.chisq.icgs_p.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.icgs_p,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.icgs_p.glm.aov <- Anova(pmc_species_morphology.chisq.icgs_p.glm, test="LR", type="III")
+pmc_species_morphology.chisq.icgs_p.glm.aov
+
+
+## pmcgs (w)
+### Run analysis
+pmc_species_morphology.chisq.w <- pmc_species_morphology.chisq %>% subset(label == "w")
+pmc_species_morphology.chisq.w.glm <- glm(pres_abs2 ~ species*hemi, data = pmc_species_morphology.chisq.w,
+           family=binomial(link = "logit"))
+
+### View summary
+pmc_species_morphology.chisq.w.glm.aov <- Anova(pmc_species_morphology.chisq.w.glm, test="LR", type="III")
+pmc_species_morphology.chisq.w.glm.aov
+
+
+# Analysis 2.3
+
+## Set up data for analyses
+pmc_species_morphology.chisq.pcc.reg <- pmc_species_morphology.chisq %>% 
+  subset(label %in% c("icgs_p", "ifrms", "isms",  "sspls_d", "sspls_v")) %>% 
+  mutate(
+    PCC_region = case_when(label %in% c("icgs_p", "ifrms", "sspls_d") ~ "dPCC",
+                          label %in% c("sspls_v", "isms") ~ "vPCC")
+  )
+
+## Run analysis
+pmc_species_morphology.chisq.pcc.reg.glm <- glm(pres_abs2 ~ species*hemi*PCC_region, data = pmc_species_morphology.chisq.pcc.reg,
+           family=binomial(link = "logit"))
+
+## View summary
+pmc_species_morphology.chisq.pcc.reg.glm.aov <- Anova(pmc_species_morphology.chisq.pcc.reg.glm, test="LR", type="III")
+pmc_species_morphology.chisq.pcc.reg.glm.aov
+
+## Digest interaction
+pmc_species_morphology.chisq.pcc.reg.glm.i1 <- emmeans::emmeans(pmc_species_morphology.chisq.pcc.reg.glm, 'species', 'PCC_region')
+emmeans::contrast(pmc_species_morphology.chisq.pcc.reg.glm.i1, method='pairwise', adjust = "tukey")
+```
+
+## Plots (Figures 2c, 3, 4, 5)
+```{r}
+# Figure 2c
+
+## Manipulate data for PrC plot
+pmc_species_morphology.chisq.subject.prc.mean <- pmc_species_morphology.chisq.subject.prc %>% 
+  group_by(species, hemi) %>% 
+  summarise(mean = round(mean(n), 1))
+
+pmc_species_morphology.chisq.subject.prc.n <- pmc_species_morphology.chisq.subject.prc %>% group_by(species, hemi, n) %>% summarise(n2 = n())
+
+## Make PrC plot (Figure 2c, left)
+pmc_species_morphology.chisq.subject.prc.plot <- pmc_species_morphology.chisq.subject.prc.n %>% 
+  ggplot(aes(x = n, y = n2)) +
+  
+  geom_col(aes(fill = species), color = "black") +
+  
+  # geom_vline(xintercept = 2, color = "red") +
+  # 
+  # geom_vline(xintercept = 1.8, color = "darkred") +
+  # 
+  # geom_vline(xintercept = 4.4, color = "blue") +
+  # 
+  # geom_vline(xintercept = 4.4, color = "navy") +
+  
+  scale_fill_manual(breaks = c("chimpanzee", "humans"),
+                     values = c("#cccccc", "#252525")) +
+  
+  facet_wrap(~ hemi, 
+             nrow = 1, ncol = 2, 
+             strip.position = "top"
+             ) + 
+  
+  scale_x_continuous(n.breaks = 6) +
+  scale_y_continuous(n.breaks = 5, limits = c(0,50)) +
+  
+  guides(fill = "none", alpha = "none") +
+  
+  plot_theme2
+
+## View plot
+pmc_species_morphology.chisq.subject.prc.plot 
+
+## Save plot
+# ggplot2::ggsave(filename = "Figure_2c_prc_incidence_count.png",
+#                  plot = pmc_species_morphology.chisq.subject.prc.plot,
+#                  device = "png",
+#                  width = 8, # 12
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina") 
+
+
+## Manipulate data for PCC plot
+pmc_species_morphology.chisq.subject.pcc.mean <- pmc_species_morphology.chisq.subject.pcc %>% 
+  group_by(species, hemi) %>% 
+  summarise(mean = round(mean(n), 1))
+pmc_species_morphology.chisq.subject.pcc.mean
+
+pmc_species_morphology.chisq.subject.pcc.n <- pmc_species_morphology.chisq.subject.pcc %>% group_by(species, hemi, n) %>% summarise(n2 = n())
+
+## Make PCC plot (Figure 2c, right)
+pmc_species_morphology.chisq.subject.pcc.plot <- pmc_species_morphology.chisq.subject.pcc.n %>% 
+  ggplot(aes(x = n, y = n2)) +
+  
+  geom_col(aes(fill = species), color = "black") +
+  
+  # geom_vline(xintercept = 1.7, color = 'red') +
+  # 
+  # geom_vline(xintercept = 1.8, color = 'darkred') +
+  # 
+  # geom_vline(xintercept = 2.9, color = 'blue') +
+  # 
+  # geom_vline(xintercept = 2.8, color = 'navy') +
+  
+  scale_fill_manual(breaks = c("chimpanzee", "humans"),
+                     values = c("#cccccc", "#252525")) +
+  
+  facet_wrap(~ hemi, 
+             nrow = 1, ncol = 2, 
+             strip.position = "top"
+             ) + 
+  
+  scale_x_continuous(n.breaks = 6) +
+  scale_y_continuous(n.breaks = 5) +
+  
+  guides(fill = "none", alpha = "none") +
+  
+  plot_theme2
+ 
+## View plot 
+pmc_species_morphology.chisq.subject.pcc.plot
+
+## Save plot
+# ggplot2::ggsave(filename = "Figure_2c_pcc_incidence_count.png",
+#                  plot = pmc_species_morphology.chisq.subject.pcc.plot,
+#                  device = "png",
+#                  width = 8, # 12
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina") 
+
+
+# Figures 3-5
+
+## Load data
+pmc_incidence_table_figure <- read.csv("pmc_pres_abs.csv")
+
+## Manipulations for plot
+pmc_incidence_table_figure.fig <- pmc_incidence_table_figure %>% subset(pres == "present")
+pmc_incidence_table_figure.fig$hemi <- gsub("lh", "Left Hemisphere", pmc_incidence_table_figure.fig$hemi)
+pmc_incidence_table_figure.fig$hemi <- gsub("rh", "Right Hemisphere", pmc_incidence_table_figure.fig$hemi)
+pmc_incidence_table_figure.fig$sulcus <- gsub("w", "pmcgs", pmc_incidence_table_figure.fig$sulcus)
+
+pmc_incidence_table_figure.fig$sulcus <- factor(pmc_incidence_table_figure.fig$sulcus, levels = c("pos", "prculs-d", "prculs-v",
+                                                                                                  "prcus-p", "prcus-i", "prcus-a",
+                                                                                                  "isms", "sspls-v", "sspls-d",
+                                                                                                  "ifrms", "icgs-p", "spls", "mcgs", "pmcgs"
+                                                                                          ))
+
+pmc_incidence_table_figure.fig <- pmc_incidence_table_figure.fig %>% mutate(is_prcus_i = case_when(
+                                sulcus == "prcus-i" ~ "is_prcus_i",
+                                sulcus %in% c("mcgs", "pmcgs", "spls", "pos", 
+                                              "isms", "sspls-v", "sspls-d", "ifrms", "icgs-p", "prcus-a", 
+                                              "prcus-p", "prculs-v", "prculs-d") ~ "not_prcus_i")) %>%
+                                mutate(
+                                is_sspls_v_or_isms = case_when(
+                                sulcus %in% c("isms", "sspls-v") ~ "is_sspls_v_or_isms",
+                                sulcus %in% c("mcgs", "pmcgs", "spls", "pos", 
+                                              "sspls-d", "ifrms", "icgs-p", "prcus-a", "prcus-i",
+                                              "prcus-p", "prculs-v", "prculs-d") ~ "not_sspls_v_or_isms")) %>%
+  
+                                mutate(
+                                border_new = case_when(
+                                sulcus %in% c( "pmcgs") ~ "new_border",
+                                sulcus %in% c("mcgs",  "isms", "sspls-v", "spls", "pos", 
+                                              "sspls-d", "ifrms", "icgs-p", "prcus-a", "prcus-i",
+                                              "prcus-p", "prculs-v", "prculs-d") ~ "not_new_border")) %>%
+  
+                                mutate(
+                                prc_new = case_when(
+                                sulcus %in% c( "prculs-v" ) ~ "new_prc",
+                                sulcus %in% c( "mcgs", "pmcgs", "isms", "sspls-v", "spls", "pos", 
+                                              "sspls-d", "ifrms", "icgs-p", "prcus-a", "prcus-i",
+                                              "prcus-p", "prculs-d") ~ "not_new_prc")) %>%
+                                
+                                mutate(
+                                pcc_new = case_when(
+                                sulcus %in% c( "isms", "sspls-v" ) ~ "new_pcc",
+                                sulcus %in% c( "mcgs", "pmcgs", "isms", "sspls-v", "spls", "pos", 
+                                              "sspls-d", "ifrms", "icgs-p", "prcus-a", "prcus-i",
+                                              "prcus-p", "prculs-v", "prculs-d") ~ "not_new_pcc"))
+                            
+
+## Make plot
+### Comment in and out region of interest: Border, PrC, PCC for plot of interest
+pmc_incidence.figure.prc <- pmc_incidence_table_figure.fig %>% 
+  
+  # For border
+  #subset(sulcus %in% c("mcgs", "pmcgs", "spls", "pos")) %>%
+  
+  # For PrC
+  subset(sulcus %in% c("prcus-a", "prcus-i", "prcus-p", "prculs-v", "prculs-d")) %>%
+  
+  # For PCC
+  #subset(sulcus %in% c("isms", "sspls-v", "sspls-d", "ifrms", "icgs-p")) %>%
+  
+  ggplot(aes(x = sulcus, y = pct)) + 
+  
+  geom_col(aes(fill = sulcus, alpha = species),
+           color = "black",
+           position = "dodge"
+           ) +
+  
+  facet_wrap(~ hemi, 
+             nrow = 1, ncol = 2, 
+             strip.position = "top"
+             ) + 
+  
+  # For border
+  # scale_fill_manual(breaks = c("pos", "spls", "mcgs", "pmcgs"),
+  #                  values = c("#6850A0", "#518DF0", "#17314B", "#B5CFFF")) +
+  # 
+
+  # For PrC
+  scale_fill_manual(breaks = c("prculs-d", "prculs-v", "prcus-p", "prcus-i", "prcus-a"),
+                    values = c("#858CC2", "#9AA78C", "#66B9B8", "#2F5952", "#45787F")
+                    ) +
+
+  # For PCC
+  # scale_fill_manual(breaks = c("isms", "sspls-v", "sspls-d", "ifrms", "icgs-p"),
+  #                   values = c("#DC5075", "#DEC65B", "#9D6642", "#992F27", "#E98B32"),
+  #                   ) +
+  
+  scale_alpha_manual(breaks = c("chimpanzee", "humans"),
+                     values = c(0.5, 1)) +
+  
+  scale_y_continuous(name = "% of hemispheres", seq(0,100,20), limits = c(0,100)) +
+  
+  guides(fill = "none", alpha = "none", pattern = "none") +
+  plot_theme2
+
+## View plot
+pmc_incidence.figure.prc
+
+## Save plot
+# ggplot2::ggsave(filename = "Figure_4_pmc_incidence_prc.png",
+#                  plot = pmc_incidence.figure.prc,
+#                  device = "png",
+#                  width = 12, # 10
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Analysis 3: Relating incidence of PMC sulci in chimpanzees 
+1. We ran binomial logistic regression GLMs relating the presence of each variable PMC sulcus [0 (absent), 1 (present)] with the other sulci as factors, while also including an interaction with hemisphere for each sulcus. 
+* Iteratively dropped the sulcus that was the dependent variable as a factor from the next model to account for relationships already analyzed.
+
+## Statistics
+```{r}
+# Prepare left hemisphere data
+pmc_chimp_morphology.ifrms.lh <- chimp_morphology %>% 
+  subset(label == "ifrms" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(ifrms_pres = pres_abs)
+
+pmc_chimp_morphology.isms.lh <- chimp_morphology %>% 
+  subset(label == "isms" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(isms_pres = pres_abs)
+
+pmc_chimp_morphology.sspls_v.lh <- chimp_morphology %>% 
+  subset(label == "sspls_v" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(sspls_v_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_i.lh <- chimp_morphology %>% 
+  subset(label == "prcus_i" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_i_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_a.lh <- chimp_morphology %>% 
+  subset(label == "prcus_a" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_a_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_p.lh <- chimp_morphology %>% 
+  subset(label == "prcus_p" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_p_pres = pres_abs)
+
+pmc_chimp_morphology.icgs_p.lh <- chimp_morphology %>% 
+  subset(label == "icgs_p" & hemi == "lh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(icgs_p_pres = pres_abs)
+
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.ifrms.lh, pmc_chimp_morphology.isms.lh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.pres_abs.lh, pmc_chimp_morphology.sspls_v.lh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.pres_abs.lh, pmc_chimp_morphology.prcus_i.lh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.pres_abs.lh, pmc_chimp_morphology.prcus_a.lh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.pres_abs.lh, pmc_chimp_morphology.prcus_p.lh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.lh <- merge(pmc_chimp_morphology.pres_abs.lh, pmc_chimp_morphology.icgs_p.lh, by = c("sub", "hemi"))
+
+pmc_chimp_morphology.pres_abs.lh.analysis <- pmc_chimp_morphology.pres_abs.lh %>% select(c(1, 3:9))
+pmc_chimp_morphology.pres_abs.lh.analysis <- pmc_chimp_morphology.pres_abs.lh.analysis %>% 
+                                                                            mutate(ifrms_pres2 = case_when(ifrms_pres == "present" ~ 1,
+                                                                                                           ifrms_pres == "absent" ~ 0),
+                                                                                   isms_pres2 = case_when(isms_pres == "present" ~ 1,
+                                                                                                          isms_pres == "absent" ~ 0),
+                                                                                   sspls_v_pres2 = case_when(sspls_v_pres == "present" ~ 1,
+                                                                                                             sspls_v_pres == "absent" ~ 0),
+                                                                                   prcus_i_pres2 = case_when(prcus_i_pres == "present" ~ 1,
+                                                                                                             prcus_i_pres == "absent" ~ 0),
+                                                                                   prcus_a_pres2 = case_when(prcus_a_pres == "present" ~ 1,
+                                                                                                             prcus_a_pres == "absent" ~ 0),
+                                                                                   prcus_p_pres2 = case_when(prcus_p_pres == "present" ~ 1,
+                                                                                                             prcus_p_pres == "absent" ~ 0),
+                                                                                   icgs_p_pres2 = case_when(icgs_p_pres == "present" ~ 1,
+                                                                                                            icgs_p_pres == "absent" ~ 0),
+                                                                                   )
+
+
+# Prepare right hemisphere data
+pmc_chimp_morphology.ifrms.rh <- chimp_morphology %>% 
+  subset(label == "ifrms" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(ifrms_pres = pres_abs)
+
+pmc_chimp_morphology.isms.rh <- chimp_morphology %>% 
+  subset(label == "isms" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(isms_pres = pres_abs)
+
+pmc_chimp_morphology.sspls_v.rh <- chimp_morphology %>% 
+  subset(label == "sspls_v" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(sspls_v_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_i.rh <- chimp_morphology %>% 
+  subset(label == "prcus_i" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_i_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_a.rh <- chimp_morphology %>% 
+  subset(label == "prcus_a" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_a_pres = pres_abs)
+
+pmc_chimp_morphology.prcus_p.rh <- chimp_morphology %>% 
+  subset(label == "prcus_p" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(prcus_p_pres = pres_abs)
+
+pmc_chimp_morphology.icgs_p.rh <- chimp_morphology %>% 
+  subset(label == "icgs_p" & hemi == "rh") %>% 
+  select(c("sub", "hemi", "pres_abs")) %>% 
+  rename(icgs_p_pres = pres_abs)
+
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.ifrms.rh, pmc_chimp_morphology.isms.rh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.pres_abs.rh, pmc_chimp_morphology.sspls_v.rh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.pres_abs.rh, pmc_chimp_morphology.prcus_i.rh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.pres_abs.rh, pmc_chimp_morphology.prcus_a.rh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.pres_abs.rh, pmc_chimp_morphology.prcus_p.rh, by = c("sub", "hemi"))
+pmc_chimp_morphology.pres_abs.rh <- merge(pmc_chimp_morphology.pres_abs.rh, pmc_chimp_morphology.icgs_p.rh, by = c("sub", "hemi"))
+
+pmc_chimp_morphology.pres_abs.rh.analysis <- pmc_chimp_morphology.pres_abs.rh %>% select(c(1, 3:9))
+pmc_chimp_morphology.pres_abs.rh.analysis <- pmc_chimp_morphology.pres_abs.rh.analysis %>% 
+                                                                            mutate(ifrms_pres2 = case_when(ifrms_pres == "present" ~ 1,
+                                                                                                           ifrms_pres == "absent" ~ 0),
+                                                                                   isms_pres2 = case_when(isms_pres == "present" ~ 1,
+                                                                                                          isms_pres == "absent" ~ 0),
+                                                                                   sspls_v_pres2 = case_when(sspls_v_pres == "present" ~ 1,
+                                                                                                             sspls_v_pres == "absent" ~ 0),
+                                                                                   prcus_i_pres2 = case_when(prcus_i_pres == "present" ~ 1,
+                                                                                                             prcus_i_pres == "absent" ~ 0),
+                                                                                   prcus_a_pres2 = case_when(prcus_a_pres == "present" ~ 1,
+                                                                                                             prcus_a_pres == "absent" ~ 0),
+                                                                                   prcus_p_pres2 = case_when(prcus_p_pres == "present" ~ 1,
+                                                                                                             prcus_p_pres == "absent" ~ 0),
+                                                                                   icgs_p_pres2 = case_when(icgs_p_pres == "present" ~ 1,
+                                                                                                            icgs_p_pres == "absent" ~ 0),
+                                                                                   )
+
+# Merge data from left and right hemispheres
+pmc_chimp_morphology.pres_abs.lh.analysis$hemi <- "lh"
+pmc_chimp_morphology.pres_abs.rh.analysis$hemi <- "rh"
+pmc_chimp_morphology.pres_abs.analysis <- rbind(pmc_chimp_morphology.pres_abs.lh.analysis, pmc_chimp_morphology.pres_abs.rh.analysis)
+
+# Make data a factor
+pmc_chimp_morphology.pres_abs.analysis$ifrms_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$ifrms_pres2)
+pmc_chimp_morphology.pres_abs.analysis$isms_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$isms_pres2)
+pmc_chimp_morphology.pres_abs.analysis$sspls_v_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$sspls_v_pres2)
+pmc_chimp_morphology.pres_abs.analysis$prcus_i_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$prcus_i_pres2)
+pmc_chimp_morphology.pres_abs.analysis$prcus_a_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$prcus_a_pres2)
+pmc_chimp_morphology.pres_abs.analysis$prcus_p_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$prcus_p_pres2)
+pmc_chimp_morphology.pres_abs.analysis$icgs_p_pres2 <- as.factor(pmc_chimp_morphology.pres_abs.analysis$icgs_p_pres2)
+
+
+# Analysis 3
+
+## Model 1: Sspls-v ~ isms, ifrms, icgs_p 
+### Run analysis
+fit_sspls_v <- glm(sspls_v_pres2 ~ isms_pres2 + isms_pres2:hemi + 
+                                   ifrms_pres2 + ifrms_pres2:hemi + 
+                                   prcus_i_pres2 + prcus_i_pres2:hemi +
+                                   prcus_p_pres2 + prcus_p_pres2:hemi,
+                   data=pmc_chimp_morphology.pres_abs.analysis,
+           family=binomial())
+
+### View summary
+Anova(fit_sspls_v, test="LR", type="III")
+
+### Get odds ratio for effect
+fit_sspls_v %>%
+  broom::tidy(exponentiate = T, conf.int = T) %>%
+  mutate_if(is.numeric, ~ round(.,3)) 
+100*(4.47-1)
+
+
+## Model 2: Isms, dropped sspls_v from prior analysis
+### Run analysis
+fit_isms <- glm(isms_pres2 ~ ifrms_pres2 + ifrms_pres2:hemi +
+                               prcus_i_pres2 + prcus_i_pres2:hemi +
+                               prcus_p_pres2 + prcus_p_pres2:hemi,
+                 data=pmc_chimp_morphology.pres_abs.analysis,
+           family=binomial())
+
+### View summary
+Anova(fit_isms, test="LR", type="III")
+
+
+## Model 3: Ifrms, dropped sspls-v and isms from prior analyses 
+### Run analysis
+fit_ifrms <- glm(ifrms_pres2 ~ prcus_i_pres2 + prcus_i_pres2:hemi +
+                                 prcus_p_pres2 + prcus_p_pres2:hemi, 
+                   data=pmc_chimp_morphology.pres_abs.analysis,
+           family=binomial())
+
+### View summary
+Anova(fit_ifrms, test="LR", type="III")
+
+
+## Model 4: Prcus-i, dropping sspls-v, isms, and ifrms from prior analyses
+### Run analysis
+fit_prcus_i <- glm(prcus_i_pres2 ~ prcus_p_pres2 + prcus_p_pres2:hemi, 
+                   data=pmc_chimp_morphology.pres_abs.analysis,
+           family=binomial())
+
+### View summary
+Anova(fit_prcus_i, test="LR", type="III")
+```
+
+## Plot (Figure 6)
+```{r}
+# Figure 6
+
+# Set palette for plot
+my_palette2 <- brewer.pal(2,"Greens")
+
+# Manipulate data for plot
+sspls_v_pred.tab <- pmc_chimp_morphology.pres_abs.analysis %>% group_by(sspls_v_pres, isms_pres) %>% summarise(n = n(),
+                                                                                                               pct = n/120*100)
+
+# Make plot
+sspls_v_pred.plot <- sspls_v_pred.tab %>% 
+  ggplot(aes(x = sspls_v_pres, y = pct, fill = isms_pres)) + 
+  geom_col(color = 'black') +
+  scale_y_continuous(name = "% of hemispheres", n.breaks = 6) +
+  scale_fill_manual(breaks = c("present", "absent"),
+                    values = c("#252525", "#cccccc")
+                    ) +
+  guides(fill = "none") +
+  plot_theme2
+  
+# View plot
+sspls_v_pred.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_6_sspls_v_isms_incidence.png",
+#                  plot = sspls_v_pred.plot,
+#                  device = "png",
+#                  width = 4,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Analysis 4: Comparing morphology of PMC sulci between chimpanzees and humans
+1. To assess whether the depth and surface area of PMC sulci differed between chimpanzees and humans, for both morphological features, we ran a LME with predictors of sulcus, hemisphere, and species, as well as their interaction. 
+* Species, hemisphere, and sulcus were considered fixed effects. 
+* Sulcus was nested within the hemisphere which was nested within subjects. 
+
+## Statistics: Depth
+```{r}
+# Analysis 4.1: Depth
+
+## Select necessary columns and sulci with incidence > 50%
+pmc_species_morphology.depth <- pmc_species_morphology %>% subset(label %in% c("pos", "prculs_d", "prcus_i", "spls", "mcgs", "w", "sspls_v", "isms"))
+
+## Normalize depth
+pmc_species_morphology.depth <- merge(pmc_species_morphology.depth, insula_depth, by = c("sub", "hemi", "species"))
+pmc_species_morphology.depth <- pmc_species_morphology.depth %>% mutate(normalized_depth = sulcal_depth_mm/insula_depth)
+
+## Remove NA values
+pmc_species_morphology.depth.analysis <- pmc_species_morphology.depth %>% drop_na()
+
+## Run analysis
+model_depth_species <- lme(normalized_depth ~ hemi*label*species, random = (~1|sub/hemi/label), data = pmc_species_morphology.depth.analysis)
+
+## View summary
+model_depth_species.aov <- anova(model_depth_species)
+model_depth_species.aov
+
+## Effect size
+effectsize::eta_squared(model_depth_species.aov)
+
+## Digest main effects and interactions
+model_depth_species.m1 <- emmeans::emmeans(model_depth_species, ~ species)
+emmeans::contrast(model_depth_species.m1, method='pairwise')
+
+model_depth_species.i1 <- emmeans::emmeans(model_depth_species, ~ species | hemi)
+emmeans::contrast(model_depth_species.i1, method='pairwise')
+
+model_depth_species.i2 <- emmeans::emmeans(model_depth_species, ~ species | label)
+emmeans::contrast(model_depth_species.i2, method='pairwise')
+
+model_depth_species.i3 <- emmeans::emmeans(model_depth_species, ~ species | label | hemi)
+emmeans::contrast(model_depth_species.i3, method='pairwise')
+```
+
+## Function for morphology plots: Split violin
+```{r}
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, 
+                       draw_group = function(self, data, ..., draw_quantiles = NULL) {
+    data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+   grp <- data[1, "group"]
+   newdata <- plyr::arrange(transform(data, x = if (grp %% 2 == 1) xminv else xmaxv), if (grp %% 2 == 1) y else -y)
+   newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+   newdata[c(1, nrow(newdata) - 1, nrow(newdata)), "x"] <- round(newdata[1, "x"])
+   if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+     stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <=
+       1))
+     quantiles <- ggplot2:::create_quantile_segment_frame(data, draw_quantiles)
+     aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+     aesthetics$alpha <- rep(1, nrow(quantiles))
+     both <- cbind(quantiles, aesthetics)
+     quantile_grob <- GeomPath$draw_panel(both, ...)
+     ggplot2:::ggname("geom_split_violin", grid::grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+   }
+   else {
+     ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+   }
+ })
+ geom_split_violin <- function(mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., 
+                               draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, 
+                               show.legend = NA, inherit.aes = TRUE) {
+   layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, 
+         position = position, show.legend = show.legend, inherit.aes = inherit.aes, 
+         params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+ }
+```
+
+## Plots: Depth (Figure 7a)
+```{r}
+# Figure 7a 
+
+# Manipulation for plot
+pmc_species_morphology.depth.analysis$hemi <- gsub("lh", "left", pmc_species_morphology.depth.analysis$hemi)
+pmc_species_morphology.depth.analysis$hemi <- gsub("rh", "right", pmc_species_morphology.depth.analysis$hemi)
+pmc_species_morphology.depth.analysis$label <- gsub("w", "pmcgs", pmc_species_morphology.depth.analysis$label)
+
+pmc_species_morphology.depth.analysis$label <- gsub("prcus_i", "prcus-i", pmc_species_morphology.depth.analysis$label)
+pmc_species_morphology.depth.analysis$label <- gsub("prculs_d", "prculs-d", pmc_species_morphology.depth.analysis$label)
+pmc_species_morphology.depth.analysis$label <- gsub("sspls_v", "sspls-v", pmc_species_morphology.depth.analysis$label)
+
+
+pmc_species_morphology.depth.analysis$label <- factor(pmc_species_morphology.depth.analysis$label, levels = c(
+   "mcgs", "pmcgs", "spls", "prcus-i", "prculs-d", "pos", "isms", "sspls-v"
+   ))
+
+# Make plot 
+pmc_species_morphology.depth.analysis.plot <- pmc_species_morphology.depth.analysis %>% 
+  ggplot(aes(x = label, y = normalized_depth*100, alpha = species, fill = label)) + 
+  
+  geom_split_violin(width = 1.5) + 
+  
+  geom_boxplot(
+               position = position_dodge(width =.14),
+               outlier.size = 0, outlier.alpha = 0, 
+               width = .13) +
+  
+  scale_y_continuous(name = "sulcal depth (% max)") +
+  
+  facet_wrap(~ hemi, nrow = 2) + 
+  
+  scale_fill_manual(breaks = c("mcgs", "pmcgs", "spls", "prcus-i", "prculs-d", "pos", "isms", "sspls-v"),
+                    values = c("#17314B", "#B5CFFF", "#518DF0", 
+                               "#2F5952", "#858CC2", "#6850A0", "#DC5075", "#DEC65B"),
+                    ) +
+  
+  scale_alpha_manual(breaks = c("chimpanzee", "human"),
+                     values = c(0.3, 0.65)) +
+  
+  guides(fill = "none", alpha = "none") +
+
+  plot_theme2
+
+# View plot 
+pmc_species_morphology.depth.analysis.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_7a_pmc_species_morphology_depth.png",
+#                  plot = pmc_species_morphology.depth.analysis.plot,
+#                  device = "png",
+#                  width = 8,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+## Statistics: Surface area
+```{r}
+# Analysis 4.2: Surface area
+
+## Select necessary columns and sulci with incidence > 50%
+pmc_species_morphology.SA <- pmc_species_morphology %>% subset(label %in% c("pos", "prculs_d", "prcus_i", "spls", "mcgs", "w", "sspls_v", "isms"))
+
+## Normalize surface area
+pmc_species_morphology.SA <- merge(pmc_species_morphology.SA, lobe_morphology, by = c("sub", "hemi", "species"))
+pmc_species_morphology.SA <- pmc_species_morphology.SA %>% mutate(normalized_SA = total_surface_area_.mm.2./cortex_sa)
+
+## Remove NA values
+pmc_species_morphology.SA <- pmc_species_morphology.SA %>% drop_na()
+
+## Run analysis
+model_SA_species <- lme(normalized_SA ~ hemi*label*species, random = (~1|sub/hemi/label), data = pmc_species_morphology.SA)
+
+## View summary
+model_SA_species.aov <- anova(model_SA_species)
+model_SA_species.aov
+
+## Effect size
+effectsize::eta_squared(model_SA_species.aov)
+
+## Digest main effects and interactions
+model_sa_species.m1 <- emmeans::emmeans(model_SA_species, ~ species)
+emmeans::contrast(model_sa_species.m1, method='pairwise', adjust='tukey')
+
+model_SA_species.i1 <- emmeans::emmeans(model_SA_species, ~ species | hemi)
+emmeans::contrast(model_SA_species.i1, method='pairwise')
+
+model_SA_species.i2 <- emmeans::emmeans(model_SA_species, ~ species | label)
+emmeans::contrast(model_SA_species.i2, method='pairwise')
+
+model_SA_species.i3 <- emmeans::emmeans(model_SA_species, ~ species | label | hemi)
+emmeans::contrast(model_SA_species.i3, method='pairwise')
+```
+
+## Plots: Surface Area (Figure 7b)
+```{r}
+# Figure 7b
+
+# Manipulation for plot
+pmc_species_morphology.SA$hemi <- gsub("lh", "left", pmc_species_morphology.SA$hemi)
+pmc_species_morphology.SA$hemi <- gsub("rh", "right", pmc_species_morphology.SA$hemi)
+pmc_species_morphology.SA$label <- gsub("w", "pmcgs", pmc_species_morphology.SA$label)
+
+pmc_species_morphology.SA$label <- gsub("prcus_i", "prcus-i", pmc_species_morphology.SA$label)
+pmc_species_morphology.SA$label <- gsub("prculs_d", "prculs-d", pmc_species_morphology.SA$label)
+pmc_species_morphology.SA$label <- gsub("sspls_v", "sspls-v", pmc_species_morphology.SA$label)
+
+pmc_species_morphology.SA$label <- factor(pmc_species_morphology.SA$label, levels = c(
+   "mcgs", "pmcgs", "spls", "prcus-i", "prculs-d", "pos", "isms", "sspls-v"
+   ))
+
+pmc_species_morphology.SA$hemi <- gsub("lh", "Left Hemisphere", pmc_species_morphology.SA$hemi)
+pmc_species_morphology.SA$hemi <- gsub("rh", "Right Hemisphere", pmc_species_morphology.SA$hemi)
+
+# Make plot
+pmc_species_morphology.SA.plot <- pmc_species_morphology.SA %>% 
+  
+  ggplot(aes(x = label, y = normalized_SA*100, alpha = species, fill = label)) + 
+  
+  geom_split_violin(width = 1.2) + 
+  
+  geom_boxplot(
+               position = position_dodge(width =.14),
+               outlier.size = 0, outlier.alpha = 0, 
+               width = .13) +
+  
+  scale_y_continuous(name = "surface area (% cortex)") +
+  
+  facet_wrap(~ hemi, nrow = 2) + 
+  
+  scale_fill_manual(breaks = c("mcgs", "pmcgs", "spls", "prcus-i", "prculs-d", "pos", "isms", "sspls-v"),
+                    values = c("#17314B", "#B5CFFF", "#518DF0", 
+                               "#2F5952", "#858CC2", "#6850A0", "#DC5075", "#DEC65B"),
+                    ) +
+  
+  scale_alpha_manual(breaks = c("chimpanzee", "human"),
+                     values = c(0.3, 0.65)) +
+  guides(fill = "none", alpha = "none") +
+  
+  plot_theme2
+
+# View plot
+pmc_species_morphology.SA.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_7b_pmc_species_morphology_surface_area.png",
+#                  plot = pmc_species_morphology.SA.plot,
+#                  device = "png",
+#                  width = 8,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Analysis 5: Comparing incidence of MCGS patterns in chimpanzees versus humans
+1. We quantitatively determined whether the incidence rates of the four MCGS types differed by 1) species, and between 2) hemispheres for each species, with chi-squared (χ2) tests. 
+
+## Statistics
+```{r}
+# Analysis 5.1
+
+## Make tables for analyses
+mcgs_patterns.lh <- mcgs_patterns %>% subset(hemi == "lh")
+mcgs_patterns.rh <- mcgs_patterns %>% subset(hemi == "rh")
+
+mcgs_table_lh <- table(mcgs_patterns.lh$species, mcgs_patterns.lh$mcgs_pattern)
+mcgs_table_lh <- as.data.frame(mcgs_table_lh)
+mcgs_table_lh$hemi <- "lh"
+
+mcgs_table_rh <- table(mcgs_patterns.rh$species, mcgs_patterns.rh$mcgs_pattern)
+mcgs_table_rh <- as.data.frame(mcgs_table_rh)
+mcgs_table_rh$hemi <- "rh"
+
+
+## Analyses 5.1: Species
+### Run analysis left hemisphere
+chi_species_lh <- xtabs(Freq~Var1+Var2, data = mcgs_table_lh)
+
+### View Summary
+chisq.test(chi_species_lh)
+
+### Digest effect
+chisq.multcomp(chi_species_lh)
+
+### Run analysis right hemisphere
+chi_species_rh <- xtabs(Freq~Var1+Var2, data = mcgs_table_rh)
+
+### View summary
+chisq.test(chi_species_rh) 
+
+### Digest effect
+chisq.multcomp(chi_species_rh) 
+
+
+## Analyses 5.2: Hemisphere
+### Run analysis human
+mcgs_patterns_human <- mcgs_patterns %>% subset(species == "human")
+mcgs_patterns_human <- table(mcgs_patterns_human$hemi, mcgs_patterns_human$mcgs_pattern)
+mcgs_table_human <- as.data.frame(mcgs_patterns_human)
+mcgs_table_human <- xtabs(Freq~Var1+Var2, data = mcgs_table_human)
+chi_species_human <- chisq.test(mcgs_table_human) 
+
+### View summary
+chi_species_human
+
+
+### Run analysis chimpanzee
+mcgs_patterns_chimp <- mcgs_patterns %>% subset(species == "chimpanzee")
+mcgs_table_chimp <- table(mcgs_patterns_chimp$hemi, mcgs_patterns_chimp$mcgs_pattern)
+mcgs_table_chimp <- as.data.frame(mcgs_table_chimp)
+mcgs_table_chimp <- xtabs(Freq~Var1+Var2, data = mcgs_table_chimp)
+chi_species_chimpanzee <- chisq.test(mcgs_table_chimp)
+
+### View summary
+chi_species_chimpanzee
+```
+
+## Plot (Figure 8c)
+```{r}
+# Figure 8c
+# Load data
+mcgs_incidence_table_figure <- read.csv("mcgs_figure.csv")
+
+# Manipulations for plot
+mcgs_incidence_table_figure$sulcus <- factor(mcgs_incidence_table_figure$sulcus, 
+                                  levels = c("single_cih", "single", "Y", "trident") 
+                                  )
+mcgs_incidence_table_figure$hemi <- gsub("lh", "Left Hemisphere", mcgs_incidence_table_figure$hemi)
+mcgs_incidence_table_figure$hemi <- gsub("rh", "Right Hemisphere", mcgs_incidence_table_figure$hemi)
+
+mcgs_incidence_table_figure$sulcus <- gsub("single", "Type I", mcgs_incidence_table_figure$sulcus)
+mcgs_incidence_table_figure$sulcus <- gsub("Y", "Type II", mcgs_incidence_table_figure$sulcus)
+mcgs_incidence_table_figure$sulcus <- gsub("Type I_cih", "Type III", mcgs_incidence_table_figure$sulcus)
+mcgs_incidence_table_figure$sulcus <- gsub("trident", "Type IV", mcgs_incidence_table_figure$sulcus)
+
+# Set palette for plot
+mypalette3 <- brewer.pal(4, "Blues")
+
+# Make plot
+mcgs_incidence_table_figure.plot <- mcgs_incidence_table_figure %>% ggplot(aes(x = species, 
+                          y = pct, 
+                          fill = sulcus)) + 
+  geom_col(color = "black") + 
+  facet_wrap(~ hemi, 
+             nrow = 2, 
+             strip.position = "top") + 
+  scale_fill_manual(breaks = c("Type I", "Type II", "Type III", "Type IV"),
+                     values = mypalette3
+                     ) +
+  scale_y_continuous(name = "% of hemispheres", seq(0,100,20), limits = c(0,100)) +
+  plot_theme2 +
+  guides(fill = "none")
+
+# View plot
+mcgs_incidence_table_figure.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_8c_mcgs_incidence.png",
+#                  plot = mcgs_incidence_table_figure.plot,
+#                  device = "png",
+#                  width = 3,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Analysis 6: Comparing morphology of MCGS components between chimpanzees from humans? 
+1. We repeated the pmc morphological analysis, exchanging the factor of PMC sulci for the mcgs branch (main branch, dorsal branch, side branch). 
+
+## Statistics: Depth
+```{r}
+# Analysis 6.1
+
+# Select necessary columns and sulci with incidence
+mcgs_species_morphology.depth <- mcgs_species_morphology %>% 
+  select(c("sub", "species", "hemi", "label", "sulcal_depth_mm"))
+
+# Normalize depth
+mcgs_species_morphology.depth <- merge(mcgs_species_morphology.depth, insula_depth, by = c("sub", "hemi", "species"))
+mcgs_species_morphology.depth <- mcgs_species_morphology.depth %>% mutate(normalized_depth = sulcal_depth_mm/insula_depth)
+
+# Remove NA values
+mcgs_species_morphology.depth <- mcgs_species_morphology.depth %>% drop_na()
+
+# Run analysis
+model_mcgs_depth_species <- lme(normalized_depth ~ hemi*label*species, random = (~1|sub/hemi/label), data = mcgs_species_morphology.depth)
+
+# View summary
+model_mcgs_depth_species.aov <- anova(model_mcgs_depth_species)
+model_mcgs_depth_species.aov
+
+# Effect size
+effectsize::eta_squared(model_mcgs_depth_species.aov)
+
+# Digest main effects and interactions
+model_mcgs_depth_species.m <- emmeans::emmeans(model_mcgs_depth_species, ~ hemi)
+emmeans::contrast(model_mcgs_depth_species.m, method='pairwise')
+
+model_mcgs_depth_species.m1 <- emmeans::emmeans(model_mcgs_depth_species, ~ label)
+emmeans::contrast(model_mcgs_depth_species.m1, method='pairwise')
+
+model_mcgs_depth_species.m2 <- emmeans::emmeans(model_mcgs_depth_species, ~ species)
+emmeans::contrast(model_mcgs_depth_species.m2, method='pairwise')
+
+model_mcgs_depth_species.i1 <- emmeans::emmeans(model_mcgs_depth_species, ~ species | label)
+emmeans::contrast(model_mcgs_depth_species.i1, method='pairwise')
+
+model_mcgs_depth_species.i2 <- emmeans::emmeans(model_mcgs_depth_species, ~ species | label | hemi)
+emmeans::contrast(model_mcgs_depth_species.i2, method='pairwise')
+```
+
+## Plots: Depth (Figure 9a)
+```{r}
+# Figure 9a
+
+# Manipulation for plot
+mcgs_species_morphology.depth$hemi <- gsub("lh", "Left Hemisphere", mcgs_species_morphology.depth$hemi)
+mcgs_species_morphology.depth$hemi <- gsub("rh", "Right Hemisphere", mcgs_species_morphology.depth$hemi)
+
+mcgs_species_morphology.depth$label <- gsub("mcgs_db", "db", mcgs_species_morphology.depth$label)
+mcgs_species_morphology.depth$label <- gsub("mcgs_mb", "mb", mcgs_species_morphology.depth$label)
+mcgs_species_morphology.depth$label <- gsub("mcgs_sb", "sb", mcgs_species_morphology.depth$label)
+
+mcgs_species_morphology.depth$label <- factor(mcgs_species_morphology.depth$label, 
+                                              levels = c("mb", "db", "sb")
+                                              )
+
+# Make plot
+mcgs_species_morphology.depth.plot <- mcgs_species_morphology.depth %>% 
+  ggplot(aes(x = label, y = normalized_depth*100, alpha = species, fill = label)) + 
+  
+  geom_split_violin(width = 1) + 
+  
+  geom_boxplot(
+               position = position_dodge(width =.14),
+               outlier.size = 0, outlier.alpha = 0, 
+               width = .13) +
+  
+  scale_y_continuous(name = "sulcal depth (% max)") +
+  
+  facet_wrap(~ hemi, nrow = 2) + 
+  
+  scale_fill_manual(breaks = c("mb", "db", "sb"),
+                    values = c("cyan", "#33FF00", "#8856a7"),
+                    ) +
+  
+  scale_alpha_manual(breaks = c("chimpanzee", "human"),
+                     values = c(0.3, 0.65)) +
+  
+  guides(fill = "none", alpha = "none") +
+  
+  scale_y_continuous(n.breaks  = 5, limits = c(0, 100)) +
+
+  plot_theme2
+
+# View plot
+mcgs_species_morphology.depth.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_9a_mcgs_species_morphology_depth.png",
+#                  plot = mcgs_species_morphology.depth.plot,
+#                  device = "png",
+#                  width = 8,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+
+```
+
+## Statistics: Surface area
+```{r}
+# Analysis 6.2: Surface area
+
+# Select necessary columns and sulci with incidence > 50%
+mcgs_species_morphology.SA <- mcgs_species_morphology %>% 
+  select(c("sub", "species", "hemi", "label", "total_surface_area_.mm.2."))
+
+# Normalize surface area
+mcgs_species_morphology.SA <- merge(mcgs_species_morphology.SA, lobe_morphology, by = c("sub", "hemi", "species"))
+mcgs_species_morphology.SA <- mcgs_species_morphology.SA %>% mutate(normalized_SA = total_surface_area_.mm.2./cortex_sa)
+
+# Remove NA values
+mcgs_species_morphology.SA <- mcgs_species_morphology.SA %>% drop_na()
+
+# Run analysis
+model_mcgs_SA_species <- lme(normalized_SA ~ hemi*label*species, random = (~1|sub/hemi/label), data = mcgs_species_morphology.SA)
+
+# View summary
+model_mcgs_SA_species.aov <- anova(model_mcgs_SA_species)
+model_mcgs_SA_species.aov
+
+# Effect size
+effectsize::eta_squared(model_mcgs_SA_species.aov)
+
+# Digest main effects and interactions
+model_mcgs_SA_species.m1 <- emmeans::emmeans(model_mcgs_SA_species, ~ label)
+emmeans::contrast(model_mcgs_SA_species.m1, method='pairwise')
+
+model_mcgs_SA_species.m2 <- emmeans::emmeans(model_mcgs_SA_species, ~ species)
+emmeans::contrast(model_mcgs_SA_species.m2, method='pairwise')
+```
+
+## Plots: Surface area (Figure 9b)
+```{r}
+# Figure 9b
+
+# Manipulation for plot
+mcgs_species_morphology.SA$hemi <- gsub("lh", "Left Hemisphere", mcgs_species_morphology.SA$hemi)
+mcgs_species_morphology.SA$hemi <- gsub("rh", "Right Hemisphere", mcgs_species_morphology.SA$hemi)
+
+mcgs_species_morphology.SA$label <- gsub("mcgs_db", "db", mcgs_species_morphology.SA$label)
+mcgs_species_morphology.SA$label <- gsub("mcgs_mb", "mb", mcgs_species_morphology.SA$label)
+mcgs_species_morphology.SA$label <- gsub("mcgs_sb", "sb", mcgs_species_morphology.SA$label)
+
+mcgs_species_morphology.SA$label <- factor(mcgs_species_morphology.SA$label, 
+                                              levels = c("mb", "db", "sb")
+                                              )
+
+# Make plot
+mcgs_species_morphology.SA.plot <- mcgs_species_morphology.SA %>% 
+  ggplot(aes(x = label, y = normalized_SA*100, alpha = species, fill = label)) + 
+  
+  geom_split_violin(width = 1) + 
+  
+  geom_boxplot(
+               position = position_dodge(width =.14),
+               outlier.size = 0, outlier.alpha = 0, 
+               width = .13) +
+  
+  scale_y_continuous(name = "surface area (% cortex)") +
+  
+  facet_wrap(~ hemi, nrow = 2) + 
+  
+  scale_fill_manual(breaks = c("mb", "db", "sb"),
+                    values = c("cyan", "#33FF00", "#8856a7"),
+                    ) +
+  
+  scale_alpha_manual(breaks = c("chimpanzee", "human"),
+                     values = c(0.3, 0.65)) +
+  
+  guides(fill = "none", alpha = "none") +
+  
+  plot_theme2
+
+# View plot
+mcgs_species_morphology.SA.plot
+
+# Save plot
+# ggplot2::ggsave(filename = "Figure_9b_mcgs_species_morphology_surface_area.png",
+#                  plot = mcgs_species_morphology.SA.plot,
+#                  device = "png",
+#                  width = 8,
+#                  height = 5,
+#                  units = "in",
+#                  dpi = "retina")
+```
+
+
+# Side analyses not included 
+
+## pos-cas analysis
+```{r}
+# Load dataframe
+pos_cas <- read.csv("pos_cas.csv")
+
+## Human
+pos_cas_human <- pos_cas %>% subset(species == "human")
+
+### View data
+pos_cas_type.figure <- pos_cas_human %>% 
+  ggplot(aes(x = as.factor(intersection_inflated))) + 
+  geom_bar(aes(fill = as.factor(isms_pres)), color = "black", position = "dodge") 
+pos_cas_type.figure
+
+### Analysis
+isms_pres_pos <- glm(isms_pres ~ as.factor(intersection_inflated)*hemi, 
+                   data=pos_cas_human,
+           family=binomial())
+Anova(isms_pres_pos, test="LR", type="III")
+
+## Chimpanzee
+pos_cas_chimp <- pos_cas %>% subset(species == "chimpanzee")
+
+### View data 1
+pos_cas_type.figure2 <- pos_cas_chimp %>% 
+  ggplot(aes(x = as.factor(intersection_inflated))) + 
+  geom_bar(aes(fill = as.factor(isms_pres)), color = "black", position = "dodge") 
+pos_cas_type.figure2
+
+### View data 2
+pos_cas_type.figure3 <- pos_cas %>% 
+  subset(species == "chimpanzee") %>%
+  ggplot(aes(x = as.factor(intersection_pial))) + 
+  geom_bar(aes(fill = as.factor(isms_pres)), color = "black", position = "dodge") 
+  #scale_y_continuous(name = "% of hemispheres", seq(0,100,20), limits = c(0,100)) 
+pos_cas_type.figure3
+
+### Analysis
+isms_pres_pos.ch.pial <- glm(isms_pres ~ as.factor(intersection_pial)*hemi, 
+                   data=pos_cas_chimp,
+           family=binomial())
+Anova(isms_pres_pos.ch.pial, test="LR", type="III")
+```
+

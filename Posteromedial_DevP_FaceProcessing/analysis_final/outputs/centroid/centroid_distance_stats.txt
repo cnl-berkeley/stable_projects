@@ -1,0 +1,120 @@
+1. FACE-PATCH GEOMETRY (94 hemispheres per threshold)
+
+ threshold_pct n_hemispheres components_median components_range top_component_mass_fraction_median
+           2.5            94                 3              1-8                              0.728
+           5.0            94                 4             1-10                              0.695
+          10.0            94                 5             1-13                              0.777
+ top_component_pct_of_PMC_median
+                            1.75
+                            3.38
+                            7.56
+
+2. MEAN DISTANCE (mm), top 5% threshold
+
+ threshold_pct hemi   sulcus  n mean_mm sd_mm median_mm
+             5   lh     mcgs 47    53.6  13.2      51.6
+             5   lh      pos 47    36.6  12.3      35.0
+             5   lh prculs-d 47    29.2  13.5      27.8
+             5   lh  prcus-a 47    32.1  12.2      30.5
+             5   lh  prcus-i 47    22.1   9.4      21.3
+             5   lh  prcus-p 47    16.2  10.7      13.4
+             5   rh     mcgs 47    54.5  12.7      56.8
+             5   rh      pos 47    37.4  15.1      34.9
+             5   rh prculs-d 47    24.3  13.1      25.5
+             5   rh  prcus-a 47    36.0  11.5      36.9
+             5   rh  prcus-i 47    26.2  11.1      27.1
+             5   rh  prcus-p 47    17.1   8.1      16.7
+
+3. PRECUNEAL GRADIENT, top 5%: lme(distance ~ sulcus * hemi * group, random = ~1 | subject)
+
+                  numDF denDF  F-value p-value
+(Intercept)           1   225 863.2752  <.0001
+sulcus                2   225  78.9021  <.0001
+hemi                  1   225   6.8361  0.0095
+group                 1    45   0.0340  0.8546
+sulcus:hemi           2   225   0.8515  0.4281
+sulcus:group          2   225   1.9112  0.1503
+hemi:group            1   225   3.8419  0.0512
+sulcus:hemi:group     2   225   2.6284  0.0744
+
+Linear contrast across prcus-p -> prcus-i -> prcus-a, pooled over hemispheres and groups
+(coefficients -1, 0, 1: the prcus-a minus prcus-p difference)
+ contrast  estimate   SE  df lower.CL upper.CL t.ratio p.value
+ linear       17.27 1.39 225    14.52    20.02  12.391  <.0001
+ quadratic     2.33 2.41 225    -2.43     7.08   0.963  0.3364
+
+Results are averaged over the levels of: hemi, group 
+Degrees-of-freedom method: containment 
+Confidence level used: 0.95 
+
+Pairwise steps within hemisphere, Holm-adjusted
+hemi = lh:
+ contrast                estimate       SE  df  lower.CL   upper.CL t.ratio p.value
+ (prcus-p) - (prcus-i)  -5.742704 1.970973 225 -10.49672  -0.988693  -2.914  0.0039
+ (prcus-p) - (prcus-a) -15.538453 1.970973 225 -20.29246 -10.784442  -7.884  <.0001
+ (prcus-i) - (prcus-a)  -9.795749 1.970973 225 -14.54976  -5.041738  -4.970  <.0001
+
+hemi = rh:
+ contrast                estimate       SE  df  lower.CL   upper.CL t.ratio p.value
+ (prcus-p) - (prcus-i)  -9.200616 1.970973 225 -13.95463  -4.446605  -4.668  <.0001
+ (prcus-p) - (prcus-a) -18.999547 1.970973 225 -23.75356 -14.245536  -9.640  <.0001
+ (prcus-i) - (prcus-a)  -9.798931 1.970973 225 -14.55294  -5.044920  -4.972  <.0001
+
+Results are averaged over the levels of: group 
+Degrees-of-freedom method: containment 
+Confidence level used: 0.95 
+Conf-level adjustment: bonferroni method for 3 estimates 
+P value adjustment: holm method for 3 tests 
+
+Hemispheres in which the prcus-p is closer to the patch than the prcus-a:
+ hemi closer  n
+   lh     36 47
+   rh     41 47
+
+Group effects at each threshold (same model; sequential ANOVA terms)
+ threshold_pct group_F group_df group_p sulcus_group_F sulcus_group_df sulcus_group_p linear_trend_mm
+           2.5  0.0402     1,45  0.8420         1.7528           2,225         0.1757         16.9800
+           5.0  0.0340     1,45  0.8546         1.9112           2,225         0.1503         17.2690
+          10.0  0.2321     1,45  0.6323         1.8237           2,225         0.1638         18.4724
+
+4a. A-P POSITION: prculs-d minus prcus-p (paired t; negative = prculs-d posterior)
+
+ hemi  n   prcus_p  prculs_d         t df            p prculsd_posterior
+   lh 47 0.3238446 0.1370926 -14.64572 46 6.143786e-19             46/47
+   rh 47 0.3650240 0.1461969 -17.80273 46 2.908224e-22             47/47
+
+4b. DISTANCE: prculs-d minus prcus-p (paired t; positive = prculs-d farther), both groups
+
+ threshold_pct hemi  n prcus_p_mm prculs_d_mm diff_mm ci_low ci_high     t df         p farther_in group
+           2.5   lh 47      16.67       29.99  13.330  8.849   17.80 5.992 46 2.981e-07      41/47  both
+           2.5   rh 47      18.53       26.12   7.582  3.821   11.34 4.058 46 1.901e-04      36/47  both
+           5.0   lh 47      16.23       29.19  12.960  8.357   17.57 5.666 46 9.147e-07      40/47  both
+           5.0   rh 47      17.10       24.28   7.177  3.245   11.11 3.674 46 6.210e-04      35/47  both
+          10.0   lh 47      13.93       29.90  15.970 11.600   20.34 7.351 46 2.721e-09      41/47  both
+          10.0   rh 47      16.11       24.11   8.001  3.627   12.38 3.682 46 6.063e-04      33/47  both
+
+4c. Within each group
+
+ threshold_pct hemi    group  n prcus_p_mm prculs_d_mm diff_mm ci_low ci_high     t df         p farther_in
+           2.5   lh Controls 25      13.77       27.89  14.120 7.4470   20.78 4.369 24 2.068e-04      21/25
+           2.5   lh      DPs 22      19.96       32.39  12.430 6.0120   18.84 4.028 21 6.070e-04      20/22
+           2.5   rh Controls 25      19.99       28.12   8.130 2.8030   13.46 3.150 24 4.333e-03      19/25
+           2.5   rh      DPs 22      16.88       23.84   6.960 1.2060   12.71 2.516 21 2.009e-02      17/22
+           5.0   lh Controls 25      13.14       27.00  13.870 6.9800   20.76 4.155 24 3.556e-04      20/25
+           5.0   lh      DPs 22      19.74       31.67  11.930 5.3780   18.49 3.786 21 1.081e-03      20/22
+           5.0   rh Controls 25      19.22       25.84   6.615 0.5154   12.72 2.238 24 3.474e-02      17/25
+           5.0   rh      DPs 22      14.70       22.51   7.816 2.5230   13.11 3.071 21 5.794e-03      18/22
+          10.0   lh Controls 25      12.01       28.38  16.370 9.5520   23.19 4.954 24 4.669e-05      21/25
+          10.0   lh      DPs 22      16.11       31.62  15.510 9.6710   21.35 5.524 21 1.757e-05      20/22
+          10.0   rh Controls 25      17.18       26.41   9.225 2.8980   15.55 3.009 24 6.069e-03      18/25
+          10.0   rh      DPs 22      14.89       21.50   6.611 0.1270   13.09 2.120 21 4.605e-02      15/22
+
+4d. Group difference in (prculs-d - prcus-p), Welch's t
+
+ threshold_pct hemi welch_t welch_df welch_p
+           2.5   lh  0.3778    44.98  0.7074
+           2.5   rh  0.3093    44.18  0.7585
+           5.0   lh  0.4220    45.00  0.6750
+           5.0   rh -0.3078    44.70  0.7597
+          10.0   lh  0.1990    44.60  0.8432
+          10.0   rh  0.5979    44.69  0.5529

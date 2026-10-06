@@ -1,0 +1,97 @@
+1. DEMOGRAPHICS
+
+All participants, Datasets 1 and 2:
+   n n_female pct_female age_mean age_sd age_min age_max
+1 82       52       63.4    36.91  11.09      20      62
+
+By dataset and group:
+  dataset    group  n n_female pct_female age_mean age_sd age_min age_max
+1       1 Controls 25       15       60.0    42.32  10.12      21      55
+2       1      DPs 22       15       68.2    41.91  12.00      25      62
+3       2 Controls 18       11       61.1    28.94   5.70      23      43
+4       2      DPs 17       11       64.7    30.94   7.54      20      46
+
+Combined sample by group:
+     group  n n_female pct_female age_mean age_sd age_min age_max
+1 Controls 43       26       60.5    36.72  10.78      21      55
+2      DPs 39       26       66.7    37.13  11.57      20      62
+
+2. GROUP MATCHING (combined sample, 43 NTs vs 39 DPs)
+
+
+	Welch Two Sample t-test
+
+data:  age by group
+t = -0.16444, df = 77.785, p-value = 0.8698
+alternative hypothesis: true difference in means between group Controls and group DPs is not equal to 0
+95 percent confidence interval:
+ -5.338329  4.523780
+sample estimates:
+mean in group Controls      mean in group DPs 
+              36.72093               37.12821 
+
+
+	Wilcoxon rank sum test with continuity correction
+
+data:  age by group
+W = 840, p-value = 0.9926
+alternative hypothesis: true location shift is not equal to 0
+
+   
+    Controls DPs
+  F       26  26
+  M       17  13
+
+	Pearson's Chi-squared test with Yates' continuity correction
+
+data:  sex_tab
+X-squared = 0.1244, df = 1, p-value = 0.7243
+
+
+	Fisher's Exact Test for Count Data
+
+data:  sex_tab
+p-value = 0.6485
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.2797249 2.0704202
+sample estimates:
+odds ratio 
+ 0.7672197 
+
+
+3. CFMT (participants with a score)
+
+     group  n mean  sd min max
+1 Controls 42 61.6 6.3  50  72
+2      DPs 39 37.5 4.9  26  45
+
+LASSO sample (NTs with a CFMT score):
+   n n_female pct_female age_mean age_sd age_min age_max
+1 42       26       61.9    36.55  10.85      21      55
+
+4. LOGISTIC REGRESSION: presence ~ age + sex, per variably present sulcus and hemisphere
+
+     sulcus hemi term estimate     se       z      p  n n_present
+1    icgs-p   lh  age   0.0317 0.0208  1.5247 0.1273 82        39
+2    icgs-p   lh sexM   0.3219 0.4678  0.6880 0.4914 82        39
+3    icgs-p   rh  age  -0.0142 0.0205 -0.6950 0.4871 82        43
+4    icgs-p   rh sexM   0.7302 0.4740  1.5406 0.1234 82        43
+5  prculs-v   lh  age   0.0195 0.0208  0.9384 0.3480 82        31
+6  prculs-v   lh sexM   0.1132 0.4749  0.2384 0.8116 82        31
+7  prculs-v   rh  age  -0.0191 0.0207 -0.9239 0.3555 82        35
+8  prculs-v   rh sexM  -0.1427 0.4692 -0.3042 0.7610 82        35
+9   sspls-d   lh  age   0.0093 0.0207  0.4471 0.6548 82        34
+10  sspls-d   lh sexM   0.7551 0.4693  1.6090 0.1076 82        34
+11  sspls-d   rh  age  -0.0068 0.0202 -0.3362 0.7368 82        37
+12  sspls-d   rh sexM   0.1104 0.4621  0.2388 0.8112 82        37
+13  sspls-v   lh  age  -0.0104 0.0259 -0.4021 0.6876 82        66
+14  sspls-v   lh sexM   1.1199 0.6908  1.6210 0.1050 82        66
+15  sspls-v   rh  age  -0.0136 0.0203 -0.6718 0.5017 82        45
+16  sspls-v   rh sexM  -0.0748 0.4629 -0.1615 0.8717 82        45
+
+Minimum p, age: 0.1273   Minimum p, sex: 0.105
+
+5. HCP PARTICIPANTS (Dataset 3)
+
+data/hcp_demographics.csv not found; HCP demographics not computed.

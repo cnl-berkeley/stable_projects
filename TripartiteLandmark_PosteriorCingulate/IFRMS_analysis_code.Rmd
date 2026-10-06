@@ -47,8 +47,7 @@ library(psych)
 library(RVAideMemoire)
 library(car)
 library(ggExtra)
-library(lsr)
-library(sjstats)
+library(afex)
 library(emmeans)
 library(rstatix)
 ```
@@ -71,7 +70,7 @@ options(scipen=999) #turn off
 #### Discovery sample
 ```{r, warning = FALSE}
 # Discovery dataset
-chi_discovery <- read.csv("~/Desktop/RMD_csvs/PCC_chisqrd_discovery.csv")
+chi_discovery <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/PCC_chisqrd_discovery.csv")
 chi_discovery_tertiary <- chi_discovery %>% subset(sulcus %in% c("ifrms", "sspls", "icgs.p"))
 chi_discovery_tertiary.ct <- xtabs(hemi~presence+sulcus, data = chi_discovery_tertiary)
 
@@ -128,10 +127,10 @@ HCP_count_disc.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(size = 12),
         plot.caption = element_text(size = 12, hjust = 1),
-        axis.title.x = element_text(size=20, face = "bold", vjust = .70),
-        axis.title.y = element_text(size=18, face = "bold"), # size = 20 for production figure
-        axis.text.x = element_text(size = 9, face = "bold", vjust = .70), # size = 20 for production figure
-        axis.text.y = element_text(size = 15, face = "bold"), # size = 20 for production figure
+        axis.title.x = element_text(size=18, face = "bold", vjust = .70), # was 20
+        axis.title.y = element_text(size=18, face = "bold"), # was 20
+        axis.text.x = element_text(size = 10, face = "bold", vjust = .70), # was 20
+        axis.text.y = element_text(size = 10, face = "bold"), # was 20
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         legend.position="bottom", 
@@ -139,11 +138,12 @@ HCP_count_disc.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
         axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) + 
   guides() 
 HCP_count_disc.plot
+
 # ggplot2::ggsave(filename = "sulc_count_disc.png",
 #                 plot = HCP_count_disc.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -167,10 +167,10 @@ HCP_count_rep.plot <- ggplot(HCP_count_rep, aes(x = Sulcus)) +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(size = 12),
         plot.caption = element_text(size = 12, hjust = 1),
-        axis.title.x = element_text(size=20, face = "bold", vjust = .70),
+        axis.title.x = element_text(size=18, face = "bold", vjust = .70),  # was 20
         axis.title.y = element_text(size=18, face = "bold"), # was 20
-        axis.text.x = element_text(size = 9, face = "bold", vjust = .70), # was 20
-        axis.text.y = element_text(size = 15, face = "bold"), # was 20-
+        axis.text.x = element_text(size = 10, face = "bold", vjust = .70), # was 20
+        axis.text.y = element_text(size = 10, face = "bold"), # was 20
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         legend.position="bottom", 
@@ -183,7 +183,7 @@ HCP_count_rep.plot
 #                 plot = HCP_count_rep.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 ```
@@ -196,7 +196,7 @@ HCP_count_rep.plot
 #### Discovery Sample
 ```{r, warning = FALSE}
 # Dataset - all
-HCP_all_sulci_depth <- read.csv("~/Desktop/RMD_csvs/HCP_all_sulci_depth.csv")
+HCP_all_sulci_depth <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_all_sulci_depth.csv")
 
 # Filter for PCC sulci
 HCP_tot_depth <- HCP_all_sulci_depth %>% subset(label 
@@ -208,7 +208,7 @@ HCP_disc_depth_PCC <- subset(HCP_tot_depth, subset = HCP_tot_depth$dataset == "H
 # ANOVA
 discovery_depth2.aov <- aov(sulcal_depth_mm ~ hemi*label, data = HCP_disc_depth_PCC)
 summary(discovery_depth2.aov)
-eta_sq(discovery_depth2.aov)
+rstatix::anova_summary(discovery_depth2.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests 
 disc_depth.m1 <- emmeans::emmeans(discovery_depth2.aov,'label')
@@ -232,7 +232,8 @@ HCP_rep_depth_PCC <- subset(HCP_tot_depth, subset = HCP_tot_depth$dataset == "HC
 # ANOVA
 depth_replication2.aov <- aov(sulcal_depth_mm ~ hemi*label, data = HCP_rep_depth_PCC)
 summary(depth_replication2.aov)
-eta_sq(depth_replication2.aov)
+rstatix::anova_summary(depth_replication2.aov, effect.size = "ges") #Eta-squared
+
 
 # Post hoc tests 
 rep_depth.m1 <- emmeans::emmeans(depth_replication2.aov,'hemi')
@@ -306,7 +307,7 @@ PCC_depth_disc.plot <- ggplot() +
                   aes(label, sulcal_depth_mm, ymin=sulcal_depth_mm-sd, ymax=sulcal_depth_mm+sd, fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
   xlim("pos","spls", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "spls LH", "spls RH",
@@ -330,7 +331,7 @@ PCC_depth_disc.plot <- ggplot() +
                "#238b45", "#74c476", #spls
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p
   labs(x = "PCC sulci",
        y = depth_y) + 
@@ -348,13 +349,13 @@ PCC_depth_disc.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,26,2), limits = c(0,26))
 PCC_depth_disc.plot
 
-# ggplot2::ggsave(filename = "PCC_depth_disc_plot.png",
-#                 plot = PCC_depth_disc.plot,
-#                 device = "png",
-#                 width = 10,
-#                 height = 5, 
-#                 units = "in",
-#                 dpi = "retina")
+ # ggplot2::ggsave(filename = "~/Desktop/PCC_depth_disc_plot.png",
+ #                 plot = PCC_depth_disc.plot,
+ #                 device = "png",
+ #                 width = 10,
+ #                 height = 5, 
+ #                 units = "in",
+ #                 dpi = "retina")
 
 
 # Replication (Figure 2e)
@@ -414,7 +415,7 @@ PCC_depth_rep.plot <- ggplot() +
                   aes(label, sulcal_depth_mm, ymin=sulcal_depth_mm-sd, ymax=sulcal_depth_mm+sd, fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
   xlim("pos","spls", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "spls LH", "spls RH",
@@ -438,7 +439,7 @@ PCC_depth_rep.plot <- ggplot() +
                "#238b45", "#74c476", #spls
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p
   labs(x = "PCC sulci",
        y = depth_y) + 
@@ -456,13 +457,13 @@ PCC_depth_rep.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,26,2), limits = c(0,26))
 PCC_depth_rep.plot
 
-# ggplot2::ggsave(filename = "PCC_depth_disc_plot.png",
-#                 plot = PCC_depth_disc.plot,
-#                 device = "png",
-#                 width = 10,
-#                 height = 5, 
-#                 units = "in",
-#                 dpi = "retina")
+ # ggplot2::ggsave(filename = "~/Desktop/PCC_depth_rep_plot.png",
+ #                 plot = PCC_depth_rep.plot,
+ #                 device = "png",
+ #                 width = 10,
+ #                 height = 5,
+ #                 units = "in",
+ #                 dpi = "retina")
 ```
 
 ### Q3: Does the ratio between cortical thickness and myelination (C/M) differ between the *ifrms* and other tertiary or primary sulci?
@@ -474,7 +475,10 @@ PCC_depth_rep.plot
 #### Discovery Sample
 ```{r, warning = FALSE}
 # Dataset - all
-HCP_tot_analysis <- read.csv("~/Desktop/RMD_csvs/HCP_PCC_ctmy_analysis.csv")
+HCP_tot_analysis <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_PCC_ctmy_analysis.csv")
+HCP_tot_analysis.ifrms.rh <- HCP_tot_analysis %>% subset(hemi == "rh" & label == "ifrms")
+
+summary(lm(myelin ~ sulcal_depth_max * hemi, HCP_tot_analysis))
 
 # Discovery dataset
 discovery_PCC_analysis <- HCP_tot_analysis %>% subset(dataset=="HCP_discovery")
@@ -482,7 +486,7 @@ discovery_PCC_analysis <- HCP_tot_analysis %>% subset(dataset=="HCP_discovery")
 # ANOVA
 discovery_ratio_loc.aov <- aov(ratio ~ sulc_type * ant_post * hemi, data = discovery_PCC_analysis)
 summary(discovery_ratio_loc.aov) #p-values
-eta_sq(discovery_ratio_loc.aov) #Eta-squared
+rstatix::anova_summary(discovery_ratio_loc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_ratio.m1 <- emmeans::emmeans(discovery_ratio_loc.aov, ~ sulc_type)
@@ -503,7 +507,7 @@ replication_PCC_analysis <- HCP_tot_analysis %>% subset(dataset=="HCP_replicatio
 # ANOVA
 replication_ratio_loc.aov <- aov(ratio ~ sulc_type * ant_post * hemi, data = replication_PCC_analysis)
 summary(replication_ratio_loc.aov) #p-values
-eta_sq(replication_ratio_loc.aov) #Eta-squared
+rstatix::anova_summary(replication_ratio_loc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_ratio.m1 <- emmeans::emmeans(replication_ratio_loc.aov, ~ sulc_type)
@@ -525,7 +529,7 @@ The effects observed in the discovery sample were confirmed in the replication s
 # ANOVA - cortical thickness
 discovery_ct_alone.aov <- aov(cortical_thickness_mean ~ hemi*label, data = discovery_PCC_analysis)
 summary(discovery_ct_alone.aov) #p-values
-eta_sq(discovery_ct_alone.aov) #Eta-squared
+rstatix::anova_summary(discovery_ct_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
 disc_ct.m1 <- emmeans::emmeans(discovery_ct_alone.aov, ~ label)
@@ -534,7 +538,7 @@ emmeans::contrast(disc_ct.m1, method='pairwise')
 # ANOVA - myelination
 discovery_my_alone.aov <- aov(myelin ~ hemi*label, data = discovery_PCC_analysis)
 summary(discovery_my_alone.aov) #p-values
-eta_sq(discovery_my_alone.aov) #Eta-squared
+rstatix::anova_summary(discovery_my_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_my.m1 <- emmeans::emmeans(discovery_my_alone.aov, ~ label)
@@ -554,7 +558,7 @@ Running separate ANOVAs for cortical thickness and myelination confirmed the C/M
 # ANOVA - cortical thickness
 replication_ct_alone.aov <- aov(cortical_thickness_mean ~ hemi*label, data = replication_PCC_analysis)
 summary(replication_ct_alone.aov) #p-values
-eta_sq(replication_ct_alone.aov) #Eta-squared
+rstatix::anova_summary(replication_ct_alone.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
 rep_ct.m1 <- emmeans::emmeans(replication_ct_alone.aov, ~ label)
@@ -563,18 +567,56 @@ emmeans::contrast(rep_ct.m1, method='pairwise')
 # ANOVA - myelination
 replication_my_alone.aov <- aov(myelin ~ hemi*label, data = replication_PCC_analysis)
 summary(replication_my_alone.aov) #p-values
-eta_sq(replication_my_alone.aov) #Eta-squared
- 
+rstatix::anova_summary(replication_my_alone.aov, effect.size = "ges") #Eta-squared
+
 # Post hoc tests
 rep_my.m1 <- emmeans::emmeans(replication_my_alone.aov, ~ label)
 emmeans::contrast(rep_my.m1, method='pairwise')
 
 rep_my.i1 <- emmeans::emmeans(replication_my_alone.aov, ~ hemi | label)
 emmeans::contrast(rep_my.i1, method='pairwise')
+
 ```
 The findings in the discovery sample are confirmed in the replication sample. 
 
-#### Figure 3b: C/M ratio of PCC sulci
+#### Correlations between the depth of the ifrms and C/M ratio, as well as cortical thickness and myelation
+```{r}
+# Discovery
+cor.d <- merge(discovery_PCC_analysis, HCP_disc_depth_PCC, by = c('sub', 'hemi', 'label', 'dataset'))
+
+test.d.ifrms.lh <- cor.d %>% subset(dataset == "HCP_discovery" & label == "ifrms" & hemi == "lh")
+test.d.ifrms.rh <- cor.d %>% subset(dataset == "HCP_discovery" & label == "ifrms" & hemi == "rh")
+
+## Correlations between ifrms sulcal depth ~ ratio & cortical thickness ~ myelination
+cor.test(x = test.d.ifrms.lh$sulcal_depth_mm, y = test.d.ifrms.lh$ratio) 
+cor.test(x = test.d.ifrms.lh$myelin, y = test.d.ifrms.lh$cortical_thickness_mean) 
+
+## Correlations between ifrms cortical thickness ~ myelination 
+cor.test(x = test.d.ifrms.rh$sulcal_depth_mm, y = test.d.ifrms.rh$ratio) 
+cor.test(x = test.d.ifrms.rh$myelin, y = test.d.ifrms.rh$cortical_thickness_mean) 
+
+# Replication
+cor.r <- merge(replication_PCC_analysis, HCP_rep_depth_PCC, by = c('sub', 'hemi', 'label', 'dataset'))
+
+## Correlations between ifrms sulcal depth ~ ratio 
+test.r.ifrms.lh <- cor.r %>% subset(dataset == "HCP_replication" & label == "ifrms" & hemi == "lh")
+test.r.ifrms.rh <- cor.r %>% subset(dataset == "HCP_replication" & label == "ifrms" & hemi == "rh")
+
+cor.test(x = test.r.ifrms.lh$sulcal_depth_mm, y = test.r.ifrms.lh$ratio) 
+cor.test(x = test.r.ifrms.rh$sulcal_depth_mm, y = test.r.ifrms.rh$ratio) 
+
+## Correlations between ifrms cortical thickness ~ myelination 
+cor.test(x = test.r.ifrms.lh$myelin, y = test.r.ifrms.lh$cortical_thickness_mean) 
+cor.test(x = test.r.ifrms.rh$myelin, y = test.r.ifrms.rh$cortical_thickness_mean)
+
+### FDR correction for multiple comparisons
+p.vales <- c(0.5015, 0.06028, 0.04378, 0.2393, 0.7098, 0.3353, 0.0003473, 0.06233)
+p.adjust(p = p.vales,
+  method = "fdr")
+```
+Only the correlation between depth and ratio in the right hemisphere of the replication sample remained significant. 
+
+#### Figure 4b: C/M ratio of PCC sulci
 ```{r, warning = FALSE}
 # Feature for plot
 HCP_tot_analysis <- HCP_tot_analysis %>% mutate(label_dataset = 
@@ -632,10 +674,10 @@ ctmy_lh.plot <- ggplot(HCP_tot_analysis_lh, aes(x = label_dataset, fill = label_
                               "MCGS d", "MCGS r", 
                               "ifrms d", "ifrms r"), 
                    labels = c(
-                              "disc", "repl",
-                              "disc", "repl", 
-                              "disc", "repl",
-                              "disc", "repl")) +
+                              "discovery", "replication",
+                               "discovery", "replication", 
+                               "discovery", "replication",
+                               "discovery", "replication")) +
   scale_fill_manual(breaks = c("spls d", "spls r", 
                                "sspls d", "sspls r", 
                                "MCGS d", "MCGS r", 
@@ -643,7 +685,7 @@ ctmy_lh.plot <- ggplot(HCP_tot_analysis_lh, aes(x = label_dataset, fill = label_
                     values = c( "#238b45", "#74c476", 
       "chartreuse4", "chartreuse", 
       "#2c7fb8", "#41b6c4",
-      "firebrick", "#ef3b2c")) +
+      "#cccccc", "#f7f7f7")) +
   scale_color_manual(breaks = c("spls d", "spls r", 
                                 "sspls d", "sspls r", 
                                 "MCGS d", "MCGS r", 
@@ -654,15 +696,15 @@ ctmy_lh.plot <- ggplot(HCP_tot_analysis_lh, aes(x = label_dataset, fill = label_
                        "#252525", "#636363")) +
   labs(x = "PCC sulci",
        y = ratio_axis) + 
-  guides(fill = F, color = F, alpha = F) +
+  guides(fill = "none", color = "none", alpha = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=18, face = "bold", vjust = .9),
           axis.title.y = element_text(size=18, face = "bold", vjust = .9), # was 20
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 11, face = "bold", vjust = .70), # was 20
-          axis.text.y = element_text(size = 11, face = "bold"), # was 20
+          axis.text.x = element_text(size = 12, face = "bold", vjust = .70), # was 16
+          axis.text.y = element_text(size = 12, face = "bold"), # was 20
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
           strip.text.x = element_text(size = 18, face = "bold"), # was 20
@@ -672,11 +714,11 @@ ctmy_lh.plot <- ggplot(HCP_tot_analysis_lh, aes(x = label_dataset, fill = label_
   facet_wrap( ~ label, strip.position = "bottom", scales = "free_x", ncol = 4)
 ctmy_lh.plot
 
-# ggplot2::ggsave(filename = "ctmy_lh_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/ctmy_lh_plot.png",
 #                  plot = ctmy_lh.plot,
 #                  device = "png",
 #                  width = 12,
-#                  height = 5, 
+#                  height = 5,
 #                  units = "in",
 #                  dpi = "retina")
 
@@ -717,10 +759,10 @@ ctmy_rh.plot <- ggplot(HCP_tot_analysis_rh, aes(x = label_dataset, fill = label_
                               "MCGS d", "MCGS r", 
                               "ifrms d", "ifrms r"), 
                    labels = c(
-                              "disc", "repl",
-                              "disc", "repl", 
-                              "disc", "repl",
-                              "disc", "repl")) +
+                              "discovery", "replication",
+                              "discovery", "replication", 
+                              "discovery", "replication",
+                              "discovery", "replication")) +
   scale_fill_manual(breaks = c("spls d", "spls r", 
                                "sspls d", "sspls r", 
                                "MCGS d", "MCGS r", 
@@ -728,7 +770,7 @@ ctmy_rh.plot <- ggplot(HCP_tot_analysis_rh, aes(x = label_dataset, fill = label_
                     values = c( "#238b45", "#74c476", 
       "chartreuse4", "chartreuse", 
       "#2c7fb8", "#41b6c4",
-      "firebrick", "#ef3b2c")) +
+      "#cccccc", "#f7f7f7")) +
   scale_color_manual(breaks = c("spls d", "spls r", 
                                 "sspls d", "sspls r", 
                                 "MCGS d", "MCGS r", 
@@ -739,29 +781,29 @@ ctmy_rh.plot <- ggplot(HCP_tot_analysis_rh, aes(x = label_dataset, fill = label_
                        "#252525", "#636363")) +
   labs(x = "PCC sulci",
        y = ratio_axis) + 
-  guides(fill = F, color = F, alpha = F) +
+  guides(fill = "none", color = "none", alpha = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=18, face = "bold", vjust = .9),
-          axis.title.y = element_text(size=18, face = "bold", vjust = .9), # size = 20 for production figure
+          axis.title.y = element_text(size=18, face = "bold", vjust = .9), # was 20
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 11, face = "bold", vjust = .70), # size = 15 for production figure
-          axis.text.y = element_text(size = 11, face = "bold"), # size = 20 for production figure
+          axis.text.x = element_text(size = 12, face = "bold", vjust = .70), # was 16
+          axis.text.y = element_text(size = 12, face = "bold"), # was 20
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
-          strip.text.x = element_text(size = 18, face = "bold"), # size = 20 for production figure
+          strip.text.x = element_text(size = 18, face = "bold"), # was 20
           strip.background = element_blank(),
           strip.placement = "outside",
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) +
   facet_wrap( ~ label, strip.position = "bottom", scales = "free_x", ncol = 4)
 ctmy_rh.plot
 
-# ggplot2::ggsave(filename = "ctmy_rh_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/ctmy_rh_plot.png",
 #                  plot = ctmy_rh.plot,
 #                  device = "png",
 #                  width = 12,
-#                  height = 5, 
+#                  height = 5,
 #                  units = "in",
 #                  dpi = "retina")
 ```
@@ -769,7 +811,7 @@ ctmy_rh.plot
 # Functional Analyses
 
 ### Q1: Does the overlap between PCC functional networks differ between the *ifrms* and the *spls*? 
-* 3-way (network x sulcal label x hemi) ANOVA to test for differences in overlap (DICE coefficient; see Methods)
+* 3-way (network x sulcal label x hemi) repeated measures ANOVA to test for differences in overlap (DICE coefficient; see Methods)
 * network: cognitive control (CCN; A,B,C), default mode (DMN; A,B,C)
 * sulcal label: *ifrms*, *spls* 
 * hemi: lh, rh
@@ -777,7 +819,8 @@ ctmy_rh.plot
 #### Discovery Sample
 ```{r, warning = FALSE}
 # Dataset - all
-networks_dice_ifrms_spls <- read.csv("~/Desktop/RMD_csvs/networks_dice_ifrms_spls.csv")
+networks_dice_ifrms_spls <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/networks_dice_ifrms_spls.csv")
+networks_dice_ifrms_spls$TRG_sub <- as.factor(networks_dice_ifrms_spls$TRG_sub)
 
 # Discovery dataset
 networks_ifrms_spls_discovery <- networks_dice_ifrms_spls %>% subset(dataset == "HCP_discovery")
@@ -787,20 +830,23 @@ six_networks_ifrms_spls_discovery <- networks_ifrms_spls_discovery %>%
   subset(network_name %in% c('ControlA', 'ControlB','ControlC', 'DefaultA','DefaultB', 'DefaultC')) 
 
 # ANOVA
-network2.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = six_networks_ifrms_spls_discovery)
-summary(network2.aov) #p-values
-eta_sq(network2.aov) #Eta-squared
+network_disc.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name + 
+                           Error(TRG_sub/(hemi*label_name*network_name)), 
+                         data = six_networks_ifrms_spls_discovery)
+
+summary(network_disc.rmaov) #p-values
+rstatix::anova_summary(network_disc.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
-network_aov.i1 <- emmeans::emmeans(network2.aov, ~ label_name | network_name)
+network_aov.i1 <- emmeans::emmeans(network_disc.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov.i1, method='pairwise')
 
-network_aov.i2 <- emmeans::emmeans(network2.aov, ~ hemi | label_name | network_name)
+network_aov.i2 <- emmeans::emmeans(network_disc.rmaov, ~ hemi | label_name | network_name)
 emmeans::contrast(network_aov.i2, method='pairwise')
 ```
 
 ##### Results for functional analyses Q1 (discovery)
-This approach demonstrated that the *ifrms* shows a unique connectivity profile compared to the *spls*. The 3-way ANOVA yielded a sulcus x network interaction (F(5, 840) = 118.32, p < 0.001, η2G = 0.29) and a sulcus x network x hemisphere interaction (F(5, 840) = 3.43, p = 0.004, η2G = 0.008). Post hoc analyses showed that the *ifrms* overlapped significantly more with CCN-b and CCN-c (p-values < 0.001, Tukey’s adjustment) than the *spls*. On the other hand, the *spls* overlapped significantly more with DMN-a and DMN-b (p-values < 0.001, Tukey’s adjustment) than the *ifrms*. Further post hoc tests revealed that the latter interaction was driven by i) the *ifrms* overlapping more with DMN-a in the left hemisphere than the right (p = 0.004, Tukey’s adjustment), ii) the *spls* overlapping more with the CCN-b in the right hemisphere than the left (p = 0.004, Tukey’s adjustment), and iii) the *spls* overlapping more with the DMN-b in the left hemisphere than the right (p < 0.001, Tukey’s adjustment). These results highlight that, compared to the more posterior *spls*, which showed larger overlap with the DMNs, the more anterior *ifrms* displayed a diverging profile: on average, it overlapped more with the CCNs - in particular, CCN-b. See Figure 6b and 6c in the main text or in the plot below 
+This approach demonstrated that the *ifrms* shows a unique connectivity profile compared to the *spls*. The 3-way ANOVA yielded a sulcus x network interaction (F(5, 840) = 118.32, p < 0.001, η2G = 0.29) and a sulcus x network x hemisphere interaction (F(5, 840) = 3.43, p = 0.004, η2G = 0.008). Post hoc analyses showed that the *ifrms* overlapped significantly more with CCN-b and CCN-c (p-values < 0.001, Tukey’s adjustment) than the *spls*. On the other hand, the *spls* overlapped significantly more with DMN-a and DMN-b (p-values < 0.001, Tukey’s adjustment) than the *ifrms*. Further post hoc tests revealed that the latter interaction was driven by i) the *ifrms* overlapping more with DMN-a in the left hemisphere than the right (p = 0.004, Tukey’s adjustment), ii) the *spls* overlapping more with the CCN-b in the right hemisphere than the left (p = 0.004, Tukey’s adjustment), and iii) the *spls* overlapping more with the DMN-b in the left hemisphere than the right (p < 0.001, Tukey’s adjustment). These results highlight that, compared to the more posterior *spls*, which showed larger overlap with the DMNs, the more anterior *ifrms* displayed a diverging profile: on average, it overlapped more with the CCNs - in particular, CCN-b. See Figure 6b and 6c in the main text or in the plot below.
 
 #### Replication Sample
 ```{r, warning = FALSE}
@@ -813,22 +859,25 @@ six_networks_ifrms_spls_replication <- networks_ifrms_spls_replication %>% subse
                                                               'DefaultA','DefaultB', 'DefaultC'))
 
 # ANOVA
-network2_rep.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = six_networks_ifrms_spls_replication)
-summary(network2_rep.aov) #p-values
-eta_sq(network2_rep.aov) #Eta-squared
+network_rep.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name + 
+                          + Error(TRG_sub/(hemi*label_name*network_name)), 
+                                  data = six_networks_ifrms_spls_replication)
+                        
+summary(network_rep.rmaov) #p-values
+rstatix::anova_summary(network_rep.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
-network_aov_rep.i1 <- emmeans::emmeans(network2_rep.aov, ~ label_name | network_name)
+network_aov_rep.i1 <- emmeans::emmeans(network_rep.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov_rep.i1, method='pairwise')
 
-network_aov_rep.i2 <- emmeans::emmeans(network2_rep.aov, ~ hemi | label_name | network_name)
+network_aov_rep.i2 <- emmeans::emmeans(network_rep.rmaov, ~ hemi | label_name | network_name)
 emmeans::contrast(network_aov_rep.i2, method='pairwise')
 ```
 
 ##### Results for functional analyses Q1 (replication)
 The results observed in the discovery sample were confirmed in the replication sample. Once more, there was a sulcus x network interaction (F(5, 792) = 71.13, p < 0.001, η2G = 0.19) and a sulcus x network x hemisphere interaction (F(5, 792) = 7.21, p = 0.003, η2G = 0.019). Post hoc analyses on the former effect completely replicated those in the discovery sample (p-values < 0.001, Tukey’s adjustment). Additional post hoc tests on the latter interaction confirmed the three findings observed in the discovery sample (p-values < 0.001, Tukey’s adjustment). However, in the replication sample, the *ifrms* also overlapped more with CCN-c in the right hemisphere than in the left (p = 0.001, Tukey’s adjustment). There was no hemispheric difference in CCN-c overlap observed in the discovery sample (p > 0.05, Tukey’s adjustment). See Supplementary Figure 6 in the supplementary material or in the plot below. 
 
-#### Figure 4b: Mean *ifrms* and *spls* connectivity fingerprints - discovery
+#### Figure 5b: Mean *ifrms* and *spls* connectivity fingerprints - discovery
 ```{r, warning = FALSE}
 # Necessary function to make radar plot
 coord_radar <- function (theta = "x", start = 0, direction = 1) 
@@ -994,104 +1043,144 @@ spls.dice.se.rh.u$hemi <- gsub("rh", "Right Hemisphere", spls.dice.se.rh.u$hemi)
 # Plot
 network_dice_discovery.plot <- ggplot() +  
   geom_polygon(data = ifrms.dice.se.lh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = ifrms.dice.se.lh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) +
   geom_polygon(data = df.dice.avg.lh, 
                aes(x = network_name, y = dice_coefficient, 
-                   fill = label_hemi, group = label_hemi, color = label_hemi), 
-               size = .9, alpha = .1) +
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi
+                   ), 
+               size = .9, alpha = .3) +
   geom_point(data = df.dice.avg.lh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) + 
   
   
   geom_polygon(data = ifrms.dice.se.rh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = ifrms.dice.se.rh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = df.dice.avg.rh, 
                aes(x = network_name, y = dice_coefficient, 
                    fill = label_hemi, group = label_hemi, color = label_hemi), 
-               size = .9, alpha = .1) +
+               size =  .9, alpha = .3) +
   geom_point(data = df.dice.avg.rh, 
              aes(x = network_name, y = dice_coefficient, color = label_hemi), 
              size = 2) +
   
   
   geom_polygon(data = spls.dice.se.lh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = spls.dice.se.lh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = spls.dice.avg.lh, 
                aes(x = network_name, y = dice_coefficient, 
-                   fill = label_hemi, group = label_hemi, color = label_hemi), 
-               size = .9, alpha = .1) +
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               size =  .9, alpha = .3) +
   geom_point(data = spls.dice.avg.lh, 
              aes(x = network_name, y = dice_coefficient, color = label_hemi), 
              size = 2) + 
   
   
   geom_polygon(data = spls.dice.se.rh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = spls.dice.se.rh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = spls.dice.avg.rh, 
                aes(x = network_name, y = dice_coefficient, 
-                   fill = label_hemi, group = label_hemi, color = label_hemi), 
-               size = .9, alpha = .1) +
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               size =  .9, alpha = .3) +
   geom_point(data = spls.dice.avg.rh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) +
   
   coord_radar(start = -pi/2) +
+  
   labs(x = "Network Name",
        y = "Dice Coefficient", 
        title = "",
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#74c476")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#74c476")) + 
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
+  
   theme_minimal() +
+  
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 5, face = "bold", color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 10, face = "bold"), # was 12
-        strip.text.x = element_text(size = 10, face = "bold"), # was 12
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 13.5, face = "bold", color = "black", vjust = .50), # was 5
+        axis.text.y = element_text(size = 0, face = "bold"), # was 10
+        strip.text.x = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 10
+        legend.text = element_text(size=0), # was 8
         legend.position="bottom", 
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
-        panel.grid.minor = element_line(size = 0.5, color = "gray"), 
-        panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
+        panel.grid.minor = element_line(size = 0.5, color = "gray"
+                                        ), 
+        panel.grid.major = element_line(size = .75, color = "gray"
+                                        )) + 
+  guides(fill = "none", color = "none") + 
   ylim(0,1) + 
  facet_grid(. ~ hemi)
 network_dice_discovery.plot
 
-# ggplot2::ggsave(filename = "network_dice_discovery_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/network_dice_discovery_plot.png",
 #                 plot = network_dice_discovery.plot,
 #                 device = "png",
 #                 width = 8,
-#                 height = 6, 
+#                 height = 6,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -1249,62 +1338,86 @@ spls_networks_rep.se.rh.u$hemi <- gsub("rh", "Right Hemisphere", spls_networks_r
 
 network_dice_replication.plot <- ggplot() +  
   geom_polygon(data = ifrms_networks_rep.se.lh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = ifrms_networks_rep.se.lh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient,
+                   group = label_hemi, color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) +
   geom_polygon(data = ifrms_networks_rep.avg.lh, 
-               aes(x = network_name, y = dice_coefficient, fill = label_hemi, group = label_hemi, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, group = label_hemi, 
                    color = label_hemi), 
-               size = .9, alpha = .1) +
+               size = .9, alpha = .3) +
   geom_point(data = ifrms_networks_rep.avg.lh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) + 
   
   
   geom_polygon(data = ifrms_networks_rep.se.rh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA, 
                linetype = 2, size = .4) + 
   geom_polygon(data = ifrms_networks_rep.se.rh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA, 
                linetype = 2, size = .4) + 
   geom_polygon(data = ifrms_networks_rep.avg.rh, 
-               aes(x = network_name, y = dice_coefficient, fill = label_hemi, group = label_hemi, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, group = label_hemi, 
                    color = label_hemi), 
-               size = .9, alpha = .1) +
+               size = .9, alpha = .3) +
   geom_point(data = ifrms_networks_rep.avg.rh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) +
   
   
   geom_polygon(data = spls_networks_rep.se.lh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA, 
                linetype = 2, size = .4) + 
   geom_polygon(data = spls_networks_rep.se.lh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA, 
                linetype = 2, size = .4) + 
   geom_polygon(data = spls_networks_rep.avg.lh, 
-               aes(x = network_name, y = dice_coefficient, fill = label_hemi, group = label_hemi, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, group = label_hemi, 
                    color = label_hemi), 
-               size = .9, alpha = .1) +
+               size = .9, alpha = .3) +
   geom_point(data = spls_networks_rep.avg.lh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) + 
   
   
   geom_polygon(data = spls_networks_rep.se.rh.l, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA, 
                linetype = 2, size = .4) + 
   geom_polygon(data = spls_networks_rep.se.rh.u, 
-               aes(x = network_name, y = dice_coefficient, fill = NA, group = label_hemi, color = label_hemi), 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, color = label_hemi), 
+               fill = NA,
                linetype = 2, size = .4) + 
   geom_polygon(data = spls_networks_rep.avg.rh, 
-               aes(x = network_name, y = dice_coefficient, fill = label_hemi, group = label_hemi, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, group = label_hemi, 
                    color = label_hemi), 
-               size = .9, alpha = .1) +
+               size = .9, alpha = .3) +
   geom_point(data = spls_networks_rep.avg.rh, 
-             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
              size = 2) +
   
   coord_radar(start = -pi/2) +
@@ -1314,47 +1427,49 @@ network_dice_replication.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#74c476")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#74c476")) + 
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 5, face = "bold", color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 10, face = "bold"), # was 12
-        strip.text.x = element_text(size = 10, face = "bold"), # was 12
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 13.5, face = "bold", color = "black", vjust = .50), # was 12
+        axis.text.y = element_text(size = 0, face = "bold"), # was 12
+        strip.text.x = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 14
+        legend.text = element_text(size=0), # was 12
         legend.position = "bottom",
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(size = 0.5, color = "gray"), 
         panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
+  guides(fill = "none", color = "none") + 
   ylim(0,1) + 
   facet_grid(. ~ hemi)
 network_dice_replication.plot
 
-# ggplot2::ggsave(filename = "network_dice_replication_plot.png",
-#                 plot = network_dice_replication.plot,
-#                 device = "png",
-#                 width = 8,
-#                 height = 6, 
-#                 units = "in",
-#                 dpi = "retina")
+ggplot2::ggsave(filename = "~/Desktop/network_dice_replication_plot.png",
+                plot = network_dice_replication.plot,
+                device = "png",
+                width = 8,
+                height = 6,
+                units = "in",
+                dpi = "retina")
 ```
 
-#### Figure 4c: Four individual subjects' radar plots
+#### Figure 5c: Four individual subjects' radar plots
 ```{r, warning = FALSE}
 # Four individual radar plots - from the discovery sample
 six_networks_ifrms_spls_discovery$label_hemi[six_networks_ifrms_spls_discovery$label_name == "ifrms" & six_networks_ifrms_spls_discovery$hemi == "lh"] <- "ifrms.lh"
+
 
 six_networks_ifrms_spls_discovery$label_hemi[six_networks_ifrms_spls_discovery$label_name == "ifrms" & six_networks_ifrms_spls_discovery$hemi == "rh"] <- "ifrms.rh"
 
@@ -1392,13 +1507,15 @@ dice.214019.rh <- dice.214019 %>% subset(hemi == "rh")
 
 overlap_100206.plot <- ggplot() +  
   geom_polygon(data = dice.100206.lh , aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-  label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.100206.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+  label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.100206.lh, aes(x = network_name, y = dice_coeff,
+                                        color = label_hemi), size = 2) +
   
   geom_polygon(data = dice.100206.rh , aes(x = network_name, y = dice_coeff, fill = label_hemi,
-  group = label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.100206.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), 
-             size = 2) + 
+  group = label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.100206.rh, aes(x = network_name, y = dice_coeff,
+              color = label_hemi),
+             size = 2) +
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
        y = "Dice Coefficient", 
@@ -1406,49 +1523,51 @@ overlap_100206.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, face = "bold", color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 12, face = "bold"),
-        strip.text.y = element_text(size = 12, face = "bold"),
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 11, face = "bold", color = "black", vjust = .50), # was 8
+        axis.text.y = element_text(size = 0, face = "bold"), # was 12
+        strip.text.y = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 14
+        legend.text = element_text(size=0), # was 12
         legend.position = "bottom",
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(size = 0.5, color = "gray"), 
         panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
-  ylim(0,1) 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1)
 overlap_100206.plot
 
-# ggplot2::ggsave(filename = "overlap_100206_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/overlap_100206_plot.png",
 #                 plot = overlap_100206.plot,
 #                 device = "png",
 #                 width = 4,
-#                 height = 4, 
+#                 height = 4,
 #                 units = "in",
 #                 dpi = "retina")
 
 
 overlap_101107.plot <- ggplot() +  
   geom_polygon(data = dice.101107.lh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                            label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.101107.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                            label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.101107.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
+  
   geom_polygon(data = dice.101107.rh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                            label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.101107.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                            label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.101107.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
        y = "Dice Coefficient", 
@@ -1456,49 +1575,51 @@ overlap_101107.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) + 
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, face = "bold", color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 12, face = "bold"),
-        strip.text.y = element_text(size = 12, face = "bold"),
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 11, face = "bold", color = "black", vjust = .50), # was 8
+        axis.text.y = element_text(size = 0, face = "bold"), # was 12
+        strip.text.y = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 14
+        legend.text = element_text(size=0), # was 12
         legend.position = "bottom",
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(size = 0.5, color = "gray"), 
         panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
-  ylim(0,1) 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1)
 overlap_101107.plot
 
-# ggplot2::ggsave(filename = "overlap_101107_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/overlap_101107_plot.png",
 #                 plot = overlap_101107.plot,
 #                 device = "png",
 #                 width = 4,
-#                 height = 4, 
+#                 height = 4,
 #                 units = "in",
 #                 dpi = "retina")
 
 
 overlap_109830.plot <- ggplot() +  
   geom_polygon(data = dice.109830.lh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                            label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.109830.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                            label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.109830.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
+
   geom_polygon(data = dice.109830.rh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                            label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.109830.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                            label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.109830.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
   
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
@@ -1507,51 +1628,51 @@ overlap_109830.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) + 
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, face = "bold", 
-                                   color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 12, face = "bold"),
-        strip.text.y = element_text(size = 12, face = "bold"),
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 11, face = "bold", color = "black", vjust = .50), # was 8
+        axis.text.y = element_text(size = 0, face = "bold"), # was 12
+        strip.text.y = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 14
+        legend.text = element_text(size=0), # was 12
         legend.position = "bottom",
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(size = 0.5, color = "gray"), 
         panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
-  ylim(0,1) 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1)
 overlap_109830.plot
 
-# ggplot2::ggsave(filename = "overlap_109830_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/overlap_109830_plot.png",
 #                 plot = overlap_109830.plot,
 #                 device = "png",
 #                 width = 4,
-#                 height = 4, 
+#                 height = 4,
 #                 units = "in",
 #                 dpi = "retina")
 
 
 overlap_214019.plot <- ggplot() +  
   geom_polygon(data = dice.214019.lh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                           label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.214019.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                           label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.214019.lh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
   
   geom_polygon(data = dice.214019.rh, aes(x = network_name, y = dice_coeff, fill = label_hemi, group =
-                                           label_hemi, color = label_hemi), size = .9, alpha = .1) +
-  geom_point(data = dice.214019.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) + 
+                                           label_hemi, color = label_hemi), size = .9, alpha = .3) +
+  geom_point(data = dice.214019.rh, aes(x = network_name, y = dice_coeff, color = label_hemi), size = 2) +
   
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
@@ -1560,38 +1681,39 @@ overlap_214019.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                      labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) + 
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
         plot.caption = element_text(size = 12),
         axis.text=element_text(size=14),
-        axis.title.x = element_text(size = 12, face = "bold"),
-        axis.title.y = element_text(size = 12, face = "bold"),
-        axis.text.x = element_text(size = 8, face = "bold", color = "black", vjust = .50), # was 12
-        axis.text.y = element_text(size = 12, face = "bold"),
-        strip.text.y = element_text(size = 12, face = "bold"),
-        legend.title = element_text(size=10, face = "bold"), # was 14
-        legend.text = element_text(size=8), # was 12
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 11, face = "bold", color = "black", vjust = .50), # was 8
+        axis.text.y = element_text(size = 0, face = "bold"), # was 12
+        strip.text.y = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 14
+        legend.text = element_text(size=0), # was 12
         legend.position = "bottom",
         axis.line = element_line(colour = "black", 
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(size = 0.5, color = "gray"), 
         panel.grid.major = element_line(size = .75, color = "gray")) + 
-  guides(fill = F) + 
-  ylim(0,1) 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1)
 overlap_214019.plot
 
-# ggplot2::ggsave(filename = "overlap_214019_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/overlap_214019_plot.png",
 #                 plot = overlap_214019.plot,
 #                 device = "png",
 #                 width = 4,
-#                 height = 4, 
+#                 height = 4,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -1752,7 +1874,7 @@ p.adjust(p = lg_p_values,
 ##### Results for functional analyses Q2
 Altogether, as indicated by the linear regression results presented in Table 4 for CCN-b and Table 5 for CCN-c, the topographical location of the *ifrms* was predictive of the location of both control networks in both samples. The more rightward, anterior, and superior the coordinates of the *ifrms* were, the more rightward, anterior, and superior the nearby CCN-b and CCN-c components were. See Figure 7 in the main text or in the plots below. 
 
-#### Figure 5b: Locational coupling between the *ifrms* and CCN-b network
+#### Figure 6b: Locational coupling between the *ifrms* and CCN-b network
 ```{r, warning = FALSE}
 # Discovery Sample
 
@@ -1832,7 +1954,7 @@ Sup_CB.plot
 #                  dpi = "retina") 
 ```
 
-#### Figure 5c: Locational coupling between the *ifrms* and CCN-c network
+#### Figure 6c: Locational coupling between the *ifrms* and CCN-c network
 ```{r, warning = FALSE}
 # Discovery Sample
 
@@ -1916,7 +2038,7 @@ Sup_CC.plot
 
 ### Q1: Can the *ifrms* be identified across the lifespan in both humans and chimpanzees? 
 
-#### Figure 6b: Presence comparison
+#### Figure 7b: Presence comparison
 ```{r, warning = FALSE}
 # Dataset
 perc2 <- read.csv("~/Desktop/RMD_csvs/percent_present_age.csv")
@@ -2020,10 +2142,10 @@ In addition to being present every hemisphere in the young adult human sample, t
 # Dataset - used for all comp/dev morphological analyses
 ifrms_compdev_morphology <- read.csv("~/Desktop/RMD_csvs/ifrms_compdev_morphology.csv")
 
-# ANOVA
+# ANOVA 
 comp_norm_depth.aov <- aov(depth_pct_max ~ hemi * group * species, data = ifrms_compdev_morphology)
 summary(comp_norm_depth.aov)
-eta_sq(comp_norm_depth.aov)
+rstatix::anova_summary(comp_norm_depth.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of hemisphere
 ifrms_compdev_morphology %>% group_by(hemi) %>% summarise(mean = mean(depth_pct_max))
@@ -2038,7 +2160,7 @@ ifrms_compdev_morphology %>% group_by(species) %>% summarise(mean = mean(depth_p
 #### Results for comparative/developmental analyses Q2
 The 3-way ANOVA with factors of hemisphere (left, right), age group (juvenile, young adult, older), and species (human, chimpanzee) yielded three main findings. First, there was a main effect of hemisphere (F(1, 475) = 15.43, p < 0.001,  η2G = 0.03), wherein the *ifrms* was generally deeper in the left compared to the right hemisphere, replicating trends found in young adults. Second, there was a main effect of age group (F(1, 475) = 10.68,  p < 0.001,  η2G = 0.04), in which the *ifrms* was deeper in the juvenile and older age groups than in the younger adult group—primarily in humans. Third, there was a main effect of species (F(1, 475) = 6.85, p = 0.009,  η2G = 0.01), where the *ifrms* was deeper in humans than in chimpanzees. Therefore, while the *ifrms* is consistently shallow relative to primary and secondary sulci across species and age groups, its depth differs across age groups and between species. See Figure 8c in the main text or in the plot below.
 
-#### Figure 6c: Normalized depth comparison
+#### Figure 7c: Normalized depth comparison
 ```{r, warning = FALSE}
 # Organize factors in order
 ifrms_compdev_morphology$dataset <- factor(ifrms_compdev_morphology$dataset, 
@@ -2115,7 +2237,7 @@ comp_depth.plot
 comp_norm_thick.aov<- aov(label_mean_thickness_pct_max ~ hemi * group * species, 
                           data = ifrms_compdev_morphology)
 summary(comp_norm_thick.aov)
-eta_sq(comp_norm_thick.aov)
+rstatix::anova_summary(comp_norm_thick.aov, effect.size = "ges") # Eta-squared
 
 # Main effect of group
 ifrms_compdev_morphology %>% group_by(group) %>% summarise(mean = mean(label_mean_thickness_pct_max))
@@ -2130,7 +2252,7 @@ ifrms_compdev_morphology %>% group_by(hemi, species) %>% summarise(mean = mean(l
 #### Results for comparative/developmental analyses Q3
 The 3-way ANOVA with hemisphere (left, right), age group (juvenile, young adult, older), and species (human, chimpanzee) as factors yielded main effects of age group (F(1, 475) = 135.37, p < 0.001,  η2G = 0.33) and species (F(1, 475) = 63.59,  p < 0.001,  η2G = 0.08). Specifically, the *ifrms* showed a decline in cortical thickness from the juvenile to young adult to older age group. At each age group, the thickness of the *ifrms* was less in chimpanzees than in humans. Interestingly, there was also a hemisphere x species interaction (F(1, 475) = 6.98, p = 0.009,  η2G = 0.008), where the *ifrms* in chimpanzees was thicker in the right hemisphere. Thus, the *ifrms* shows a prominent age- and species-related decline in cortical thickness across age groups and species. See Figure 8d in the main text or in the plot below.
 
-#### Figure 6d: Normalized thickness comparison
+#### Figure 7d: Normalized thickness comparison
 ```{r, warning = FALSE}
 # Means for plot
 norm_ct_avg <- ifrms_compdev_morphology %>% 
@@ -2209,13 +2331,13 @@ comp_ct.plot
 
 ```{r, warning = FALSE}
 # CNN Dataset - all
-pmc_nn_predicts <- read.csv("~/Desktop/RMD_csvs/pmc_cnn_predicts.csv")
+pmc_nn_predicts <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/pmc_cnn_predicts.csv")
 
 # CNN Dataset - ifrms only
 pmc_nn_predicts.ifrms <- pmc_nn_predicts %>% subset(sulci == "ifrms") %>% select(-c("X", "type"))
 
 # CBA Dataset 
-ifrms_cba_predicts.ifrms <- read.csv("~/Desktop/RMD_csvs/HCP_dice_coefficients_all_72_predicts.csv")
+ifrms_cba_predicts.ifrms <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_dice_coefficients_all_72_predicts.csv")
 
 # Average across hemispheres (since cnn only analyzed in left hemisphere)
 ifrms_cba_predicts.ifrms.avg <- ifrms_cba_predicts.ifrms %>%
@@ -2227,7 +2349,7 @@ ifrms_predicts.both <- rbind(pmc_nn_predicts.ifrms, ifrms_cba_predicts.ifrms.avg
 
 # T-test comparing CNN to CBA (mean of lh and rh for each participant)
 t.test(ifrms_predicts.both$dice ~ ifrms_predicts.both$method, paired= T)
-cohens_d(data = ifrms_predicts.both,
+rstatix::cohens_d(data = ifrms_predicts.both,
          formula = dice ~ method, 
          paired= T)
 ```
@@ -2235,7 +2357,7 @@ cohens_d(data = ifrms_predicts.both,
 #### Results for morphological analyses Q1b
 We found that spherical CNNs were more accurate (t(71) = -3.69, p < 0.001, d = -0.435) at predicting the *ifrms*’ location than CBA (CNN: M = 0.61, SE = 0.03; CBA: M = 0.5, SE = 0.02). See Figure 5a in the main text or in the plot below.
 
-### Figure 7a-b: Evaluation of predictive labeling methodologies
+### Figure 8a-b: Evaluation of predictive labeling methodologies
 ```{r, warning = FALSE}
 # Figure 7a: Bar plot 
 
@@ -2263,12 +2385,12 @@ prediction_comp.plot <- ggplot() +
                 aes(method, ymin=dice-se, ymax=dice+se),
                 width = .25, size = .75) +
   xlim("CBA", "CNN") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("CBA", "CNN"),
                      values = c( "#252525","#252525")) + 
   scale_fill_manual(breaks = c("CBA", "CNN"),
-    values = c("firebrick", "#ef3b2c")) + 
+    values = c("#252525", "#969696")) + 
   labs(x = "labeling method",
        y = dice_y_2) + 
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
@@ -2276,8 +2398,8 @@ prediction_comp.plot <- ggplot() +
         plot.caption = element_text(size = 12, hjust = 1),
         axis.title.x = element_text(size=20, face = "bold", vjust = .70),
         axis.title.y = element_text(size=20, face = "bold"),
-        axis.text.x = element_text(size = 16, face = "bold", vjust = .70),
-        axis.text.y = element_text(size = 20, face = "bold"),
+        axis.text.x = element_text(size = 18, face = "bold", vjust = .70),
+        axis.text.y = element_text(size = 18, face = "bold"),
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         strip.text.x = element_text(size = 10),
@@ -2285,11 +2407,11 @@ prediction_comp.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,1,.25), limits=c(0,1))
 prediction_comp.plot
 
-# ggplot2::ggsave(filename = "prediction_comp_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/prediction_comp_plot.png",
 #                 plot = prediction_comp.plot,
 #                 device = "png",
-#                 width = 10,
-#                 height = 5, 
+#                 width = 5,
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -2299,21 +2421,21 @@ prediction_comp.plot
 prediction_dist.plot <- ggplot(ifrms_predicts.both, aes(x = dice, color= method, linetype = method)) +
   geom_density(size = 1, alpha = .5) +
   scale_color_manual(breaks = c("CBA", "CNN"),
-                     values = c("firebrick", "#ef3b2c")) + 
+                     values = c("#252525", "#969696")) + 
    labs(x = "DICE coeff. values")  +
   scale_linetype_manual(breaks = c("CBA", "CNN"),
                         values = c("dashed", "solid")) + 
    labs(x = "DICE coeff. values") + 
-  geom_vline(aes(xintercept=0.87),
-             linetype="dashed", size = 1.05, color = 'black') +
-  geom_vline(aes(xintercept=0.64),
-             linetype="dashed", size = 1.05, color = 'black') +
-  geom_vline(aes(xintercept=0.09),
-             linetype="dashed", size = 1.05, color = 'black') +
+  # geom_vline(aes(xintercept=0.87),
+  #            linetype="dashed", size = 1.05, color = 'black') +
+  # geom_vline(aes(xintercept=0.64),
+  #            linetype="dashed", size = 1.05, color = 'black') +
+  # geom_vline(aes(xintercept=0.09),
+  #            linetype="dashed", size = 1.05, color = 'black') +
   xlim(0,1) +
   scale_y_continuous(breaks=seq(0,2.5, .75)) +
 
-  guides(color = F, fill = F, linetype = F) +
+  guides(color = "none", fill = "none", linetype = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
@@ -2330,11 +2452,11 @@ prediction_dist.plot <- ggplot(ifrms_predicts.both, aes(x = dice, color= method,
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) 
 prediction_dist.plot
 
-# ggplot2::ggsave(filename = "prediction_dist_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/prediction_dist_plot.png",
 #                 plot = prediction_dist.plot,
 #                 device = "png",
-#                 width = 10,
-#                 height = 5, 
+#                 width = 5,
+#                 height = 2.5,
 #                 units = "in",
 #                 dpi = "retina")
 ```
@@ -2342,7 +2464,61 @@ prediction_dist.plot
 
 # Supplementary Analyses and Figures 
 
-## Supplementary Figure 2.1: Incidence rates of all 11 sulci
+## Confirming the accuracy of algorithmically determined sulcal depth against post-mortem values
+```{r}
+mcgs_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "lh")
+mcgs_comparison.disc.lh <- mcgs_comparison.disc.lh[1:25,]
+mcgs_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "rh")
+mcgs_comparison.disc.rh <- mcgs_comparison.disc.rh[1:25,]
+
+spls_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("spls") & hemi == "lh")
+spls_comparison.disc.lh <- spls_comparison.disc.lh[1:25,]
+spls_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("spls") & hemi == "rh")
+spls_comparison.disc.rh <- spls_comparison.disc.rh[1:25,]
+
+pos_comparison.disc.lh <- HCP_disc_depth_PCC %>% subset(label %in% c("pos") & hemi == "lh")
+pos_comparison.disc.lh <- pos_comparison.disc.lh[1:25,]
+pos_comparison.disc.rh <- HCP_disc_depth_PCC %>% subset(label %in% c("pos") & hemi == "rh")
+pos_comparison.disc.rh <- pos_comparison.disc.rh[1:25,]
+
+ono_comparison_disc <- rbind(mcgs_comparison.disc.lh, mcgs_comparison.disc.rh, 
+                             spls_comparison.disc.lh, spls_comparison.disc.rh,
+                             pos_comparison.disc.lh, pos_comparison.disc.rh)
+
+mcgs_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "lh")
+mcgs_comparison.rep.lh <- mcgs_comparison.rep.lh[1:25,]
+mcgs_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("mcgs") & hemi == "rh")
+mcgs_comparison.rep.rh <- mcgs_comparison.rep.rh[1:25,]
+
+spls_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("spls") & hemi == "lh")
+spls_comparison.rep.lh <- spls_comparison.rep.lh[1:25,]
+spls_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("spls") & hemi == "rh")
+spls_comparison.rep.rh <- spls_comparison.rep.rh[1:25,]
+
+pos_comparison.rep.lh <- HCP_rep_depth_PCC %>% subset(label %in% c("pos") & hemi == "lh")
+pos_comparison.rep.lh <- pos_comparison.rep.lh[1:25,]
+pos_comparison.rep.rh <- HCP_rep_depth_PCC %>% subset(label %in% c("pos") & hemi == "rh")
+pos_comparison.rep.rh <- pos_comparison.rep.rh[1:25,]
+
+ono_comparison_rep <- rbind(mcgs_comparison.rep.lh, mcgs_comparison.rep.rh,
+                            spls_comparison.rep.lh, spls_comparison.rep.rh,
+                            pos_comparison.rep.lh, pos_comparison.rep.rh
+)
+
+ono_comparison_disc %>% subset(label %in% c("pos", "mcgs", "spls")) %>% 
+  group_by(label, hemi) %>% 
+  summarise(
+           range = range(sulcal_depth_mm))
+
+ono_comparison_rep %>% subset(label %in% c("pos", "mcgs", "spls")) %>% 
+  group_by(label, hemi) %>% 
+  summarise(
+           range = range(sulcal_depth_mm)
+           )
+```
+See Supplementary Materials for comparison.
+
+## Supplementary Figure 2: Incidence rates of all 11 sulci
 ```{r, warning = FALSE}
 # Discovery dataset plot  
 HCP_count_disc_11.plot <- ggplot(HCP_count_disc, aes(x = Sulcus)) +
@@ -2412,7 +2588,7 @@ HCP_count_rep_11.plot
 #               dpi = "retina")
 ```
 
-## Supplementary Figure 2.1: Depth of all 11 sulci 
+## Supplementary Figure 2: Depth of all 11 sulci 
 
 ### Statistics 
 * Focusing on the three *prcus* since this is the first study to consistently identify three in-vivo)
@@ -2425,7 +2601,7 @@ HCP_count_rep_11.plot
 #### Discovery
 ```{r, warning = FALSE}
 # Dataset - all
-HCP_all_morphology <- read.csv("~/Desktop/RMD_csvs/HCP_all_morphology.csv")
+HCP_all_morphology <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_all_morphology.csv")
 
 # Discovery dataset
 HCP_all_morphology_disc <- HCP_all_morphology %>% subset(dataset == "HCP_discovery")
@@ -2433,7 +2609,7 @@ HCP_all_morphology_disc <- HCP_all_morphology %>% subset(dataset == "HCP_discove
 # ANOVA
 all_depth_disc.aov <- aov(sulcal_depth_mm ~ hemi * label, HCP_all_morphology_disc)
 summary(all_depth_disc.aov)
-eta_sq(all_depth_disc.aov)
+rstatix::anova_summary(all_depth_disc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_all_depth.m1 <- emmeans::emmeans(all_depth_disc.aov,'label')
@@ -2454,7 +2630,7 @@ HCP_all_morphology_rep <- HCP_all_morphology %>% subset(dataset == "HCP_replicat
 # ANOVA
 all_depth_rep.aov <- aov(sulcal_depth_mm ~ hemi * label, HCP_all_morphology_rep)
 summary(all_depth_rep.aov)
-eta_sq(all_depth_rep.aov)
+rstatix::anova_summary(all_depth_rep.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_all_depth.m1 <- emmeans::emmeans(all_depth_rep.aov,'label')
@@ -2526,7 +2702,7 @@ all_sulc_depth_disc.plot <- ggplot() +
                   aes(label, sulcal_depth_mm, ymin=sulcal_depth_mm-sd, ymax=sulcal_depth_mm+sd, fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
   xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "prculs LH", "prculs RH",
@@ -2570,7 +2746,7 @@ all_sulc_depth_disc.plot <- ggplot() +
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p
   labs(x = "PCC and PRC sulci",
        y = depth_y) + 
@@ -2579,7 +2755,7 @@ all_sulc_depth_disc.plot <- ggplot() +
         plot.caption = element_text(size = 12, hjust = 1),
         axis.title.x = element_text(size=20, face = "bold", vjust = .70),
         axis.title.y = element_text(size=20, face = "bold"),
-        axis.text.x = element_text(size = 7, face = "bold", vjust = .70), # was 16
+        axis.text.x = element_text(size = 16, face = "bold", vjust = .70), # was 8
         axis.text.y = element_text(size = 20, face = "bold"),
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
@@ -2588,11 +2764,11 @@ all_sulc_depth_disc.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,26,2), limits = c(0,26))
 all_sulc_depth_disc.plot
 
-#ggplot2::ggsave(filename = "all_sulc_depth_disc_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/all_sulc_depth_disc_plot.png",
 #                 plot = all_sulc_depth_disc.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -2651,7 +2827,7 @@ all_sulc_depth_repl.plot <- ggplot() +
                   aes(label, sulcal_depth_mm, ymin=sulcal_depth_mm-sd, ymax=sulcal_depth_mm+sd, fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
    xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "prculs LH", "prculs RH",
@@ -2695,7 +2871,7 @@ all_sulc_depth_repl.plot <- ggplot() +
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p
   labs(x = "PCC and PRC sulci",
        y = depth_y) + 
@@ -2704,7 +2880,7 @@ all_sulc_depth_repl.plot <- ggplot() +
         plot.caption = element_text(size = 12, hjust = 1),
         axis.title.x = element_text(size=20, face = "bold", vjust = .70),
         axis.title.y = element_text(size=20, face = "bold"),
-        axis.text.x = element_text(size = 7, face = "bold", vjust = .70), # was 16
+        axis.text.x = element_text(size = 16, face = "bold", vjust = .70), # was 8
         axis.text.y = element_text(size = 20, face = "bold"),
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
@@ -2713,16 +2889,16 @@ all_sulc_depth_repl.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,26,2), limits = c(0,26))
 all_sulc_depth_repl.plot
 
-#ggplot2::ggsave(filename = "all_sulc_depth_repl_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/all_sulc_depth_repl_plot.png",
 #                 plot = all_sulc_depth_repl.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 ```
 
-## Supplementary Figure 2.1: Surface area of PCC and PrC sulci 
+## Supplementary Figure 2: Surface area of PCC and PrC sulci 
 
 ### Statistics 
 * Focusing on the differences in surface area between the three shallower putative tertiary sulci in PCC (*sspls*, *ifrms*, *icgs-p*) and other PCC/PRC sulci because, in addition to having a shallower depth, tertiary sulci typically have a reduced surface area compared to primary and secondary sulci.
@@ -2738,7 +2914,7 @@ all_sulc_depth_repl.plot
 # ANOVA
 all_sa_disc.aov <- aov(total_surface_area_.mm.2. ~ hemi * label, HCP_all_morphology_disc)
 summary(all_sa_disc.aov)
-eta_sq(all_sa_disc.aov)
+rstatix::anova_summary(all_sa_disc.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 disc_all_sa.m1 <- emmeans::emmeans(all_depth_disc.aov,'label')
@@ -2755,7 +2931,7 @@ We observed a main effect of sulcus (F(10, 706) = 215.24, p < 0.001,  η2G = 0.7
 # ANOVA
 all_sa_rep.aov <- aov(total_surface_area_.mm.2. ~ hemi * label, HCP_all_morphology_rep)
 summary(all_sa_rep.aov)
-eta_sq(all_sa_rep.aov)
+rstatix::anova_summary(all_sa_rep.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 rep_all_sa.m1 <- emmeans::emmeans(all_sa_rep.aov,'label')
@@ -2819,7 +2995,7 @@ HCP_all_morphology_disc_sa_tert.plot <- ggplot() +
                       fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
   xlim("sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("sspls LH", "sspls RH",
                          "ifrms LH", "ifrms RH",
@@ -2831,7 +3007,7 @@ HCP_all_morphology_disc_sa_tert.plot <- ggplot() +
                                 "ifrms LH", "ifrms RH",
                                 "icgs-p LH", "icgs-p RH"),
     values = c("chartreuse4", "chartreuse", #sspls
-               "firebrick", "#ef3b2c", #ifrms
+               "#cccccc", "#f7f7f7", #ifrms
                "cadetblue", "cadetblue1")) + #icgs-p
   labs(x = "shallower sulci",
        y = sa_y) + 
@@ -2849,13 +3025,13 @@ HCP_all_morphology_disc_sa_tert.plot <- ggplot() +
   scale_y_continuous(breaks=seq(0,300,50), limits =c(-10, 300))
 HCP_all_morphology_disc_sa_tert.plot
 
-# ggplot2::ggsave(filename = "HCP_all_morphology_disc_sa_tert_plot.png",
-#                  plot = HCP_all_morphology_disc_sa_tert.plot,
-#                  device = "png",
-#                  width = 10,
-#                  height = 5, 
-#                  units = "in",
-#                  dpi = "retina")
+ggplot2::ggsave(filename = "~/Desktop/HCP_all_morphology_disc_sa_tert_plot.png",
+                 plot = HCP_all_morphology_disc_sa_tert.plot,
+                 device = "png",
+                 width = 10,
+                 height = 5,
+                 units = "in",
+                 dpi = "retina")
 
 HCP_all_morphology_disc_sa_ntert.plot <- ggplot() +
   geom_violin(data = HCP_all_morphology_disc_ntert, aes(x = label, y = total_surface_area_.mm.2./100, 
@@ -2872,8 +3048,9 @@ HCP_all_morphology_disc_sa_ntert.plot <- ggplot() +
                       ymax=total_surface_area_.mm.2.+sd, 
                       fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
+  
   xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "prculs LH", "prculs RH",
@@ -2909,7 +3086,7 @@ HCP_all_morphology_disc_sa_ntert.plot <- ggplot() +
                "darkolivegreen3","darkolivegreen2", #prcus-a
                "#045a8d", "#2b8cbe", #sps
                "#238b45", "#74c476", #spls"
-               "#2c7fb8", "#41b6c4" #mcgs
+               "#2c7fb8", "#41b6c4", #mcgs
                 )) + 
   labs(x = "deeper sulci",
        y = sa_y) + 
@@ -2963,7 +3140,7 @@ HCP_all_morphology_disc_sa.plot <- ggplot() +
                       fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
   xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "prculs LH", "prculs RH",
@@ -3010,7 +3187,7 @@ HCP_all_morphology_disc_sa.plot <- ggplot() +
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
                "chartreuse4", "chartreuse", #sspls
-               "firebrick", "#ef3b2c", #ifrms
+               "#cccccc", "#f7f7f7", #ifrms
                "cadetblue", "cadetblue1")) + #icgs-p 
   labs(x = "PCC and PRC sulci",
        y = sa_y) + 
@@ -3024,14 +3201,15 @@ HCP_all_morphology_disc_sa.plot <- ggplot() +
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         strip.text.x = element_text(size = 10), 
-        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) 
+
 HCP_all_morphology_disc_sa.plot
 
-#ggplot2::ggsave(filename = "HCP_all_morphology_disc_sa_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/HCP_all_morphology_disc_sa_plot.png",
 #                 plot = HCP_all_morphology_disc_sa.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 
@@ -3236,7 +3414,7 @@ geom_violin(data = HCP_all_morphology_rep_tert, aes(x = label, y = total_surface
                       fill = label2), 
                   shape = 21, position = dodge, size = 1.25, fatten = 3) +
 xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "sspls", "ifrms", "icgs-p") +
-  guides(fill = FALSE, color = FALSE) +
+  guides(fill = "none", color = "none") +
   scale_color_manual(breaks = 
                        c("POS LH", "POS RH",
                          "prculs LH", "prculs RH",
@@ -3283,7 +3461,7 @@ xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "s
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
                "chartreuse4", "chartreuse", #sspls
-               "firebrick", "#ef3b2c", #ifrms
+               "#cccccc", "#f7f7f7", #ifrms
                "cadetblue", "cadetblue1")) + #icgs-p 
   labs(x = "shallower sulci",
        y = sa_y) + 
@@ -3297,19 +3475,19 @@ xlim("pos", "prculs", "prcus-p", "prcus-i", "prcus-a", "spls", "sps", "mcgs", "s
         legend.title = element_text(size=14), 
         legend.text = element_text(size=12),
         strip.text.x = element_text(size = 10), 
-        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) 
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
 HCP_all_morphology_rep_sa.plot
 
-# ggplot2::ggsave(filename = "HCP_all_morphology_rep_sa_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/HCP_all_morphology_rep_sa_plot.png",
 #                  plot = HCP_all_morphology_rep_sa.plot,
 #                  device = "png",
 #                  width = 10,
-#                  height = 5, 
+#                  height = 5,
 #                  units = "in",
 #                  dpi = "retina")
 ```
 
-## Supplementary Figure 2.2: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
+## Supplementary Figure 3: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
 ```{r}
 # Make matrices
 sspls_lh_disc_2 <-  c(0.26, 0, 0,    0, 0, 0, 0, 0,    0,    0, NA, 0,    0)
@@ -3324,8 +3502,9 @@ colnames(disc_tert_lh_mat)  <- c("cas", "cgs", "mcgs", "pos",
 rownames(disc_tert_lh_mat) <- c("sspls", "ifrms", "icgs-p")
  
 disc_tert_lh_mat <- as.data.frame(disc_tert_lh_mat)
-disc_tert_lh_mat <- disc_tert_lh_mat %>% select(-c(4:7,10))
+#disc_tert_lh_mat <- disc_tert_lh_mat %>% select(-c(4:7,10))
 disc_tert_lh_mat <- as.matrix(disc_tert_lh_mat)
+disc_tert_lh_mat
 
 # disc rh 
 sspls_rh_disc_2 <-  c(0.22, 0, 0,    0, 0, 0, 0, 0, 0,    0, NA, 0,    0)
@@ -3340,8 +3519,9 @@ colnames(disc_tert_rh_mat)  <- c("cas", "cgs", "mcgs", "pos",
 rownames(disc_tert_rh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 disc_tert_rh_mat <- as.data.frame(disc_tert_rh_mat)
-disc_tert_rh_mat <- disc_tert_rh_mat %>% select(-c(4:7,10))
+#disc_tert_rh_mat <- disc_tert_rh_mat %>% select(-c(4:7,10))
 disc_tert_rh_mat <- as.matrix(disc_tert_rh_mat)
+disc_tert_rh_mat
 
 # rep lh 
 sspls_lh_rep_2 <-  c(0.18, 0, 0,    0, 0, 0, 0, 0,    0.06, 0, NA, 0,    0)
@@ -3356,8 +3536,9 @@ colnames(rep_tert_lh_mat)  <- c("cas", "cgs", "mcgs", "pos", "prculs",
 rownames(rep_tert_lh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 rep_tert_lh_mat <- as.data.frame(rep_tert_lh_mat)
-rep_tert_lh_mat <- rep_tert_lh_mat %>% select(-c(4:7,10))
+#rep_tert_lh_mat <- rep_tert_lh_mat %>% select(-c(4:7,10))
 rep_tert_lh_mat <- as.matrix(rep_tert_lh_mat)
+rep_tert_lh_mat
 
 # rep rh 
 sspls_rh_rep_2 <-  c(0.4, 0,    0,    0, 0, 0, 0, 0, 0.05, 0, NA, 0,    0)
@@ -3371,8 +3552,9 @@ colnames(rep_tert_rh_mat)  <- c("cas", "cgs", "mcgs", "pos", "prculs",
 rownames(rep_tert_rh_mat) <- c("sspls", "ifrms", "icgs-p")
 
 rep_tert_rh_mat <- as.data.frame(rep_tert_rh_mat)
-rep_tert_rh_mat <- rep_tert_rh_mat %>% select(-c(4:7,10))
+#rep_tert_rh_mat <- rep_tert_rh_mat %>% select(-c(4:7,10))
 rep_tert_rh_mat <- as.matrix(rep_tert_rh_mat)
+rep_tert_rh_mat
 
 ## correlations
 ### disc lh ~ rh
@@ -3471,10 +3653,22 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 #dev.off()
 ```
 
-## Supplementary Figure 4.1: C/M with all 11 sulci
+## Supplementary Figure 6: C/M with all 11 sulci
 ```{r, warning = FALSE}
 # Dataset
-HCP_figure3_supplement <- read.csv("~/Desktop/RMD_csvs/HCP_figure3_supplement.csv")
+HCP_figure3_supplement <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/HCP_figure3_supplement.csv")
+
+HCP_figure3_supplement.d <- HCP_figure3_supplement %>% subset(dataset == "HCP_discovery")
+cm_ratio_disc.aov <- aov(ratio ~ label * hemi, data = HCP_figure3_supplement.d)
+summary(cm_ratio_disc.aov)
+disc_all_ratio.m1 <- emmeans::emmeans(cm_ratio_disc.aov, ~ label)
+emmeans::contrast(disc_all_ratio.m1, method='pairwise')
+
+HCP_figure3_supplement.r <- HCP_figure3_supplement %>% subset(dataset == "HCP_replication")
+cm_ratio_rep.aov <- aov(ratio ~ label * hemi, data = HCP_figure3_supplement.r)
+summary(cm_ratio_rep.aov)
+rep_all_ratio.m1 <- emmeans::emmeans(cm_ratio_rep.aov, ~ label)
+emmeans::contrast(rep_all_ratio.m1, method='pairwise')
 
 ## LH plot
 HCP_figure3_supplement_lh <- subset(HCP_figure3_supplement, 
@@ -3583,7 +3777,7 @@ ctmy_11.plot <- ggplot(HCP_figure3_supplement_lh, aes(x = label_dataset, fill = 
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p +
   scale_color_manual(breaks = c("POS d", "POS r",
                    "prculs d", "prculs r",
@@ -3611,29 +3805,29 @@ ctmy_11.plot <- ggplot(HCP_figure3_supplement_lh, aes(x = label_dataset, fill = 
                        )) +
   labs(x = "PCC and PRC sulci",
        y = ratio_axis) + 
-  guides(fill = F, color = F, alpha = F) +
+  guides(fill = "none", color = "none", alpha = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 4, face = "bold", vjust = .70), # was 12
-          axis.text.y = element_text(size = 16, face = "bold"), # was 20
+          axis.text.x = element_text(size = 12, face = "bold", vjust = .70), # was 12
+          axis.text.y = element_text(size = 20, face = "bold"), # was 20
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
-          strip.text.x = element_text(size = 6, face = "bold"), # was 16
+          strip.text.x = element_text(size = 16, face = "bold"), # was 16
           strip.background = element_blank(),
           strip.placement = "outside",
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) +
   facet_wrap( ~ label, strip.position = "bottom", scales = "free_x", nrow = 1)
 ctmy_11.plot
 
-# ggplot2::ggsave(filename = "ctmy_11_lh_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/ctmy_11_lh_plot.png",
 #                 plot = ctmy_11.plot,
 #                 device = "png",
 #                 width = 12,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "print")
 
@@ -3746,7 +3940,7 @@ ctmy_11_rh.plot <- ggplot(HCP_figure3_supplement_rh,
                "#238b45", "#74c476", #spls"
                "#2c7fb8", "#41b6c4", #mcgs
       "chartreuse4", "chartreuse", #sspls
-      "firebrick", "#ef3b2c", #ifrms
+      "#cccccc", "#f7f7f7", #ifrms
       "cadetblue", "cadetblue1")) + #icgs-p +
   scale_color_manual(breaks = c("POS d", "POS r",
                    "prculs d", "prculs r",
@@ -3774,34 +3968,34 @@ ctmy_11_rh.plot <- ggplot(HCP_figure3_supplement_rh,
                        )) +
   labs(x = "PCC and PRC sulci",
        y = ratio_axis) + 
-  guides(fill = F, color = F, alpha = F) +
+  guides(fill = "none", color = "none", alpha = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 4, face = "bold", vjust = .70), # was 12
-          axis.text.y = element_text(size = 16, face = "bold"), # was 20
+          axis.text.x = element_text(size = 12, face = "bold", vjust = .70), # was 12
+          axis.text.y = element_text(size = 20, face = "bold"), # was 20
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
-          strip.text.x = element_text(size = 6, face = "bold"), # was 16
+          strip.text.x = element_text(size = 16, face = "bold"), # was 16
           strip.background = element_blank(),
           strip.placement = "outside",
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) +
   facet_wrap( ~ label, strip.position = "bottom", scales = "free_x", nrow = 1)
 ctmy_11_rh.plot
 
-# ggplot2::ggsave(filename = "ctmy_11_rh_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/ctmy_11_rh_plot.png",
 #                 plot = ctmy_11_rh.plot,
 #                 device = "png",
 #                 width = 12,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 4.2: Cortical thickness and myelination of PCC sulci shown separately
+## Supplementary Figure 7: Cortical thickness and myelination of PCC sulci shown separately
 ```{r, warning = FALSE}
 # to display thickness and myelination on one plot
 scale <- mean(HCP_all_morphology$cortical_thickness_mean) / mean(HCP_all_morphology$myelin)
@@ -3845,7 +4039,6 @@ col_disc
 
 col_repl=sample(color, 36)
 col_repl
-
 
 ctmy_ind_disc.plot <- HCP_tot_analysis.sup.2 %>% subset(dataset == "HCP_discovery") %>%
 ggplot(aes(x = variable, y = measurement, fill = variable)) + 
@@ -4000,7 +4193,7 @@ ctmy_ind_ifrms_repl.plot
 #                 dpi = "retina")
 ```
 
-## Supplementary Figure 5.1: Individual subject fingerprints - discovery
+## Supplementary Figure 8: Individual subject fingerprints - discovery
 ```{r, warning=FALSE}
 # Dataset
 networks_ifrms_spls_discovery.2 <- six_networks_ifrms_spls_discovery
@@ -4065,11 +4258,13 @@ networks_ifrms_spls_discovery.2$label_hemi[networks_ifrms_spls_discovery.2$label
 # Plot
 all_conn_fp_disc.plot <- ggplot() +  
   geom_polygon(data = networks_ifrms_spls_discovery.2, 
-               aes(x = network_name, y = dice_coeff, fill = label_hemi, group = label_hemi, color = label_hemi),
+               aes(x = network_name, y = dice_coeff, fill = label_hemi, group = label_hemi, 
+                   color = label_hemi),
                size = .5,
-               alpha = .1) +
-  geom_point(data = networks_ifrms_spls_discovery.2, aes(x = network_name, y = dice_coeff, color = label_hemi),
-             size = 1, alpha = .70) + 
+               alpha = .3) +
+  geom_point(data = networks_ifrms_spls_discovery.2, aes(x = network_name, y = dice_coeff, 
+                                                         color = label_hemi),
+             size = 1, alpha = 1) + 
   
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
@@ -4078,12 +4273,13 @@ all_conn_fp_disc.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
-                     labels = c("ifrms lh", "ifrms rh", "spls.lh", "spls.rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) + 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                     values = c("#252525", "#969696", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
@@ -4091,7 +4287,7 @@ all_conn_fp_disc.plot <- ggplot() +
         axis.text=element_text(size=14),
         axis.title.x = element_text(size = 0),
         axis.title.y = element_text(size = 0),
-        axis.text.x = element_text(size = 5, face = "bold", color = "black", vjust = .50),
+        axis.text.x = element_text(size = 4.5, face = "bold", color = "black", vjust = .50),
         axis.text.y = element_text(size = 0, face = "bold"),
         strip.text.y = element_text(size = 0),
         strip.text.x = element_text(size = 12, face = "bold"),
@@ -4102,21 +4298,21 @@ all_conn_fp_disc.plot <- ggplot() +
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(color = "gray"), 
         panel.grid.major = element_line(color = "gray")) + 
-  guides(fill = F) + 
+  guides(fill = "none", color = "none") + 
   ylim(0,1) + 
   facet_wrap(~TRG_sub)
 #all_conn_fp_disc.plot #unmark to view
 
-# ggplot2::ggsave(filename = "all_conn_fp_disc_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/all_conn_fp_disc_plot.png",
 #                 plot = all_conn_fp_disc.plot,
 #                 device = "png",
 #                 width = 8.5,
-#                 height = 11, 
+#                 height = 11,
 #                 units = "in",
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 5.3: Individual subject fingerprints - replication
+## Supplementary Figure 10: Individual subject fingerprints - replication
 ```{r,warning=FALSE}
 # Dataset
 ## Two marked out participants did not have network data available 
@@ -4219,10 +4415,10 @@ six_networks_ifrms_spls_replication2$label_hemi[six_networks_ifrms_spls_replicat
 all_conn_fp_repl.plot <- ggplot() +  
   geom_polygon(data = six_networks_ifrms_spls_replication2, 
                aes(x = network_name, y = dice_coeff, fill = label_hemi, group = label_hemi, color = label_hemi), 
-               size = .5, alpha = .1) +
+               size = .5, alpha = .3) +
   geom_point(data = six_networks_ifrms_spls_replication2, 
              aes(x = network_name, y = dice_coeff, color = label_hemi), 
-                                         size = 1, alpha = .70) + 
+                                         size = 1, alpha = 1) + 
   coord_radar(start = -pi/2) +
   labs(x = "Network Name",
        y = "Dice Coefficient", 
@@ -4230,12 +4426,13 @@ all_conn_fp_repl.plot <- ggplot() +
        subtitle = "",
        color = "Label & Hemisphere",
        fill = "Label & Hemisphere") +  
-  scale_fill_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
-                    values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) +
-  scale_color_manual(limit = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
-                     labels = c("ifrms lh", "ifrms rh", "spls.lh", "spls.rh"),
-                     values = c("firebrick", "#ef3b2c", "#238b45", "#4daf4a")) + 
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                     values = c("#252525", "#969696", "#238b45", "#74c476")) + 
   theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
         plot.subtitle = element_text(hjust = 0, size = 14),
@@ -4243,7 +4440,7 @@ all_conn_fp_repl.plot <- ggplot() +
         axis.text=element_text(size=14),
         axis.title.x = element_text(size = 0),
         axis.title.y = element_text(size = 0),
-        axis.text.x = element_text(size = 5, face = "bold", color = "black", vjust = .50),
+        axis.text.x = element_text(size = 4.5, face = "bold", color = "black", vjust = .50),
         axis.text.y = element_text(size = 0, face = "bold"),
         strip.text.y = element_text(size = 0),
         strip.text.x = element_text(size = 12, face = "bold"),
@@ -4254,22 +4451,22 @@ all_conn_fp_repl.plot <- ggplot() +
                                  size = 0, linetype = "solid", lineend = "round"),
         panel.grid.minor = element_line(color = "gray"), 
         panel.grid.major = element_line(color = "gray")) + 
-  guides(fill = F) + 
+  guides(fill = "none", color = "none") + 
   ylim(0,1) + 
   facet_wrap(~TRG_sub)
 #all_conn_fp_repl.plot #unmark to view
 
-# ggplot2::ggsave(filename = "all_conn_fp_repl_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/all_conn_fp_repl_plot.png",
 #                 plot = all_conn_fp_repl.plot,
 #                 device = "png",
 #                 width = 8.5,
-#                 height = 11, 
+#                 height = 11,
 #                 units = "in",
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 5.4: Three *prcus* connectivity fingerprints
-* 3-way (network x sulcal label x hemi) ANOVA to test for differences in overlap (DICE coefficient; see Methods)
+## Supplementary Figure 11: Three *prcus* connectivity fingerprints
+* 3-way (network x sulcal label x hemi) repeated measures ANOVA to test for differences in overlap (DICE coefficient; see Methods)
 * network: all 17 resting-state functional networks
 * sulcal label: **prcus-p*, *prcus-i*, *prcus-a*
 * hemi: lh, rh
@@ -4280,17 +4477,20 @@ all_conn_fp_repl.plot <- ggplot() +
 ```{r, warning=FALSE}
 # Dataset - all 
 prcus_dice_all <-  read.csv("~/Desktop/RMD_csvs/prcus_dice_all.csv")
+prcus_dice_all$TRG_sub <- as.factor(prcus_dice_all$TRG_sub)
 
 # Discovery dataset
 prcus_dice_disc <- prcus_dice_all %>% subset(dataset == "HCP_discovery")
 
 # ANOVA
-prcus_network.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = prcus_dice_disc)
-summary(prcus_network.aov) #p-values
-eta_sq(prcus_network.aov) #Eta-squared
+prcus_network.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name +
+                           Error(TRG_sub/(hemi*label_name*network_name)), 
+                         data = prcus_dice_disc)
+summary(prcus_network.rmaov) #p-values
+rstatix::anova_summary(prcus_network.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
-network_aov.i1 <- emmeans::emmeans(prcus_network.aov, ~ label_name | network_name)
+network_aov.i1 <- emmeans::emmeans(prcus_network.rmaov, ~ label_name | network_name)
 emmeans::contrast(network_aov.i1, method='pairwise')
 ```
 
@@ -4542,12 +4742,14 @@ prcusp_conn_fp_disc.plot
 prcus_dice_repl <- prcus_dice_all %>% subset(dataset == "HCP_replication")
 
 # Anova
-prcus_network_rep.aov <- aov(dice_coeff ~ hemi*label_name*network_name, data = prcus_dice_repl)
-summary(prcus_network_rep.aov) #p-values
-eta_sq(prcus_network_rep.aov) #Eta-squared
+prcus_network_rep.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name +
+                               Error(TRG_sub/(hemi*label_name*network_name)), 
+                             data = prcus_dice_repl)
+summary(prcus_network_rep.rmaov) #p-values
+rstatix::anova_summary(prcus_network_rep.rmaov, effect.size = "ges") #Eta-squared
 
 # Post hoc test
-prcus_network_rep_aov.i1 <- emmeans::emmeans(prcus_network_rep.aov, ~ label_name | network_name)
+prcus_network_rep_aov.i1 <- emmeans::emmeans(prcus_network_rep.rmaov, ~ label_name | network_name)
 emmeans::contrast(prcus_network_rep_aov.i1, method='pairwise')
 ```
 
@@ -4808,7 +5010,463 @@ prcusp_conn_fp_repl.plot
 #                 dpi = "print")
 ```
 
-## Supplementary Figure 7.1: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
+
+## Supplementary Figure 13: Mean fingerprints for *ifrms* and *spls* in MSC
+```{r}
+msc_networks <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/MSC_ifrms_spls_networks.csv")
+msc_networks$label_name <- gsub("2", "ifrms", msc_networks$label_name)
+msc_networks$label_name <- gsub("sbps", "spls", msc_networks$label_name)
+
+# anova
+network_msc.rmaov <- aov(dice_coeff ~ hemi*label_name*network_name + 
+                           Error(TRG_sub/(hemi*label_name*network_name)), 
+                         data = msc_networks)
+
+# table
+rstatix::anova_summary(network_msc.rmaov, effect.size = "ges") #Eta-squared
+
+# Post hoc tests
+network_msc_aov.i1 <- emmeans::emmeans(network_msc.rmaov, ~ label_name | network_name)
+emmeans::contrast(network_msc_aov.i1, method='pairwise')
+
+```
+
+
+```{r, warning = FALSE}
+# Necessary function to make radar plot
+coord_radar <- function (theta = "x", start = 0, direction = 1) 
+{
+  theta <- match.arg(theta, c("x", "y"))
+  r <- if (theta == "x") 
+    "y"
+  else "x"
+  ggproto("CordRadar", CoordPolar, theta = theta, r = r, start = start, 
+          direction = sign(direction),
+          is_linear = function(coord) TRUE)
+}
+
+# ifrms
+msc_ifrms <- msc_networks %>% subset(label_name == "ifrms")
+
+msc_ifrms$network_name <- gsub("Default_PMC", "Default", msc_ifrms$network_name)
+msc_ifrms$network_name <- gsub("Cing_Operc_PMC", "Cing Operc", msc_ifrms$network_name)
+msc_ifrms$network_name <- gsub("Context_PMC", "Context", msc_ifrms$network_name)
+msc_ifrms$network_name <- gsub("Fronto_Par_PMC", "Fronto Par", msc_ifrms$network_name)
+msc_ifrms$network_name <- gsub("Par_Memory_PMC", "Par Memory", msc_ifrms$network_name)
+msc_ifrms$network_name <- gsub("Salience_PMC", "Salience", msc_ifrms$network_name)
+
+msc_ifrms.lh <- msc_ifrms %>% subset(hemi == 'lh')
+msc_ifrms.rh <- msc_ifrms %>% subset(hemi == 'rh')
+
+# Get mean values for network-sulcus overlap 
+msc_ifrms.avg <- msc_ifrms %>% 
+  group_by(network_name, hemi, label_name) %>% 
+  summarise(dice_coefficient = mean(dice_coeff))
+
+# Rename dfs and add "ifrms.?h" column for color coding
+msc_ifrms.avg.lh <- msc_ifrms.avg %>% subset(hemi == 'lh')
+msc_ifrms.avg.lh ['label_hemi']='ifrms.lh'
+
+msc_ifrms.avg.rh <- msc_ifrms.avg %>% subset(hemi == 'rh')
+msc_ifrms.avg.rh ['label_hemi']='ifrms.rh'
+
+# Std error calculation for plot
+msc_ifrms.se <- msc_ifrms %>% 
+  group_by(network_name, hemi) %>%
+  summarise(n=n(), 
+            sd=sd(dice_coeff), 
+            se=sd/sqrt(n))
+
+msc_ifrms.se.lh <- msc_ifrms.se %>% subset(hemi %in% c('lh')) 
+msc_ifrms.se.rh <- msc_ifrms.se %>% subset(hemi %in% c('rh')) 
+names(msc_ifrms.se.lh)[names(msc_ifrms.se.lh) == 'dice_coeff'] <- "se"
+names(msc_ifrms.se.rh)[names(msc_ifrms.se.rh) == 'dice_coeff'] <- "se"
+
+msc_ifrms.se.lh = msc_ifrms.se.lh %>% subset(select = -c(hemi))
+msc_ifrms.se.rh = msc_ifrms.se.rh %>% subset(select = -c(hemi))
+
+# Merge together + get upper and lower bounds
+msc_ifrms.se.lh <- merge(msc_ifrms.se.lh, msc_ifrms.avg.lh,
+                          by=c("network_name"))
+msc_ifrms.se.rh <- merge(msc_ifrms.se.rh, msc_ifrms.avg.rh,
+                          by=c("network_name"))
+
+msc_ifrms.se.lh <- msc_ifrms.se.lh %>% 
+  group_by(network_name) %>%
+  mutate(upper = dice_coefficient + se, 
+         lower = dice_coefficient - se)
+
+msc_ifrms.se.rh <- msc_ifrms.se.rh %>% 
+  group_by(network_name) %>%
+  mutate(upper = dice_coefficient + se, 
+         lower = dice_coefficient - se)
+
+msc_ifrms.se.lh.u <- msc_ifrms.se.lh %>% subset(select = -c(lower, dice_coefficient))
+names(msc_ifrms.se.lh.u)[names(msc_ifrms.se.lh.u) == 'upper'] <- "dice_coefficient"
+msc_ifrms.se.lh.l <- msc_ifrms.se.lh %>% subset(select = -c(upper, dice_coefficient))
+names(msc_ifrms.se.lh.l)[names(msc_ifrms.se.lh.l) == 'lower'] <- "dice_coefficient"
+
+msc_ifrms.se.rh.u <- msc_ifrms.se.rh %>% subset(select = -c(lower, dice_coefficient))
+names(msc_ifrms.se.rh.u)[names(msc_ifrms.se.rh.u) == 'upper'] <- "dice_coefficient"
+msc_ifrms.se.rh.l <- msc_ifrms.se.rh %>% subset(select = -c(upper, dice_coefficient ))
+names(msc_ifrms.se.rh.l)[names(msc_ifrms.se.rh.l) == 'lower'] <- "dice_coefficient"
+
+# More renaming for plot aesthetics 
+msc_ifrms.avg.lh$hemi <- gsub("lh", "Left Hemisphere", msc_ifrms.avg.lh$hemi)
+msc_ifrms.avg.rh$hemi <- gsub("rh", "Right Hemisphere", msc_ifrms.avg.rh$hemi)
+msc_ifrms.se.lh.l$hemi <- gsub("lh", "Left Hemisphere", msc_ifrms.se.lh.l$hemi)
+msc_ifrms.se.lh.u$hemi <- gsub("lh", "Left Hemisphere", msc_ifrms.se.lh.u$hemi)
+msc_ifrms.se.rh.l$hemi <- gsub("rh", "Right Hemisphere", msc_ifrms.se.rh.l$hemi)
+msc_ifrms.se.rh.u$hemi <- gsub("rh", "Right Hemisphere", msc_ifrms.se.rh.u$hemi)
+
+# spls
+msc_spls <- msc_networks %>% subset(label_name == "spls")
+
+msc_spls$network_name <- gsub("Default_PMC", "Default", msc_spls$network_name)
+msc_spls$network_name <- gsub("Cing_Operc_PMC", "Cing Operc", msc_spls$network_name)
+msc_spls$network_name <- gsub("Context_PMC", "Context", msc_spls$network_name)
+msc_spls$network_name <- gsub("Fronto_Par_PMC", "Fronto Par", msc_spls$network_name)
+msc_spls$network_name <- gsub("Par_Memory_PMC", "Par Memory", msc_spls$network_name)
+msc_spls$network_name <- gsub("Salience_PMC", "Salience", msc_spls$network_name)
+
+msc_spls.lh <- msc_spls %>% subset(hemi == 'lh')
+msc_spls.rh <- msc_spls %>% subset(hemi == 'rh')
+
+# Get mean values for network-sulcus overlap 
+msc_spls.avg <- msc_spls %>% 
+  group_by(network_name, hemi, label_name) %>% 
+  summarise(dice_coefficient = mean(dice_coeff))
+
+# Rename dfs and add "ifrms.?h" column for color coding
+msc_spls.avg.lh <- msc_spls.avg %>% subset(hemi == 'lh')
+msc_spls.avg.lh['label_hemi']='spls.lh'
+
+msc_spls.avg.rh <- msc_spls.avg %>% subset(hemi == 'rh')
+msc_spls.avg.rh['label_hemi']='spls.rh'
+
+# Std error calculation for plot
+msc_spls.se <- msc_spls %>% 
+  group_by(hemi, label_name, network_name) %>%
+  summarise(n=n(), 
+            sd=sd(dice_coeff), 
+            se=sd/sqrt(n))
+
+msc_spls.se.lh <- msc_spls.se %>% subset(hemi %in% c('lh')) 
+msc_spls.se.rh <- msc_spls.se %>% subset(hemi %in% c('rh')) 
+
+names(msc_spls.se.lh)[names(msc_spls.se.lh) == 'dice_coeff'] <- "se"
+names(msc_spls.se.rh)[names(msc_spls.se.rh) == 'dice_coeff'] <- "se"
+
+msc_spls.se.lh = msc_spls.se.lh %>% subset(select = -c(hemi, label_name))
+msc_spls.se.rh = msc_spls.se.rh %>% subset(select = -c(hemi, label_name))
+
+# Merge together + get upper and lower bounds
+msc_spls.se.lh <- merge(msc_spls.se.lh, msc_spls.avg.lh,
+                         by=c("network_name"))
+msc_spls.se.rh <- merge(msc_spls.se.rh, msc_spls.avg.rh,
+                         by=c("network_name"))
+
+msc_spls.se.lh <- msc_spls.se.lh %>% 
+  group_by(network_name) %>%
+  mutate(upper = dice_coefficient + se, 
+         lower = dice_coefficient - se)
+
+msc_spls.se.rh <- msc_spls.se.rh %>% 
+  group_by(network_name) %>%
+  mutate(upper = dice_coefficient + se, 
+         lower = dice_coefficient - se)
+
+msc_spls.se.lh.u <- msc_spls.se.lh %>% subset(select = -c(lower, dice_coefficient))
+names(msc_spls.se.lh.u)[names(msc_spls.se.lh.u) == 'upper'] <- "dice_coefficient"
+msc_spls.se.lh.l <- msc_spls.se.lh %>% subset(select = -c(upper, dice_coefficient))
+names(msc_spls.se.lh.l)[names(msc_spls.se.lh.l) == 'lower'] <- "dice_coefficient"
+
+msc_spls.se.rh.u <- msc_spls.se.rh %>% subset(select = -c(lower, dice_coefficient))
+names(msc_spls.se.rh.u)[names(msc_spls.se.rh.u) == 'upper'] <- "dice_coefficient"
+msc_spls.se.rh.l <- msc_spls.se.rh %>% subset(select = -c(upper, dice_coefficient ))
+names(msc_spls.se.rh.l)[names(msc_spls.se.rh.l) == 'lower'] <- "dice_coefficient"
+
+# More renaming for plot aesthetics 
+msc_spls.avg.lh$hemi <- gsub("lh", "Left Hemisphere", msc_spls.avg.lh$hemi)
+msc_spls.avg.rh$hemi <- gsub("rh", "Right Hemisphere", msc_spls.avg.rh$hemi)
+msc_spls.se.lh.l$hemi <- gsub("lh", "Left Hemisphere", msc_spls.se.lh.l$hemi)
+msc_spls.se.lh.u$hemi <- gsub("lh", "Left Hemisphere", msc_spls.se.lh.u$hemi)
+msc_spls.se.rh.l$hemi <- gsub("rh", "Right Hemisphere", msc_spls.se.rh.l$hemi)
+msc_spls.se.rh.u$hemi <- gsub("rh", "Right Hemisphere", msc_spls.se.rh.u$hemi)
+
+# Plot
+network_msc.plot <- ggplot() +  
+  geom_polygon(data = msc_ifrms.se.lh.l, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_ifrms.se.lh.u, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) +
+  geom_polygon(data = msc_ifrms.avg.lh, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi
+                   ), 
+               size = .9, alpha = .3) +
+  geom_point(data = msc_ifrms.avg.lh, 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
+             size = 2) + 
+  
+  
+  geom_polygon(data = msc_ifrms.se.rh.l, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_ifrms.se.rh.u, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_ifrms.avg.rh, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, group = label_hemi, color = label_hemi), 
+               size =  .9, alpha = .3) +
+  geom_point(data = msc_ifrms.avg.rh, 
+             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             size = 2) +
+  
+  
+  geom_polygon(data = msc_spls.se.lh.l, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_spls.se.lh.u, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_spls.avg.lh, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               size =  .9, alpha = .3) +
+  geom_point(data = msc_spls.avg.lh, 
+             aes(x = network_name, y = dice_coefficient, color = label_hemi), 
+             size = 2) + 
+  
+  
+  geom_polygon(data = msc_spls.se.rh.l, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_spls.se.rh.u, 
+               aes(x = network_name, y = dice_coefficient, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               fill = NA,
+               linetype = 2, size = .4) + 
+  geom_polygon(data = msc_spls.avg.rh, 
+               aes(x = network_name, y = dice_coefficient, 
+                   fill = label_hemi, 
+                   group = label_hemi, 
+                   color = label_hemi), 
+               size =  .9, alpha = .3) +
+  geom_point(data = msc_spls.avg.rh, 
+             aes(x = network_name, y = dice_coefficient, 
+                 color = label_hemi), 
+             size = 2) +
+  
+  coord_radar(start = -pi/2) +
+  
+  labs(x = "Network Name",
+       y = "Dice Coefficient", 
+       title = "",
+       subtitle = "",
+       color = "Label & Hemisphere",
+       fill = "Label & Hemisphere") +  
+  
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                     values = c("#252525", "#404040", "#238b45", "#74c476")) + 
+  
+  theme_minimal() +
+  
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(hjust = 0, size = 14),
+        plot.caption = element_text(size = 12),
+        axis.text=element_text(size=14),
+        axis.title.x = element_text(size = 0, face = "bold"), # was 12
+        axis.title.y = element_text(size = 0, face = "bold"), # was 12
+        axis.text.x = element_text(size = 0, face = "bold", color = "black", vjust = .50), # was 5
+        axis.text.y = element_text(size = 0, face = "bold"), # was 10
+        strip.text.x = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0, face = "bold"), # was 10
+        legend.text = element_text(size=0), # was 8
+        legend.position="bottom", 
+        axis.line = element_line(colour = "black", 
+                                 size = 0, linetype = "solid", lineend = "round"),
+        panel.grid.minor = element_line(size = 0.5, color = "gray"
+                                        ), 
+        panel.grid.major = element_line(size = .75, color = "gray"
+                                        )) + 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1) + 
+ facet_grid(. ~ hemi)
+network_msc.plot
+
+# ggplot2::ggsave(filename = "~/Desktop/network_msc.plot.png",
+#                 plot = network_msc.plot,
+#                 device = "png",
+#                 width = 8,
+#                 height = 6,
+#                 units = "in",
+#                 dpi = "retina")
+
+```
+
+
+## Supplementary Figure 14: Individual subject fingerprints - MSC
+```{r}
+# Dataset
+  # msc_networks
+
+# Features for plot
+
+## label_hemi
+msc_networks$label_hemi[msc_networks$label_name == "ifrms" &
+                                                  msc_networks$hemi == "lh"] <- "ifrms.lh"
+
+msc_networks$label_hemi[msc_networks$label_name == "ifrms" &
+                                                  msc_networks$hemi == "rh"] <- "ifrms.rh"
+
+msc_networks$label_hemi[msc_networks$label_name == "spls" &
+                                                  msc_networks$hemi == "lh"] <- "spls.lh"
+
+msc_networks$label_hemi[msc_networks$label_name == "spls" &
+                                                  msc_networks$hemi == "rh"] <- "spls.rh"
+
+msc_networks$label_hemi[msc_networks$label_name == "ifrms" &
+                                                  msc_networks$hemi == "lh"] <- "ifrms.lh"
+
+msc_networks$label_hemi[msc_networks$label_name == "ifrms" &
+                                                  msc_networks$hemi == "rh"] <- "ifrms.rh"
+
+msc_networks$label_hemi[msc_networks$label_name == "spls" &
+                                                  msc_networks$hemi == "lh"] <- "spls.lh"
+
+## TRG_sub_hemi
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC01" &
+                                                  msc_networks$hemi == "lh"] <- "MSC01.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC01" &
+                                                  msc_networks$hemi == "rh"] <- "MSC01.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC02" &
+                                                  msc_networks$hemi == "lh"] <- "MSC02.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC02" &
+                                                  msc_networks$hemi == "rh"] <- "MSC02.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC03" &
+                                                  msc_networks$hemi == "lh"] <- "MSC03.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC03" &
+                                                  msc_networks$hemi == "rh"] <- "MSC03.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC04" &
+                                                  msc_networks$hemi == "lh"] <- "MSC04.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC04" &
+                                                  msc_networks$hemi == "rh"] <- "MSC04.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC05" &
+                                                  msc_networks$hemi == "lh"] <- "MSC05.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC05" &
+                                                  msc_networks$hemi == "rh"] <- "MSC05.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC06" &
+                                                  msc_networks$hemi == "lh"] <- "MSC06.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC06" &
+                                                  msc_networks$hemi == "rh"] <- "MSC06.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC07" &
+                                                  msc_networks$hemi == "lh"] <- "MSC07.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC07" &
+                                                  msc_networks$hemi == "rh"] <- "MSC07.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC08" &
+                                                  msc_networks$hemi == "lh"] <- "MSC08.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC08" &
+                                                  msc_networks$hemi == "rh"] <- "MSC08.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC09" &
+                                                  msc_networks$hemi == "lh"] <- "MSC09.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC09" &
+                                                  msc_networks$hemi == "rh"] <- "MSC09.rh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC10" &
+                                                  msc_networks$hemi == "lh"] <- "MSC10.lh"
+msc_networks$TRG_sub_hemi[msc_networks$TRG_sub == "sub-MSC10" &
+                                                  msc_networks$hemi == "rh"] <- "MSC10.rh"
+# Plot
+all_conn_fp_msc.plot <- ggplot() +  
+  geom_polygon(data = msc_networks, 
+               aes(x = network_name, y = dice_coeff, fill = label_hemi, group = label_hemi, color = label_hemi), 
+               size = .5, alpha = .3) +
+  geom_point(data = msc_networks, 
+             aes(x = network_name, y = dice_coeff, color = label_hemi), 
+                                         size = 1, alpha = 1) + 
+  coord_radar(start = -pi/2) +
+  labs(x = "Network Name",
+       y = "Dice Coefficient", 
+       title = "",
+       subtitle = "",
+       color = "Label & Hemisphere",
+       fill = "Label & Hemisphere") +  
+  scale_fill_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                    labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                    values = c("#969696", "#cccccc", "#238b45", "#74c476")) +
+  
+  scale_color_manual(limits = c("ifrms.lh", "ifrms.rh", "spls.lh", "spls.rh"), 
+                     labels = c("ifrms lh", "ifrms rh", "spls lh", "spls rh"),
+                     values = c("#252525", "#969696", "#238b45", "#74c476")) + 
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(hjust = 0, size = 14),
+        plot.caption = element_text(size = 12),
+        axis.text=element_text(size=14),
+        axis.title.x = element_text(size = 0),
+        axis.title.y = element_text(size = 0),
+        axis.text.x = element_text(size = 0, face = "bold", color = "black", vjust = .50), # was 4
+        axis.text.y = element_text(size = 0, face = "bold"),
+        strip.text.y = element_text(size = 0),
+        strip.text.x = element_text(size = 0, face = "bold"), # was 12
+        legend.title = element_text(size=0), # was 12
+        legend.text = element_text(size=0), # was 12
+        legend.position = "bottom",
+        axis.line = element_line(colour = "black", 
+                                 size = 0, linetype = "solid", lineend = "round"),
+        panel.grid.minor = element_line(color = "gray"), 
+        panel.grid.major = element_line(color = "gray")) + 
+  guides(fill = "none", color = "none") + 
+  ylim(0,1) + 
+  facet_wrap(~TRG_sub_hemi, ncol = 6)
+#all_conn_fp_msc.plot #unmark to view
+
+ggplot2::ggsave(filename = "~/Desktop/all_conn_fp_msc_plot.png",
+                plot = all_conn_fp_msc.plot,
+                device = "png",
+                width = 8.5,
+                height = 5.5,
+                units = "in",
+                dpi = "print")
+```
+
+
+## Supplementary Figure 18: Correlation matrices for sulcal intersections of the discovery and replication sample shallow PCC sulci
 ```{r}
 ## Making matrices
 # All HCP together
@@ -4911,13 +5569,13 @@ cor.test(c(as.matrix(adni_tert_lh_mat)), c(as.matrix(adni_tert_rh_mat)))
 cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(nora_tert_lh_mat)))
 
 ## hcpC rh ~ nora rh
-cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(nora_tert_rh_mat)))
+cor.test(c(as.matrix(hcpC_tert_rh_mat)), c(as.matrix(nora_tert_rh_mat)))
 
 ## hcpC lh ~ adni lh
 cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(adni_tert_lh_mat)))
 
 ## hcpC rh ~ adni rh
-cor.test(c(as.matrix(hcpC_tert_lh_mat)), c(as.matrix(adni_tert_rh_mat)))
+cor.test(c(as.matrix(hcpC_tert_rh_mat)), c(as.matrix(adni_tert_rh_mat)))
 
 ## nora lh ~ adni lh
 cor.test(c(as.matrix(nora_tert_lh_mat)), c(as.matrix(adni_tert_lh_mat)))
@@ -5047,7 +5705,7 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 #dev.off()
 ```
 
-## Supplementary Figure 7.2a: Raw sulcal depth (mm)
+## Supplementary Figure 20a: Raw sulcal depth (mm)
 * 3-way (age group x species x hemi) ANOVA to test for differences in raw depth (mm)
 * age group: juvenile, young adult, older adult
 * species: human, chimpanzee
@@ -5058,7 +5716,7 @@ mtext(side=2, line=3.5, "", font=2, cex=1)
 # ANOVA
 comp_raw_depth.aov <- aov(sulcal_depth_mm ~ hemi * group * species, data = ifrms_compdev_morphology)
 summary(comp_raw_depth.aov)
-eta_sq(comp_raw_depth.aov)
+rstatix::anova_summary(comp_raw_depth.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of hemi
 ifrms_compdev_morphology %>% group_by(hemi) %>% summarise(mean = mean(sulcal_depth_mm))
@@ -5137,7 +5795,7 @@ comp_depth_raw.plot
 #                 dpi = "print")
 ```
 
-## Supplemental Figure 7.2b: Raw cortical thickness 
+## Supplemental Figure 20b: Raw cortical thickness 
 * 3-way (age group x species x hemi) ANOVA to test for differences in raw cortical thickness (mm)
 * age group: juvenile, young adult, older adult
 * species: human, chimpanzee
@@ -5149,7 +5807,7 @@ comp_depth_raw.plot
 comp_raw_thick.aov<- aov(cortical_thickness_mean ~ hemi * group * species, 
                           data = ifrms_compdev_morphology)
 summary(comp_raw_thick.aov)
-eta_sq(comp_raw_thick.aov)
+rstatix::anova_summary(comp_raw_thick.aov, effect.size = "ges") #Eta-squared
 
 # Main effect of group
 ifrms_compdev_morphology %>% group_by(group) %>% summarise(mean = mean(cortical_thickness_mean))
@@ -5229,7 +5887,7 @@ comp_ct_raw.plot
 #                 dpi = "print")
 ```
 
-## Supplemental Figure 9a: Depth of all PMC sulci between age groups (humans)
+## Supplemental Figure 22a: Depth of all PMC sulci between age groups (humans)
 * 3-way (sulcal label x age group x hemi) ANOVA to test for differences in raw depth (mm)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -5243,7 +5901,7 @@ development_all_morphology <- read.csv("~/Desktop/RMD_csvs/developmental_all_mor
 # ANOVA
 dev_pmc_depth.aov <- aov(sulcal_depth_mm ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_depth.aov)
-eta_sq(dev_pmc_depth.aov)
+rstatix::anova_summary(dev_pmc_depth.aov, effect.size = "ges") #Eta-squared
 
 dev_pmc_dep.m1 <- emmeans::emmeans(dev_pmc_depth.aov,'label')
 emmeans::contrast(dev_pmc_dep.m1, method='pairwise')
@@ -5364,7 +6022,7 @@ dev_depth.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 9b: Surface area of all PCC and PRC sulci between age groups (humans)
+## Supplemental Figure 22b: Surface area of all PCC and PRC sulci between age groups (humans)
 * 3-way (sulcal label x age group x hemi) ANOVA to test for differences in surface area (mm^2)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -5375,7 +6033,7 @@ dev_depth.plot
 # ANOVA
 dev_pmc_sa.aov <- aov(total_surface_area_.mm.2. ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_sa.aov)
-eta_sq(dev_pmc_sa.aov)
+rstatix::anova_summary(dev_pmc_sa.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 dev_pmc_sa.m1 <- emmeans::emmeans(dev_pmc_sa.aov,'label')
@@ -5487,7 +6145,7 @@ dev_sa.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 9c: Cortical thickness of all PMC sulci in juveniles
+## Supplemental Figure 22c: Cortical thickness of all PMC sulci in juveniles
 * 2-way (sulcal label x age group x hemi) ANOVA to test for differences in cortical thickness (mm)
 * sulcal label: 11 PMC (PCC & PRC) sulci (see Methods for description)
 * age group: juvenile, young adult, older adult
@@ -5498,7 +6156,7 @@ dev_sa.plot
 # ANOVA
 dev_pmc_ct.aov <- aov(cortical_thickness_mean ~ label * group * hemi, data = development_all_morphology)
 summary(dev_pmc_ct.aov)
-eta_sq(dev_pmc_ct.aov)
+rstatix::anova_summary(dev_pmc_ct.aov, effect.size = "ges") #Eta-squared
 
 # Post hoc tests
 dev_pmc_ct.m1 <- emmeans::emmeans(dev_pmc_ct.aov,'label')
@@ -5613,7 +6271,233 @@ dev_ct.plot
 #                  dpi = "retina")
 ```
 
-## Supplemental Figure 10: Evaluation of the spherical CNNs ability to define PMC sulci 
+# Supplementary Figure 23: *ifrms* classification based on morphology
+```{r}
+library(factoextra)
+library(cluster)
+library(plotly)
+# ifrms classification based on morph 
+# ifrms_compdev_morphology <- read.csv("~/Desktop/DropBox/cnl/stable_projects/TripartiteLandmark_PosteriorCingulate/RMD_csvs/ifrms_compdev_morphology.csv")
+
+ifrms_compdev_morphology <- ifrms_compdev_morphology %>% mutate(spec_grp = case_when(dataset %in% 
+                                                                                       c("young_adult_chimp", 
+                                                                                         "older_adult_chimp", "young_chimp") ~ 
+                                                                                       "chimp",
+                                                                                     dataset == "HCP" ~ "young_adult_human",
+                                                                                     dataset == "NORA" ~ "juvenile_human",
+                                                                                     dataset == "ADNI" ~ "older_adult_human"))
+
+classification.plot <- ggplot(data = ifrms_compdev_morphology, aes(x = sulcal_depth_mm, y = total_surface_area_.mm.2.)) +
+  geom_point(aes(fill = spec_grp), alpha = .8, shape = 21, color = 'black',
+              position=position_jitterdodge(jitter.width = .3, dodge.width = .9, jitter.height = 0)) +
+  plot_theme +
+  
+#  scale_color_manual(breaks = 
+#                       c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+#                     values = c("#e41a1c", "#f03b20","#377eb8", "#41b6c4", "#006837", "#2ca25f")) + 
+#  scale_fill_manual(breaks = 
+#                      c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+#                    values = c("#e41a1c", "#f03b20","#377eb8", "#74a9cf", "#006837", "#31a354")) +
+  
+#  guides(alpha = F) + 
+  facet_wrap(~hemi)
+
+classification.plot
+
+
+classification.plot <- ggplot(data = ifrms_compdev_morphology, aes(x = sulcal_depth_mm, y = total_surface_area_.mm.2.)) +
+  geom_jitter(aes(fill = species), alpha = .8, shape = 21, color = 'black',
+              position=position_jitterdodge(jitter.width = .3, dodge.width = .9, jitter.height = 0)) +
+  plot_theme +
+  
+  #  scale_color_manual(breaks = 
+  #                       c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+  #                     values = c("#e41a1c", "#f03b20","#377eb8", "#41b6c4", "#006837", "#2ca25f")) + 
+  #  scale_fill_manual(breaks = 
+  #                      c("NORA", "young_chimp", "HCP", "young_adult_chimp", "ADNI", "older_adult_chimp"),
+  #                    values = c("#e41a1c", "#f03b20","#377eb8", "#74a9cf", "#006837", "#31a354")) +
+  
+  #  guides(alpha = F) + 
+  facet_wrap(~hemi)
+
+classification.plot
+
+
+# left hemisphere
+ifrms_compdev_morphology_lh <- ifrms_compdev_morphology %>% subset(hemi == "lh") 
+df.lh <- ifrms_compdev_morphology_lh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+ggscatter(df.lh, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                                    size = 2
+                                    )
+
+df.lh.s <- df.lh %>% mutate(scale_depth = scale(sulcal_depth_mm),
+                            scale_sa = scale(total_surface_area_.mm.2.)) %>% select(-c(1:2))
+
+# Determine best # of clusters
+NbClust(df.lh.s, distance = "euclidean", method = "kmeans", index ="all") 
+
+# cluster based on optimal # of clusters = 2
+set.seed(1)
+km.lh <- kmeans(df.lh.s, centers = 2, nstart = 25)
+
+
+clust.lh <- km.lh$cluster %>%
+  as.factor()
+df.lh.s <- df.lh.s %>%
+  mutate(groups = clust.lh)
+
+tbl.clust.lh <- table(df.lh.s$groups)
+
+df.lh.plt <- cbind(df.lh.s, ifrms_compdev_morphology_lh)
+
+# left plot with humans
+classification.plot <- ggscatter(df.lh.plt, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                        size = 2,
+                        shape = 21,
+                        #color = "groups",
+                        fill = "groups",
+                        ellipse = TRUE,
+                        ellipse.type = "convex",
+                        mean.point = T,
+                        mean.point.size = 4,
+                        repel = T) +
+  scale_fill_manual(breaks = c("2", "1"),
+                    values = c("blue", "red")) + 
+  scale_color_manual(breaks = c("2", "1"),
+                     values = c("blue", "red")) 
+ggplotly(classification.plot)
+
+
+
+classification.plot_lh <- classification.plot +
+  new_scale_fill() + 
+  geom_point(aes(fill = group), label = df.lh$group, check_overlap = F, size = 1.5, shape = 21) +
+    scale_fill_manual(breaks = c("juvenile", "young-adult", "older-adult"),
+                      values = c("#e41a1c", "#377eb8", "#006837"))
+
+# left with chimps 
+chimp_lh <- ifrms_compdev_morphology %>% 
+  subset(hemi == "lh" & species == "chimpanzee") %>% 
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+classification_plot_lh.final <- classification.plot_lh + 
+  geom_point(data = chimp_lh, fill = 'black', shape = 21, size = 2) + 
+  geom_point(aes(x=2.709024, y=60.82028), size = 4, shape = 21, fill ="red") +
+  guides(fill = "none", color = "none") +
+  scale_y_continuous(breaks=seq(0, 350, 50), limits = c(0,350)) +
+  scale_x_continuous(breaks=seq(0, 15, 3), limits = c(0,15)) +
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 12, hjust = 1),
+        axis.title.x = element_text(size=14, face = "bold"),
+        axis.title.y = element_text(size=14, face = "bold"),
+        axis.text.x = element_text(size = 12, face = "bold"),
+        axis.text.y = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12),
+        strip.text.x = element_text(size = 14, face = "bold"), # was 12
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
+  
+
+classification_plot_lh.final
+#ggsave(filename = "~/Desktop/classification_plot_lh_final.png",
+#                         plot = classification_plot_lh.final,
+#                         device = "png",
+#                         width = 6,
+#                         height = 6, 
+#                         units = "in",
+#                         dpi = "retina")
+
+# right hemisphere
+ifrms_compdev_morphology_rh <- ifrms_compdev_morphology %>% subset(hemi == "rh")
+
+df.rh <- ifrms_compdev_morphology_rh %>%
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+ggscatter(df.rh, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+          size = 2
+)
+
+df.rh.s <- df.rh %>% mutate(scale_depth = scale(sulcal_depth_mm),
+                            scale_sa = scale(total_surface_area_.mm.2.)) %>% 
+                     select(-c(1:2))
+# Determine best # of clusters
+NbClust(df.rh.s, distance = "euclidean", method = "kmeans", index ="all") 
+
+# cluster based on optimal # of clusters = 2
+set.seed(1)
+km.rh <- kmeans(df.rh.s, centers = 2, nstart = 25)
+
+clust.rh <- km.rh$cluster %>%
+  as.factor()
+df.rh.s <- df.rh.s %>%
+  mutate(groups = clust.rh)
+
+tbl.clust.rh <- table(df.rh.s$groups)
+
+
+
+df.rh.plt <- cbind(df.rh.s, ifrms_compdev_morphology_rh)
+
+# right plot with humans
+classification.plot.rh <- ggscatter(df.rh.plt, x = "sulcal_depth_mm", y = "total_surface_area_.mm.2.", 
+                                 size = 2,
+                                 shape = 21,
+                                 #color = "groups",
+                                 fill = "groups",
+                                 ellipse = TRUE,
+                                 ellipse.type = "convex",
+                                 mean.point = T,
+                                 mean.point.size = 4,
+                                 repel = T) +
+  scale_fill_manual(breaks = c("1", "2"),
+                    values = c("blue", "red")) + 
+  scale_color_manual(breaks = c("1", "2"),
+                    values = c("blue", "red"))
+
+classification.plot.rh2 <- classification.plot.rh + new_scale_fill() + 
+geom_point(aes(fill = group), label = df.rh$group, check_overlap = F, size = 1.5, shape = 21) +
+scale_fill_manual(breaks = c("juvenile", "young-adult", "older-adult"),
+                  values = c("#e41a1c", "#377eb8", "#006837"))
+
+# right with chimps
+chimp_rh <- ifrms_compdev_morphology %>% 
+  subset(hemi == "rh" & species == "chimpanzee") %>% 
+  select(sulcal_depth_mm, total_surface_area_.mm.2.)
+
+classification_plot_rh.final <- classification.plot.rh2 + 
+  geom_point(data = chimp_rh, fill = 'black', shape = 21, size = 2) + 
+  geom_point(aes(x=1.752122, y=56.87245), size = 4, shape = 21, fill ="red") +
+  guides(fill = "none", color = "none") +
+  scale_y_continuous(breaks=seq(0, 350, 50), limits = c(0,350)) +
+  scale_x_continuous(breaks=seq(0, 15, 3), limits = c(0,15)) +
+  theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
+        plot.subtitle = element_text(size = 12),
+        plot.caption = element_text(size = 12, hjust = 1),
+        axis.title.x = element_text(size=14, face = "bold"),
+        axis.title.y = element_text(size=14, face = "bold"),
+        axis.text.x = element_text(size = 12, face = "bold"),
+        axis.text.y = element_text(size = 12, face = "bold"),
+        legend.title = element_text(size=14), 
+        legend.text = element_text(size=12),
+        strip.text.x = element_text(size = 14, face = "bold"), # was 12
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black", linetype = "solid", lineend = "round"))
+
+classification_plot_rh.final
+#ggsave(filename = "~/Desktop/classification_plot_rh_final.png",
+#       plot = classification_plot_rh.final,
+#       device = "png",
+#       width = 6,
+#       height = 6, 
+#       units = "in",
+#       dpi = "retina")
+```
+
+## Supplemental Figure 24: Evaluation of the spherical CNNs ability to define PMC sulci 
 ```{r, warning = FALSE}
 # Features for plot
 pmc_nn_predicts$sulci <- factor(pmc_nn_predicts$sulci, levels = c("pos", "prculs", "spls", "mcgs", "prcus-p", "prcus-i", "prcus-a", "ifrms"))
@@ -5645,8 +6529,8 @@ cnn_all.plot <- ggplot() +
   scale_x_discrete(breaks = c("pos", "prculs", "spls", "mcgs", "prcus-p", "prcus-i", "prcus-a", "ifrms"), 
                    labels = c("pos", "prculs", "spls", "mcgs", "prcus-p", "prcus-i", "prcus-a",
                             "ifrms")) +
-scale_y_continuous(breaks=seq(0,1,.2)) + ylim(0,1) +
-scale_color_manual(breaks = 
+  scale_y_continuous(breaks=seq(0,1,.2), limits = c(0,1)) +
+  scale_color_manual(breaks = 
                        c("pos", "prculs", "prcus-p", "prcus-i", 
                          "prcus-a", "spls", "mcgs", "ifrms"),
                      values = c( "#252525","#252525", "#252525","#252525",
@@ -5660,39 +6544,37 @@ scale_color_manual(breaks =
                "darkolivegreen2", 
                "#74c476", 
                "#41b6c4", 
-               "#ef3b2c")) + 
+               "#f7f7f7")) + 
   labs(x = "8 PCC and PrC sulci",
        y = dice_y) +
-  guides(fill = F, color = F, alpha = F) +
+  guides(fill = "none", color = "none", alpha = "none") +
   theme(plot.title = element_text(face = "bold", hjust = 0, size = 14), 
           plot.subtitle = element_text(size = 12),
           plot.caption = element_text(size = 12, hjust = 1),
           axis.title.x = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y = element_text(size=20, face = "bold", vjust = .9),
           axis.title.y.right = element_text(size=20, face = "bold", vjust = 1),
-          axis.text.x = element_text(size = 6, face = "bold", vjust = .70), # was 16 
-          axis.text.y = element_text(size = 16, face = "bold"), # was 20
+          axis.text.x = element_text(size = 16, face = "bold", vjust = .70), # was 12 
+          axis.text.y = element_text(size = 20, face = "bold"), # was 16
           legend.title = element_text(size=14), 
           legend.text = element_text(size=12),
-          strip.text.x = element_text(size = 8, face = "bold"), # was 18
+          strip.text.x = element_text(size = 18, face = "bold"), # was 12
           strip.background = element_blank(),
           strip.placement = "outside",
           axis.line = element_line(colour = "black", linetype = "solid", lineend = "round")) +
   facet_grid(. ~ type, 
              scales = "free_x", space='free', switch="both")
+
 cnn_all.plot
 
-# ggplot2::ggsave(filename = "cnn_all_plot.png",
+# ggplot2::ggsave(filename = "~/Desktop/cnn_all_plot.png",
 #                 plot = cnn_all.plot,
 #                 device = "png",
 #                 width = 10,
-#                 height = 5, 
+#                 height = 5,
 #                 units = "in",
 #                 dpi = "retina")
 ```
-
-
-# Supplementary Tables 
 
 ## Supplementary Table 1: Discovery incidence rates
 ```{r, warning = FALSE}
@@ -5730,7 +6612,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the *discovery* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the *discovery* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -5813,7 +6695,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the *replication* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the *replication* young adult sample (N = 36 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6479,7 +7361,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the juvenile sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the juvenile sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6562,7 +7444,7 @@ tab_style(
       columns = c(1),
       rows = 1:11
     )) %>%
-tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-11 definable PMC sulci in the healhty older adult sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
+tab_source_note(md("*Note.* This table illustrates the incidence rates of the 8-11 definable PMC sulci in the healhty older adult sample (N = 72 participants). The incidence rate of each sulcus (posterior to anterior) is provided in number and percent for both the left (LH) and right hemispheres (RH). The abbreviations used are as follows: anterior precuneal sulcus (*prcus-a*); intermediate precuneal sulcus (*prcus-i*); inframarginal sulcus (*ifrms*); marginal ramus of the cingulate sulcus (*mcgs*); parieto-occipital sulcus (*pos*); posterior intracingulate sulcus (*icgs-p*); posterior precuneal sulcus (*prcus-p*); precuneal limiting sulcus (*prculs*); splenial sulcus (*spls*); subsplenial sulcus (*sspls*); superior parietal sulcus (*sps*).")) %>%
   tab_options(table.font.size = 20,
     heading.title.font.size = 20,
     heading.subtitle.font.size = 20,
@@ -6608,7 +7490,6 @@ tab_source_note(md("*Note.* This table illustrates the incident rates of the 8-1
 
 #gtsave(ADNI_IR_tab, file = "Supp_Table_10_adni_IR.png")
 ```
-
 
 ## Supplementary Table 11: NORA Prcuneal Sulci
 ```{r, warning = FALSE}
@@ -7121,7 +8002,6 @@ tab_source_note(md("*Note.* Surface area values are in squared millimeters. Abbr
 #gtsave(dev_all_morphology_sa_stats.tab, file = "Supp_Table_16_dev_sa_stats.tab.png")
 ```
 
-
 ## Supplementary Table 17: Cortical Thickness of PMC sulci between age groups 
 ```{r, warning = FALSE}
 dev_ct_stats.tab <- dev_ct_stats %>% select(c("label", "group_hemi", "cortical_thickness_mean", "sd")) 
@@ -7194,7 +8074,6 @@ tab_source_note(md("*Note.* Cortical thickness values are in millimeters. Abbrev
 
 #gtsave(dev_ct_stats.tab, file = "Supp_Table_17_dev_ct_stats.tab.png")
 ```
-
 
 ## Supplementary Table 18: ADNI Scanning Parameters 
 ```{r, warning = FALSE}
@@ -7294,3 +8173,4 @@ tab_source_note(html("<i>Note.</i> This table illustrates the different scanning
 
 #gtsave(adni_scanning_tab, file = "Supp_Table_18_ADNI.png")
 ```
+

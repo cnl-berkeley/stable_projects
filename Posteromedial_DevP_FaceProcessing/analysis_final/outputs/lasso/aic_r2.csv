@@ -1,0 +1,6 @@
+quantity,value
+"AICc, full model (9 sulci)",150.98638006433634
+"AICc, selected model (3 sulci, alpha = 1.35)",115.61950356404212
+delta AICc (full - selected),35.366876500294225
+"CV R2, alpha = 1.35",-0.020468221425515853
+"CV adjusted R2 (k = 3), alpha = 1.35",-0.14802674910370528

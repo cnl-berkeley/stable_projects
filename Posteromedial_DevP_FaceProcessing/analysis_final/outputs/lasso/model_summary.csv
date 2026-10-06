@@ -1,0 +1,6 @@
+model,n,alpha,RMSE_CV,selected,fold_selection
+depth_NT_RH,28,1.35,5.207574328269921,"ifrms (-1.29), prcus-i (-0.15), prcus-p (-0.23)","ifrms 100%, mcgs 4%, pos 4%, prcus-i 79%, prcus-p 89%"
+depth_NT_LH,35,2.303,5.484848484848485,none,none
+thickness_NT_RH,28,4.489,5.4401709401709395,none,none
+depth_DP_RH,16,3.675,4.2857142857142865,none,none
+depth_DP_LH,30,2.154,4.0763546798029555,none,none
