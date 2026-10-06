@@ -1,0 +1,10 @@
+ANOVA Table (type III tests)
+
+            Effect DFn DFd      F        p p<.05      ges
+1            group   1 414  0.003 9.58e-01       5.24e-06
+2            label  11 414 21.442 1.70e-34     * 3.04e-01
+3             hemi   1 414  7.344 7.00e-03     * 4.00e-03
+4      group:label  11 414  0.633 8.01e-01       1.30e-02
+5       group:hemi   1 414 17.315 3.85e-05     * 1.00e-02
+6       label:hemi  11 414  7.264 2.26e-11     * 4.30e-02
+7 group:label:hemi  11 414  2.798 2.00e-03     * 1.70e-02

@@ -1,0 +1,96 @@
+==============================================================================
+TOP 5% THRESHOLD   (median area of the face-selective region 1.92 cm2)
+==============================================================================
+
+0 mm    LH: mean DSC prcus-p 0.153, sbps 0.090, prcus-i 0.084, prculs-d 0.073, prcus-a 0.025, pos 0.004, ifrms 0.000, mcgs 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): pos p=3.882e-06 holm=2.718e-05; ifrms p=5.606e-06 holm=3.364e-05; mcgs p=5.606e-06 holm=3.364e-05; prcus-a p=0.0002661 holm=0.001064; prculs-d p=0.02272 holm=0.06815; prcus-i p=0.08576 holm=0.1715; sbps p=0.1528 holm=0.1715
+   significant after Holm: 4/7; max Holm p over significant = 0.0011; min Holm p over non-significant = 0.0682; prcus-p highest in 20/47 hemispheres
+
+0 mm    RH: mean DSC prcus-p 0.123, prculs-d 0.080, prcus-i 0.065, sbps 0.056, pos 0.014, prcus-a 0.010, mcgs 0.001, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=2.563e-06 holm=1.793e-05; mcgs p=2.562e-06 holm=1.793e-05; prcus-a p=3.867e-05 holm=0.0001934; pos p=5.998e-05 holm=0.0002399; prculs-d p=0.03805 holm=0.07099; prcus-i p=0.02818 holm=0.07099; sbps p=0.02366 holm=0.07099
+   significant after Holm: 4/7; max Holm p over significant = 0.0002; min Holm p over non-significant = 0.0710; prcus-p highest in 19/47 hemispheres
+
+0-5 mm  LH: mean DSC prcus-p 0.195, sbps 0.097, prcus-i 0.095, prculs-d 0.070, prcus-a 0.028, pos 0.007, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=2.477e-07 holm=1.251e-06; mcgs p=1.829e-07 holm=1.251e-06; pos p=1.787e-07 holm=1.251e-06; prcus-a p=3.404e-05 holm=0.0001361; prculs-d p=0.001536 holm=0.004608; prcus-i p=0.02072 holm=0.04144; sbps p=0.02821 holm=0.04144
+   significant after Holm: 7/7; max Holm p over significant = 0.0414; min Holm p over non-significant = nan; prcus-p highest in 20/47 hemispheres
+
+0-5 mm  RH: mean DSC prcus-p 0.155, prculs-d 0.089, prcus-i 0.074, sbps 0.063, pos 0.017, prcus-a 0.012, mcgs 0.002, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=5.255e-08 holm=3.679e-07; mcgs p=1.483e-07 holm=8.9e-07; prcus-a p=2.237e-06 holm=1.118e-05; pos p=8.734e-06 holm=3.494e-05; sbps p=0.003067 holm=0.0092; prculs-d p=0.01025 holm=0.01875; prcus-i p=0.009373 holm=0.01875
+   significant after Holm: 7/7; max Holm p over significant = 0.0187; min Holm p over non-significant = nan; prcus-p highest in 19/47 hemispheres
+
+0-10 mm LH: mean DSC prcus-p 0.206, prcus-i 0.103, sbps 0.097, prculs-d 0.068, prcus-a 0.034, pos 0.012, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=5.218e-08 holm=3.297e-07; mcgs p=4.709e-08 holm=3.297e-07; pos p=1.404e-07 holm=7.022e-07; prcus-a p=1.718e-05 holm=6.873e-05; prculs-d p=0.0003573 holm=0.001072; sbps p=0.004916 holm=0.009831; prcus-i p=0.01179 holm=0.01179
+   significant after Holm: 7/7; max Holm p over significant = 0.0118; min Holm p over non-significant = nan; prcus-p highest in 21/47 hemispheres
+
+0-10 mm RH: mean DSC prcus-p 0.172, prculs-d 0.098, prcus-i 0.076, sbps 0.066, pos 0.023, prcus-a 0.016, mcgs 0.003, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=1.12e-08 holm=7.841e-08; mcgs p=2.541e-08 holm=1.525e-07; prcus-a p=4.909e-07 holm=2.454e-06; pos p=1.564e-06 holm=6.257e-06; sbps p=0.0004221 holm=0.001266; prcus-i p=0.001128 holm=0.002256; prculs-d p=0.005784 holm=0.005784
+   significant after Holm: 7/7; max Holm p over significant = 0.0058; min Holm p over non-significant = nan; prcus-p highest in 21/47 hemispheres
+
+LH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 5 mm (0.226)
+RH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 7.5 mm (0.193)
+mcgs 0-10 mm DSC = 0 in 92.6% of hemispheres
+
+==============================================================================
+TOP 2.5% THRESHOLD   (median area of the face-selective region 0.93 cm2)
+==============================================================================
+
+0 mm    LH: mean DSC prcus-p 0.124, sbps 0.055, prculs-d 0.052, prcus-i 0.044, prcus-a 0.014, pos 0.001, ifrms 0.000, mcgs 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=2.702e-05 holm=0.0001891; mcgs p=2.702e-05 holm=0.0001891; pos p=3.088e-05 holm=0.0001891; prcus-a p=0.0002604 holm=0.001042; prcus-i p=0.0201 holm=0.0603; prculs-d p=0.03144 holm=0.06287; sbps p=0.05444 holm=0.06287
+   significant after Holm: 4/7; max Holm p over significant = 0.0010; min Holm p over non-significant = 0.0603; prcus-p highest in 20/47 hemispheres
+
+0 mm    RH: mean DSC prcus-p 0.067, prculs-d 0.050, prcus-i 0.045, sbps 0.043, pos 0.009, prcus-a 0.007, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): mcgs p=6.899e-05 holm=0.0004829; ifrms p=8.857e-05 holm=0.0005314; prcus-a p=0.0009833 holm=0.004916; pos p=0.001569 holm=0.006277; prculs-d p=0.2645 holm=0.538; prcus-i p=0.1793 holm=0.538; sbps p=0.2748 holm=0.538
+   significant after Holm: 4/7; max Holm p over significant = 0.0063; min Holm p over non-significant = 0.5380; prcus-p highest in 16/47 hemispheres
+
+0-5 mm  LH: mean DSC prcus-p 0.141, sbps 0.056, prcus-i 0.046, prculs-d 0.044, prcus-a 0.014, pos 0.002, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): pos p=1.938e-07 holm=1.356e-06; mcgs p=2.949e-07 holm=1.769e-06; ifrms p=3.653e-07 holm=1.826e-06; prcus-a p=2.521e-05 holm=0.0001008; prculs-d p=0.002497 holm=0.00738; prcus-i p=0.00246 holm=0.00738; sbps p=0.01554 holm=0.01554
+   significant after Holm: 7/7; max Holm p over significant = 0.0155; min Holm p over non-significant = nan; prcus-p highest in 21/47 hemispheres
+
+0-5 mm  RH: mean DSC prcus-p 0.080, prculs-d 0.050, sbps 0.047, prcus-i 0.045, pos 0.010, prcus-a 0.009, mcgs 0.001, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=2.563e-06 holm=1.794e-05; mcgs p=7.203e-06 holm=4.322e-05; prcus-a p=6.947e-05 holm=0.0003473; pos p=0.0003598 holm=0.001439; prcus-i p=0.03578 holm=0.1073; prculs-d p=0.09255 holm=0.1851; sbps p=0.1257 holm=0.1851
+   significant after Holm: 4/7; max Holm p over significant = 0.0014; min Holm p over non-significant = 0.1073; prcus-p highest in 17/47 hemispheres
+
+0-10 mm LH: mean DSC prcus-p 0.136, sbps 0.053, prcus-i 0.050, prculs-d 0.039, prcus-a 0.017, pos 0.006, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=1.991e-07 holm=1.109e-06; mcgs p=1.584e-07 holm=1.109e-06; pos p=1.836e-07 holm=1.109e-06; prcus-a p=1.152e-05 holm=4.61e-05; prculs-d p=0.0007325 holm=0.002198; prcus-i p=0.00102 holm=0.002198; sbps p=0.001624 holm=0.002198
+   significant after Holm: 7/7; max Holm p over significant = 0.0022; min Holm p over non-significant = nan; prcus-p highest in 23/47 hemispheres
+
+0-10 mm RH: mean DSC prcus-p 0.086, prculs-d 0.053, sbps 0.047, prcus-i 0.043, pos 0.013, prcus-a 0.010, mcgs 0.002, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=1.14e-07 holm=7.982e-07; mcgs p=3.782e-07 holm=2.269e-06; prcus-a p=7.184e-06 holm=3.592e-05; pos p=8.811e-05 holm=0.0003525; prcus-i p=0.005397 holm=0.01619; prculs-d p=0.03459 holm=0.06918; sbps p=0.0475 holm=0.06918
+   significant after Holm: 5/7; max Holm p over significant = 0.0162; min Holm p over non-significant = 0.0692; prcus-p highest in 17/47 hemispheres
+
+LH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 5 mm (0.149)
+RH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 10 mm (0.093)
+mcgs 0-10 mm DSC = 0 in 94.7% of hemispheres
+
+==============================================================================
+TOP 10% THRESHOLD   (median area of the face-selective region 3.97 cm2)
+==============================================================================
+
+0 mm    LH: mean DSC prcus-p 0.184, prcus-i 0.145, sbps 0.135, prculs-d 0.086, prcus-a 0.045, pos 0.009, ifrms 0.000, mcgs 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=3.569e-08 holm=2.499e-07; mcgs p=3.569e-08 holm=2.499e-07; pos p=4.819e-08 holm=2.499e-07; prcus-a p=0.0001176 holm=0.0004702; prculs-d p=0.001912 holm=0.005737; prcus-i p=0.2628 holm=0.4329; sbps p=0.2165 holm=0.4329
+   significant after Holm: 5/7; max Holm p over significant = 0.0057; min Holm p over non-significant = 0.4329; prcus-p highest in 15/47 hemispheres
+
+0 mm    RH: mean DSC prcus-p 0.170, prculs-d 0.131, sbps 0.087, prcus-i 0.081, pos 0.022, prcus-a 0.012, mcgs 0.003, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=5.255e-08 holm=3.679e-07; mcgs p=1.288e-07 holm=7.729e-07; prcus-a p=1.114e-06 holm=5.572e-06; pos p=3.01e-06 holm=1.204e-05; prcus-i p=0.01056 holm=0.03167; sbps p=0.01249 holm=0.03167; prculs-d p=0.1005 holm=0.1005
+   significant after Holm: 6/7; max Holm p over significant = 0.0317; min Holm p over non-significant = 0.1005; prcus-p highest in 18/47 hemispheres
+
+0-5 mm  LH: mean DSC prcus-p 0.249, prcus-i 0.182, sbps 0.157, prculs-d 0.095, prcus-a 0.058, pos 0.014, mcgs 0.000, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): mcgs p=8.746e-09 holm=6.122e-08; ifrms p=1.12e-08 holm=6.721e-08; pos p=1.486e-08 holm=7.431e-08; prcus-a p=2.414e-05 holm=9.658e-05; prculs-d p=0.0001358 holm=0.0004074; sbps p=0.02085 holm=0.0417; prcus-i p=0.1275 holm=0.1275
+   significant after Holm: 6/7; max Holm p over significant = 0.0417; min Holm p over non-significant = 0.1275; prcus-p highest in 21/47 hemispheres
+
+0-5 mm  RH: mean DSC prcus-p 0.228, prculs-d 0.147, prcus-i 0.106, sbps 0.105, pos 0.030, prcus-a 0.018, mcgs 0.004, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=1.12e-08 holm=7.841e-08; mcgs p=2.382e-08 holm=1.429e-07; prcus-a p=1.606e-07 holm=8.032e-07; pos p=4.391e-07 holm=1.756e-06; sbps p=0.001022 holm=0.003066; prcus-i p=0.002629 holm=0.005257; prculs-d p=0.02505 holm=0.02505
+   significant after Holm: 7/7; max Holm p over significant = 0.0251; min Holm p over non-significant = nan; prcus-p highest in 19/47 hemispheres
+
+0-10 mm LH: mean DSC prcus-p 0.289, prcus-i 0.205, sbps 0.165, prculs-d 0.103, prcus-a 0.072, pos 0.022, mcgs 0.001, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): mcgs p=4.9e-09 holm=3.43e-08; ifrms p=5.93e-09 holm=3.558e-08; pos p=6.785e-09 holm=3.558e-08; prcus-a p=2.426e-06 holm=9.705e-06; prculs-d p=1.553e-05 holm=4.66e-05; sbps p=0.001533 holm=0.003067; prcus-i p=0.05288 holm=0.05288
+   significant after Holm: 6/7; max Holm p over significant = 0.0031; min Holm p over non-significant = 0.0529; prcus-p highest in 22/47 hemispheres
+
+0-10 mm RH: mean DSC prcus-p 0.269, prculs-d 0.161, prcus-i 0.122, sbps 0.115, pos 0.042, prcus-a 0.026, mcgs 0.005, ifrms 0.000
+   prcus-p vs each sulcus (Wilcoxon signed-rank; Holm across 7): ifrms p=5.179e-09 holm=3.625e-08; mcgs p=1.069e-08 holm=6.413e-08; prcus-a p=4.828e-08 holm=2.414e-07; pos p=1.065e-07 holm=4.262e-07; sbps p=2.14e-05 holm=6.42e-05; prcus-i p=0.0004625 holm=0.000925; prculs-d p=0.007314 holm=0.007314
+   significant after Holm: 7/7; max Holm p over significant = 0.0073; min Holm p over non-significant = nan; prcus-p highest in 18/47 hemispheres
+
+LH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 7.5 mm (0.335)
+RH: highest mean DSC at each distance: 0 mm prcus-p, 2.5 mm prcus-p, 5 mm prcus-p, 7.5 mm prcus-p, 10 mm prcus-p; prcus-p peaks at 10 mm (0.323)
+mcgs 0-10 mm DSC = 0 in 85.1% of hemispheres
+
