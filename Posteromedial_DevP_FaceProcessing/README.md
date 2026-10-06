@@ -16,3 +16,5 @@ All necessary Python and R packages are provided at the beginning of PMC_face_DP
 
 
 All associated data needed to implement statistical analyses and generate figures is included in the data folder.
+
+High resolution figure .tiff files are included as well. 
