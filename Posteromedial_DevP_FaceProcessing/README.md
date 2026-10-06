@@ -1,4 +1,4 @@
-# Overlooked neuroanatomical markers of face processing and developmental prosopagnosia in posteromedial cortex
+# Overlooked neuroanatomical correlates of face processing and developmental prosopagnosia in posteromedial cortex
 
 Associated data and code for the manuscript: Overlooked neuroanatomical correlates of face processing and developmental prosopagnosia in posteromedial cortex.
 
